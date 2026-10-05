@@ -58,5 +58,4 @@ tmp/
 .claude/
 .clinerules.local/
 
-# Vendor / third-party images (excluded on request; file stays on disk)
 docs/hardware/esp32-pinout.jpg
