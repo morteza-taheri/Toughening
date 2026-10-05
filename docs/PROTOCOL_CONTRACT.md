@@ -1,20 +1,20 @@
 # TOUGHENING MACHINE — PROTOCOL / MESSAGE CONTRACT
 
-> ## STATUS: **PROPOSED — NOT APPROVED**
+> ## STATUS: **APPROVED AS PHASE 2A INPUT — final approval after Phase 2A completes**
 >
-> This document is a **draft for review**. It is **not** an approved schema.
-> Nothing in it is authorised for implementation.
+> This document is approved **as the Phase 2A working input** (user decision, 2026-10-05). It is **not** a finally approved schema.
 > Per `docs/PROJECT_SPECIFICATION.md` §12.1 and §21, **explicit user approval of this document is required before Phase 2A may begin**, and Phase 2A additionally requires the user's **explicit statement that Phase 2A is authorized**.
-> **Phase 2A is NOT AUTHORIZED. Phase 2B is NOT AUTHORIZED.**
+> Gaps 3–8 (section 11) are **resolved during Phase 2A**. **Final approval of this contract is a separate task after Phase 2A completes.**
+> **Phase 2A is AUTHORIZED (as working input). Phase 2B is NOT AUTHORIZED.**
 
 | Field | Value |
 |---|---|
 | Document | `docs/PROTOCOL_CONTRACT.md` |
-| Status | **PROPOSED — NOT APPROVED** |
-| Version | 0.2.3 (draft) |
+| Status | **APPROVED AS PHASE 2A INPUT — final approval after Phase 2A completes** |
+| Version | 0.2.4 (draft) |
 | Date | 2026-10-05 |
-| Companion | `docs/PROJECT_SPECIFICATION.md` v0.6.2 |
-| Supersedes | v0.2.2 (draft, 2026-10-05). Earlier drafts v0.2.1, v0.2.0 (withdrawn — structurally corrupt) and v0.1.0 (2026-10-04). No earlier **approved** contract exists. |
+| Companion | `docs/PROJECT_SPECIFICATION.md` v0.7.2 |
+| Supersedes | v0.2.3 (2026-10-05, draft — Phase 2A working input). Earlier drafts v0.2.2, v0.2.1, v0.2.0 (withdrawn — structurally corrupt) and v0.1.0 (2026-10-04). No earlier **fully approved** contract exists. |
 | Implementation status | **None. No simulator, no firmware, no server exists.** |
 
 ---
@@ -76,11 +76,12 @@ Every ESP32-originated message carries the following envelope. Envelope fields a
 |---|---|---|---|
 | `protocol_version` | string | Yes | Semantic version of this contract, string form `"MAJOR.MINOR.PATCH"`. *(PROPOSED: `"1.0.0"`)* |
 | `type` | string | Yes | One of the 16 values in §3.2. *(spec-derived)* |
-| `message_id` | string | Yes | Unique per message, for logging and transport-level duplicate detection. *(PROPOSED: `"{device_id}:{boot_id}:{seq}"`)* |
+| `message_id` | string | Yes | Unique per **message transmission**, for logging and transport-level duplicate detection. *(PROPOSED: `"{device_id}:{boot_id}:{seq}"`)* |
 | `device_id` | string | Yes | Fixed identifier of the single ESP32; not a network address, never changes. *(PROPOSED: `"esp32-01"`)* |
 | `boot_id` | string | Yes | Identifies one boot session; scopes all uptime reasoning. *(spec-derived)* |
-| `seq` | integer | Yes | Monotonic per boot; resets to zero on reboot, `boot_id` disambiguates. *(PROPOSED: non-negative integer)* |
-| `record_id` | string | Durable records only | Stable identity of a durable record; the deduplication key. Absent from `live_state`, `hello`, `time_sync`, `time_sync_reply`, `config_set`, `config_result`, `batch`, `ack`, `nack`. *(spec-derived)* |
+| `seq` | integer | Yes | Monotonic per boot, incremented **per message sent**. Reset to zero on reboot; `boot_id` disambiguates. *(PROPOSED: non-negative integer)* |
+| `record_seq` | integer | Durable records only | Monotonic per boot, incremented **once per durable record created**, and **not** incremented when that record is retransmitted. This is the stable identity component of `record_id`. Absent from `live_state`, `hello`, `time_sync`, `time_sync_reply`, `config_set`, `config_result`, `ack`, `nack`. *(PROPOSED: non-negative integer)* |
+| `record_id` | string | Durable records only | Stable identity of a durable record; the deduplication key. Formatted **`{device_id}:{boot_id}:{record_seq}`** — deliberately **not** `{seq}`, so a retransmission gets a fresh `message_id` while keeping the same `record_id`. Absent from `live_state`, `hello`, `time_sync`, `time_sync_reply`, `config_set`, `config_result`, `batch`, `ack`, `nack`. *(PROPOSED: `"{device_id}:{boot_id}:{record_seq}"`)* |
 | `ts_sent_ms` | integer | Yes | UTC milliseconds at which the ESP32 emitted the message. *(PROPOSED: UTC epoch ms, same domain as `event_time`)* |
 | `ts_sent_valid` | integer | Yes | `0` or `1`; `0` when the ESP32 clock is not trustworthy. *(PROPOSED: `0` or `1`)* |
 | `payload` | object | Yes | Message-type specific; see §3.2. *(spec-derived)* |
@@ -162,13 +163,23 @@ Sent once after the connection opens, before any other message.
 |---|---|---|---|
 | `event_time` | integer | Yes | UTC epoch ms; the canonical name (§11.6). *(spec-derived)* |
 | `event_time_valid` | integer | Yes | `0` or `1`; invariant `event_time IS NULL ⇔ event_time_valid = 0` (§11.3). *(spec-derived)* |
-| `stations` | array | Yes | Per-station snapshot; array length and packing unresolved. *(OPEN)* |
-| `channels` | array | Yes | Per-channel values; packing unresolved. *(OPEN)* |
+| `stations` | array | Yes | One entry per station; each carries `station_id` and a `nozzles` array. *(PROPOSED: one entry per station, stations 1–16)* |
+| `stations[].station_id` | integer | Yes | Station number 1–16. *(PROPOSED)* |
+| `stations[].nozzles` | array | Yes | One entry per nozzle (2 per station). *(PROPOSED)* |
+| `stations[].nozzles[].nozzle_id` | integer | Yes | Nozzle index within the station. *(PROPOSED: `1` or `2`)* |
+| `stations[].nozzles[].raw_pressure_voltage` | number | Yes | **Raw, never modified.** *(spec-derived, §4.2)* |
+| `stations[].nozzles[].raw_temperature_voltage` | number | Yes | **Raw, never modified.** *(spec-derived, §4.2)* |
+| `stations[].nozzles[].converted_pressure` | number or null | Yes | Converted pressure in bar; `null` when unconfigured, out-of-range or invalid. **Never `0`** as a substitute for null. *(spec-derived, §6.3, D-D12)* |
+| `stations[].nozzles[].converted_temperature` | number or null | Yes | Converted temperature in °C; `null` under the same conditions. **Never `0`** as a substitute for null. *(spec-derived, §6.3, D-D12)* |
+| `stations[].nozzles[].channel_state` | string | Yes | Exactly one of `unconfigured`, `valid`, `out_of_range`. *(spec-derived, §8.1)* |
 | `invalid_channel_count_now` | integer | Yes | Instantaneous, live-only, **non-durable**, channel-counting — not a per-sample record. **DR-07-C1.** *(spec-derived)* |
 | `volatile_loss_counter` | integer | Yes | Temporary overwrite counter per **DR-25.8**; **volatile** under **D-D9 Option C**. *(PROPOSED: non-negative integer, resets on reboot)* |
 | `data_loss_pending` | boolean | Yes | Flag that unsurfaced loss exists and has not yet been reported as `data_loss`. *(PROPOSED: `true` or `false`)* |
+| `journal_pressure_indicator` | boolean | Yes | Whether the record store is nearing capacity. The **threshold is OPEN (D-D6)**; this message must not assert a threshold value. *(PROPOSED: `true` or `false`; threshold OPEN — D-D6)* |
 
-`volatile_loss_counter` is **temporary** in this draft; whether it becomes durable is **OPEN** (D-D9 Option C). `data_loss_pending` is a flag only and carries no count.
+**The field set above is required-in-schema. The packing structure — array layout, nesting, flattening, encoding — remains OPEN** and is **not** decided by this contract. *(OPEN — packing)*
+
+**`volatile_loss_counter`** is **temporary** in this draft; whether it becomes durable is **OPEN** (D-D9 Option C). `data_loss_pending` is a flag only and carries no count.
 
 **Station simultaneity is unresolved.** Whether all 16 stations appear in one message or are split is listed in §8. *(OPEN — HW-02, HW-03)*
 
@@ -185,11 +196,25 @@ Sent once after the connection opens, before any other message.
   "payload": {
     "event_time": 0,
     "event_time_valid": 1,
-    "stations": ["..."],
-    "channels": ["..."],
+    "stations": [
+      {
+        "station_id": 1,
+        "nozzles": [
+          {
+            "nozzle_id": 1,
+            "raw_pressure_voltage": 0,
+            "raw_temperature_voltage": 0,
+            "converted_pressure": null,
+            "converted_temperature": null,
+            "channel_state": "unconfigured"
+          }
+        ]
+      }
+    ],
     "invalid_channel_count_now": 0,
     "volatile_loss_counter": 0,
-    "data_loss_pending": false
+    "data_loss_pending": false,
+    "journal_pressure_indicator": false
   }
 }
 ```
@@ -241,7 +266,8 @@ One record per completed cycle. Aggregation principle: **one counter value per c
   "device_id": "esp32-01",
   "boot_id": "<boot_id>",
   "seq": 3,
-  "record_id": "esp32-01:<boot_id>:3",
+  "record_seq": 1,
+  "record_id": "esp32-01:<boot_id>:1",
   "ts_sent_ms": 0,
   "ts_sent_valid": 1,
   "payload": {
@@ -316,7 +342,8 @@ Out-of-range / invalid sensor data is a **data-validity condition plus a system 
   "device_id": "esp32-01",
   "boot_id": "<boot_id>",
   "seq": 4,
-  "record_id": "esp32-01:<boot_id>:4",
+  "record_seq": 2,
+  "record_id": "esp32-01:<boot_id>:2",
   "ts_sent_ms": 0,
   "ts_sent_valid": 1,
   "payload": {
@@ -355,7 +382,8 @@ Device-level events. The **event vocabulary is OPEN** and is not invented here.
   "device_id": "esp32-01",
   "boot_id": "<boot_id>",
   "seq": 5,
-  "record_id": "esp32-01:<boot_id>:5",
+  "record_seq": 3,
+  "record_id": "esp32-01:<boot_id>:3",
   "ts_sent_ms": 0,
   "ts_sent_valid": 1,
   "payload": {
@@ -392,7 +420,8 @@ Validation happens **on the ESP32 before saving**: rejection of empty, non-numer
   "device_id": "esp32-01",
   "boot_id": "<boot_id>",
   "seq": 6,
-  "record_id": "esp32-01:<boot_id>:6",
+  "record_seq": 4,
+  "record_id": "esp32-01:<boot_id>:4",
   "ts_sent_ms": 0,
   "ts_sent_valid": 1,
   "payload": {
@@ -434,7 +463,8 @@ Per §9.5(b), **D-D2 is OPEN — NOT APPROVED**: no detection mechanism may be i
   "device_id": "esp32-01",
   "boot_id": "<boot_id>",
   "seq": 7,
-  "record_id": "esp32-01:<boot_id>:7",
+  "record_seq": 5,
+  "record_id": "esp32-01:<boot_id>:5",
   "ts_sent_ms": 0,
   "ts_sent_valid": 1,
   "payload": {
@@ -477,7 +507,8 @@ Durable journal capacity is "whatever internal flash allows (no time target)"; w
   "device_id": "esp32-01",
   "boot_id": "<boot_id>",
   "seq": 8,
-  "record_id": "esp32-01:<boot_id>:8",
+  "record_seq": 6,
+  "record_id": "esp32-01:<boot_id>:6",
   "ts_sent_ms": 0,
   "ts_sent_valid": 1,
   "payload": {
@@ -514,7 +545,8 @@ Durable journal capacity is "whatever internal flash allows (no time target)"; w
   "device_id": "esp32-01",
   "boot_id": "<boot_id>",
   "seq": 9,
-  "record_id": "esp32-01:<boot_id>:9",
+  "record_seq": 7,
+  "record_id": "esp32-01:<boot_id>:7",
   "ts_sent_ms": 0,
   "ts_sent_valid": 1,
   "payload": {
@@ -590,12 +622,13 @@ Carries calibration, polarity and hysteresis/debounce settings. **Authentication
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `config_kind` | string | Yes | Which configuration group is being set. *(PROPOSED: `"calibration"`, `"polarity"`, `"debounce"`)* |
+| `request_id` | string | No | Correlates this request with its `config_result`. **Optional on read** so existing contract examples remain valid; when present it is **echoed unchanged** by `config_result`. *(PROPOSED: `"{device_id}:{boot_id}:{seq}"` of the request)* |
 | `channel_id` | integer | No | Target channel for per-channel settings. **Every one of the 64 channels is configured separately** (DR-27). *(spec-derived, DR-27)* |
 | `conversion_mode` | string | No | **LINEAR** (two points) or **NON-LINEAR** (five points, piecewise-linear). Polynomial, scale/offset and equation-based (NTC) conversions are **DEFERRED**. *(spec-derived, DR-27)* |
 | `points` | array | No | Calibration points in **ADC-input volts (0–3.3 V, after any divider)**. Must be finite with distinct, ascending voltages. **No default or example values are given here.** *(spec-derived, DR-27; values OPEN)* |
 | `valid_window` | object | No | Optional per-channel valid-voltage window; default 0–3.3 V. *(spec-derived, DR-27)* |
 | `polarity` | string | No | Active level of station inputs, alarm output and reset input; configurable per input or globally — **which granularity is OPEN**. *(OPEN — DR-28)* |
-| `hysteresis`, `debounce` | number | No | D-C4 is **defaults only** (no delay, no hysteresis — immediate evaluation) per **DR-25.4**. Whether these become configurable, and how they interact with the undecided **DR-07-C3**, is **OPEN**. *(OPEN — DR-25.4, DR-07-C3)* |
+| `hysteresis`, `debounce` | number | No | **D-C4 is APPROVED (DR-25.4):** hysteresis and debounce are **configurable** on the ESP32 settings page, and the approved **default is no delay and no hysteresis (immediate evaluation)**. **This contract states no numeric default value and no numeric range** — those remain an implementation choice to be recorded in the firmware, not here. Interaction with the undecided **DR-07-C3** remains **OPEN**. *(spec-derived, DR-25.4; interaction with DR-07-C3 OPEN)* |
 
 **Validation on the ESP32 before saving:** reject empty, non-numeric, `NaN`, `Infinity`, wrong type, out-of-range, and any ordering violation. Invalid settings must never cause a divide-by-zero or an invalid output (§15.3).
 
@@ -623,6 +656,7 @@ Carries calibration, polarity and hysteresis/debounce settings. **Authentication
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
+| `request_id` | string | No | **Echoes the `request_id` of the originating `config_set`, unchanged.** Absent when the request carried none. *(PROPOSED)* |
 | `config_id` | string | Yes | Correlates the result with its `config_set`. *(PROPOSED: `"{device_id}:{boot_id}:{seq}"` of the originating request)* |
 | `accepted` | boolean | Yes | Whether the settings were accepted. *(PROPOSED: `true` or `false`)* |
 | `rejected_fields` | array of string | Yes | Which fields failed validation. *(PROPOSED: list of field names)* |
@@ -683,7 +717,8 @@ Each element of `records` is a full message object with its own envelope (`proto
         "device_id": "esp32-01",
         "boot_id": "<boot_id>",
         "seq": 13,
-        "record_id": "esp32-01:<boot_id>:13",
+        "record_seq": 8,
+        "record_id": "esp32-01:<boot_id>:8",
         "ts_sent_ms": 0,
         "ts_sent_valid": 1,
         "payload": {
@@ -716,9 +751,12 @@ Sent by the PC **only after** the record is committed to SQLite (§12.2). PC-ori
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `acked_record_id` | string | Yes | The `record_id` being acknowledged. *(spec-derived, §12.2)* |
-| `acked_message_id` | string | No | Transport-level correlation. *(PROPOSED: `"{device_id}:{boot_id}:{seq}"` of the acknowledged message)* |
+| `acked_record_id` | string | One of the two | Acknowledges a **single** `record_id`. Used when a `batch` carried exactly one record, or when only one record is being acknowledged. **Never present together with `acked_record_ids`.** *(spec-derived, §12.2)* |
+| `acked_record_ids` | array of string | One of the two | Acknowledges **every** `record_id` contained in a `batch`, by array. Used for batch replies. **Never present together with `acked_record_id`.** Exactly one of the two fields is present on any `ack`. *(PROPOSED)* |
+| `acked_message_id` | string | No | Transport-level correlation of the specific message. *(PROPOSED: `"{device_id}:{boot_id}:{seq}"` of the acknowledged message)* |
 | `committed` | boolean | Yes | Whether the commit succeeded; a failed write is **never** acknowledged as accepted (§12.3). *(spec-derived, §12.3)* |
+
+**Exactly one of `acked_record_id` / `acked_record_ids` is present on every `ack`.** A `batch` carrying N records is answered by a single `ack` with `acked_record_ids` of length N — **not** by N separate `ack` messages.
 
 ```json
 {
@@ -917,10 +955,11 @@ These rules restate the specification. They are **not** changed by this draft.
 
 ## 9. Non-inference
 
-* This draft **approves nothing**. It is a review artefact.
-* It **does not** satisfy the Phase 2A gate. The gate (§21) requires this document to be **approved** *and* Phase 2A to be **explicitly authorized**; **D-B4 is MET (0.6.0)**, but a met gate condition is **not** an authorization.
-* It creates **no** schema, **no** migration and **no** hardware dependency.
-* Phase 2B remains **NOT AUTHORIZED**. Its gate condition D-A8 is MET by DR-13; a met gate condition is not an authorization.
+* This draft **approves nothing beyond its stated Phase 2A-input status**. It is a review artefact.
+* This contract is approved as the Phase 2A working input (user decision, 2026-10-05). Gaps 3–8 are resolved during Phase 2A; final approval is a separate task after Phase 2A.
+* The gate (§21) also requires the user's **explicit statement that Phase 2A is authorized**; that statement was given with this status change. **D-B4 is MET (0.6.0)**, but a met gate condition is **not** an authorization.
+* It creates **no** SQL schema, **no** migration and **no** hardware dependency.
+* **Phase 2B and all later phases remain NOT AUTHORIZED.**
 
 ---
 ## 10. Protocol test cases (names and intent only — no code)
@@ -947,7 +986,68 @@ These rules restate the specification. They are **not** changed by this draft.
 
 ---
 
-*End of document — TOUGHENING MACHINE Protocol / Message Contract v0.2.1 — PROPOSED — NOT APPROVED.*
+---
+
+## 11. Phase 2A gap resolutions (PROPOSED — NOT APPROVED until implemented)
+
+These six gaps were identified in v0.2.3 and are resolved **during Phase 2A**. Each resolution below is **PROPOSED — NOT APPROVED** until the corresponding code exists and is verified. Nothing here creates a SQL schema, a firmware behaviour, or a hardware dependency.
+
+### 11.1 Gap 3 — `config_set` / `config_result` correlation — **PROPOSED**
+
+`config_set` carries an **optional** `request_id`; `config_result` **echoes it unchanged**. Optional-on-read means the v0.2.3 examples remain valid and no existing consumer breaks.
+
+| Field | Message | Required | Note |
+|---|---|---|---|
+| `request_id` | `config_set` | No | *(PROPOSED: `"{device_id}:{boot_id}:{seq}"` of the request)* |
+| `request_id` | `config_result` | No | Echoed unchanged; absent when the request carried none. *(PROPOSED)* |
+
+Rejected alternative: making `request_id` **mandatory**, which would invalidate the existing contract examples.
+
+### 11.2 Gap 4 — hysteresis / debounce wording — **PROPOSED**
+
+**DR-25.4 is APPROVED**: hysteresis and debounce are **configurable**; the default is **no delay, no hysteresis (immediate evaluation)**. The §3.14 wording was corrected accordingly.
+
+**This contract states no numeric default value and no numeric range.** Interaction with the undecided **DR-07-C3** remains **OPEN**. No number was chosen.
+
+### 11.3 Gap 5 — `live_state` mandatory field content — **PROPOSED**
+
+The required-in-schema field set is now fixed in §3.4: `event_time`, `event_time_valid`, `stations[].station_id`, `stations[].nozzles[].nozzle_id`, `raw_pressure_voltage`, `raw_temperature_voltage`, `converted_pressure` (or `null`), `converted_temperature` (or `null`), `channel_state` (`unconfigured` | `valid` | `out_of_range`), `invalid_channel_count_now`, `volatile_loss_counter`, `data_loss_pending`, `journal_pressure_indicator`.
+
+**The packing structure remains OPEN** and is not decided here. The `journal_pressure_indicator` threshold remains **OPEN — D-D6**.
+
+### 11.4 Gap 6 — `record_seq` separate from `seq` — **PROPOSED**
+
+`seq` increments **per message sent**. A new envelope field `record_seq` increments **once per durable record created** and is **not** incremented on retransmission.
+
+* `message_id` = `{device_id}:{boot_id}:{seq}`
+* `record_id` = `{device_id}:{boot_id}:{record_seq}`
+
+**Consequence (intended):** on retransmission a record gets a **new `message_id`** but **the same `record_id`**. In every contract example carrying both, the two strings differ.
+
+### 11.5 Gap 7 — `ack` batch semantics — **PROPOSED**
+
+`ack` carries **exactly one** of:
+
+| Field | Type | Use |
+|---|---|---|
+| `acked_record_id` | string | Single-record acknowledgement. |
+| `acked_record_ids` | array of string | Batch acknowledgement — every `record_id` in the `batch`. |
+
+**The two fields never appear together.** A `batch` carrying N records is answered by **one** `ack` with `acked_record_ids` of length N — not by N separate `ack` messages. Rejected alternative: replacing the singular field, which would break T-P05 and T-P10.
+
+### 11.6 Gap 8 — `pressure_conversion_configured` — **NOT RESOLVED, DELIBERATELY**
+
+Whether the D-D12 NULL-vs-0 rule extends to `valid_samples_pressure` when pressure conversion is unconfigured is **OPEN — DR-27** (spec §6.3, §6.5; PCC-29, §8 item 25).
+
+**This contract does not resolve it and the server skeleton must not decide it.** The read point is marked in `pc/server.py` with a comment pointing here. `valid_samples_pressure` therefore accepts either `integer` or `null` and **no branch on its value is permitted** until DR-27 is decided.
+
+### 11.7 Open at the end of Phase 2A
+
+Gap 8 remains **OPEN**. The `journal_pressure_indicator` threshold (D-D6), `live_state` packing, transport encryption, credential storage, PC→ESP32 config authentication, `nack` reason vocabulary, and retry/timeout/backoff values all remain **OPEN** and are listed in §8.
+
+---
+
+*End of document — TOUGHENING MACHINE Protocol / Message Contract v0.2.4 — APPROVED AS PHASE 2A INPUT.*
 
 
 

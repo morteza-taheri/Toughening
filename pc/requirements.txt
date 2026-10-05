@@ -1,0 +1,12 @@
+# TOUGHENING MACHINE — PC side (Phase 2A skeleton)
+# Pinned to exact versions installed into pc/venv/ on 2026-10-05.
+# Install with:  python -m venv pc/venv
+#                pc\venv\Scripts\pip install -r pc\requirements.txt
+# Python 3.13.0. Transitive dependencies are resolved by pip and are
+# NOT pinned here; only the five direct dependencies are pinned.
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+websockets==14.1
+pytest==8.3.4
+httpx==0.28.1

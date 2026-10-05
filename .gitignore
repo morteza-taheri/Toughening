@@ -59,3 +59,9 @@ tmp/
 .clinerules.local/
 
 docs/hardware/esp32-pinout.jpg
+
+# PC virtual environment and Python build artifacts (Phase 2A)
+pc/venv/
+pc/__pycache__/
+pc/tests/__pycache__/
+pc/.pytest_cache/
