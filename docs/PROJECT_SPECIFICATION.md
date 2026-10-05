@@ -1,9 +1,9 @@
-﻿# TOUGHENING MACHINE — PROJECT SPECIFICATION BASELINE
+# TOUGHENING MACHINE — PROJECT SPECIFICATION BASELINE
 
 | Field | Value |
 |---|---|
 | Document title | TOUGHENING MACHINE — Project Specification Baseline |
-| Document version | 0.6.2 (Phase 2A-0 consistency patch) |
+| Document version | 0.7.2 (AC-08 promotion — no new decisions) |
 | Revision status | **BASELINE — FOR REVIEW** |
 | Created | 2026-10-04 |
 | Workspace | `D:\PMC\Documents\PlatformIO\Projects\Toughening` |
@@ -29,6 +29,9 @@
 | 0.6.0 | 2026-10-04 | **Phase 2A-0 (documentation only) + decision round C.** v0.5.0 archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.5.0.md`. **DR-27 APPROVED** — temperature-calibration configuration ownership is **per-channel**, **SUPERSEDING DR-08 Q1–Q3**. **DR-25.1 … DR-25.5 APPROVED** — D-C1…D-C5 defaults (D-C4 = **defaults only**). **DR-25.6 / DR-25.7 / DR-25.8 / DR-25.9 — direction only** (DR-12; D-D2 marker direction; D-D3/D-D10 overwrite-oldest; DR-04A2). **DR-07-C3 reclassified** from `DEFERRED — BLOCKED by D-C4` to **`OPEN — DECISION REQUIRED`** (no longer blocked; **not decided**). **D-B4 MET** — Phase 2A nevertheless remains **NOT AUTHORIZED**. §3.1a added (pinout image — record only). **PCC-19 … PCC-21 recorded, NOT applied.** `docs/PROTOCOL_CONTRACT.md` created as **PROPOSED — NOT APPROVED**. **No implementation, package, SQL, test, configuration, network or hardware work was performed.** |
 | 0.6.1 | 2026-10-05 | **Phase 2A-0 repair revision (no new decisions).** Repairs corruption introduced by the 0.6.0 pass: 8 literal `@@END@@` artifacts removed, 1 mojibake line repaired, 21 blank lines breaking markdown tables removed, and the lost DR-27 edits to §6.2 / §6.3 / §6.6 restored. **Adds DR-13 … DR-29** with normative text (approval date 2026-10-05) and replaces the DR-25.1 … DR-25.9 and DR-27 rows with their full normative text. **Adds PCC-01 … PCC-27** as PROPOSED consequential changes in §18.1, and relocates the open-questions register to §18.2. **Deletes the unauthorized top-level sections 27, 28 and 29**, relocating their content into §19 and §18. Derived status updates: D-A8/HW-01 (DR-13), D-B1/D-B3 (DR-15), D-D7 (DR-17), D-D4 (DR-18), D-D5 (DR-19), AMB-15/§15.5 (DR-22). **0.6.1 is a repair, NOT a new decision round — the decision content of 0.6.0 is unchanged.**
 | 0.6.2 | 2026-10-05 | **Phase 2A-0 consistency patch (no new decisions, no new PCC semantics).** Internal-consistency alignment of 0.6.1 only: **(A)** §19 DR register reordered into numeric order — DR-25 + DR-25.1 … DR-25.9 placed after DR-24, DR-27 placed after DR-26; row text carried byte-for-byte, **no row text changed**. **(B)** §20 stale dependency rows updated — "Unknown-time record handling validation" → D-D7 APPROVED (DR-17); "Fault-counter semantics" → DR-07-C3 OPEN (no longer blocked by D-C4), stabilisation RESOLVED (DR-25.6); "Fault counting during activation stabilisation (DR-12)" → RESOLVED (DR-25.6). **(C)** §23 traceability statuses brought in line with the §19 register. **(D)** §17.1 "Blocked by" column updated for 5 rows (Duration rule, Out-of-range, Fault counters, Transition counting, Alarm policy) — **no test is marked as passed or executed**. **(E)** PCC-28 … PCC-35 recorded for §3.3, §4.2, §10.3, §11.5, §13.3, §14.3, §15.4 and §16.1, all `PROPOSED — NOT APPLIED`. **(F)** PCC-06, PCC-07, PCC-08, PCC-09, PCC-13 relabelled `APPLIED (0.6.1)`; PCC-05, PCC-10, PCC-11, PCC-12, PCC-14 remain `PROPOSED — NOT APPLIED`. **No decision was resolved, added or reversed; no new technical value invented; no hardware, protocol, schema, SQL, code, test or configuration work performed.** Sections §4.3, §4.5, §8.1, §9.2, §10.3, §11.5, §13.3, §14.3, §15.4, §16.1 and §17.3 are **byte-unchanged**. Phase 2A and Phase 2B remain **NOT AUTHORIZED**. |
+| 0.7.0 | 2026-10-05 | **PCC application pass (no new decisions).** Applies the body-section PCCs recorded in 0.6.1/0.6.2 so the body no longer contradicts §19. **§4.5** non-escalation → D-C5 APPROVED (DR-25.5). **§8.1** unconfigured → applies to pressure and temperature (DR-27). **§8.2 / §8.3** → D-C5 APPROVED (DR-25.5). **§8.5** severity policy → APPROVED (DR-25.1…DR-25.5; D-C4 defaults only). **§9.2** stabilisation samples excluded from fault counters (DR-25.6). **§10.2** D-C2 APPROVED (DR-25.2), three-concept distinction retained. **§10.3** D-C1…D-C5 Status cells → APPROVED (DR-25.1–.5); the **"Alternatives (none chosen)" column is retained as rejected-option history and is NOT renamed.** **§11.5** D-D7 APPROVED (DR-17). **§13.3** board identity → APPROVED (DR-13). **§14.3** `fault_transition_count` NULL until DR-07-C3, not D-C4. **§15.4** localisation APPROVED (DR-19). **§16.1** backup APPROVED (DR-18); the specific WAL technique remains a proposal. **§22** glossary "Raw voltage" lifetime clarified. **§5.3** retailer "4-channel ADC" claim replaced with the pinout observation — **6 ADC1-capable GPIOs (32, 33, 34, 35, 36, 39), verified against `docs/hardware/esp32-pinout.jpg`, recorded as observation only, not a decision.** Cross-references: **§3.3** D-A8 APPROVED (DR-13); **§4.2** DR-04A2 APPROVED (DR-25.9); **§19** DR-25.9 split into DR-25.9 (granularity, APPROVED) and **DR-25.9-b** (count finalization / D-D2 persistence, OPEN); **§20** and **§23** updated for DR-04A2 and DR-12. Documentation defects: **§19 DR-13 / DR-29** imperative copy-paste converted to descriptive text. **PCC register:** 15 PCCs relabelled `APPLIED (0.7.0)`; the 5 previously `APPLIED (0.6.1)` were **not** regressed. **No new decision, no new section, no row removed. Phase 2A and Phase 2B remain NOT AUTHORIZED.** **Date discrepancy recorded, not changed:** the 0.6.0 row stays dated **2026-10-04** because not every decision it cites can be shown to have been approved on 2026-10-05, and the §19 DR-25 bundle row carries no approval date. |
+| 0.7.1 | 2026-10-05 | **Follow-up: complete D-C5 / D-D10 body alignment (no new decisions).** Follows the 0.7.0 pass, which left residual references that still contradicted §19. **§7.5** non-escalation now cites D-C5 APPROVED (DR-25.5). **§8.4** `overflow` row now cites the D-D10 direction as APPROVED (DR-25.8); the `journal_pressure` row (D-D6 genuinely OPEN) is unchanged. **§7.1a** (PCC-36): the DR-06 scope-limits sentence split so it no longer claims D-C1…D-C5 are OPEN; open-question item 7 now RESOLVED (DR-25.5); DR-12 stabilisation participation now RESOLVED (DR-25.6). **§12.4 / §12.5** (PCC-37): the §12.5 heading no longer says "D-D10 OPEN — NOT APPROVED"; the L2 progression sentence now says D-D10 must be "fully decided" rather than "approved"; D-C5 is removed from the exhaustion-policy dependency list and recorded as APPROVED and orthogonal. **§17.1** PER-02 no longer lists D-C5 as a dependency. **§18** (PCC-38): AMB-08 now records the alarm/fault policy as CLOSED by DR-25.1…DR-25.5; AMB-14 now records direction APPROVED with sizes/thresholds undefined. **Deliberately NOT changed:** §17.3 **AC-08** and its companion sentence — PCC-22 forbids moving AC-08 before an explicit decision; §7.4 line 511 is a correct cross-reference. **New PCCs PCC-36, PCC-37, PCC-38 recorded as APPLIED (0.7.1).** No new decision, no new section, no row removed. Phase 2A / Phase 2B remain NOT AUTHORIZED. |
+| 0.7.2 | 2026-10-05 | **AC-08 promotion (no new decisions).** **D-C5 was approved in 0.6.0 (DR-25.5)**, which removes the blocker that made PCC-22 "record only". **AC-08 is promoted from §17.3 (conditional) to §17.2 (unconditional)** with the approved D-C5 semantics stated inline: out-of-range readings raise zero alarm events; out-of-range data is a data-validity condition plus a system event, not an alarm, no escalation. **The §17.2 closing note was updated in the same pass** so it no longer lists AC-08 as non-unconditional (AC-07, AC-13 and AC-19 remain non-unconditional; AC-04 and AC-08 are the entries that have moved). The §17.3 note for AC-08 now records it as unconditional and points to §17.2. **PCC-22 → APPLIED (0.7.2)**. **§23** "Out-of-range handling" caveat "do not move AC-08 yet" removed. **Unchanged and reported:** §17.1 line "Out-of-range … see AC-08" still points at AC-08; that reference remains accurate (AC-08 exists and states zero alarm events) and was outside this patch's scope. No new decision, no new section, no row removed. Phase 2A / Phase 2B remain NOT AUTHORIZED. |
 
 ### 0.2 Status label definitions (used throughout this document)
 
@@ -246,7 +249,7 @@ The hardware open-issues register (section 3.2) and the decision register (secti
 
 **Binding rule (P0 / AUD-01):** The hardware issue register is **subordinate** to the decision register. A hardware issue does **not** independently close, approve, or override a decision. The authoritative approval state is the corresponding D-* decision state.
 
-**Status preserved by this repair:** the mapping records relationships only and changes no status. D-A2, D-A3, D-A4 and D-A8 remain **OPEN — NOT APPROVED**, and HW-02 must not be interpreted as independently approved.
+**Status preserved by this repair:** the mapping records relationships only and changes no status. D-A2, D-A3 and D-A4 remain **OPEN — NOT APPROVED**. **D-A8 is APPROVED (DR-13)** and **HW-01 is closed with it**. HW-02 must not be interpreted as independently approved.
 
 ---
 
@@ -272,7 +275,7 @@ The sensors are identified by the user as **TMAP34**. The provided marketplace l
 
 **PER-03 is unaffected.** DR-04A does **not** create per-interval or full per-sample historical storage, and does **not** imply "store every out-of-range occurrence". Live availability of raw voltage for every sample continues to follow paragraph 1 above.
 
-**Still OPEN within this area:** **DR-04A2** occurrence granularity — **DEFERRED**, dependent on **D-C4**. **DR-04C** tie-breaking — **NOT READY** (no anchor decision exists). **DR-04D** cycle-boundary samples — **NOT READY**, dependent on **D-D2**. **DR-04E** interrupted-cycle anchors — **NOT READY**, dependent on **D-D2**. **DR-04F** persistence ordering — **NOT READY**, dependent on **D-D2**. **DR-04B** cycle min/max raw anchors — **REJECTED / OMITTED**; no anchor fields, tracking logic, schema columns or tie-breaking rules are introduced. **DR-04G** bounded diagnostic RAM window — **REJECTED / NOT ADOPTED**; no diagnostic retention buffer is introduced.
+**Still OPEN within this area:** **DR-04A2** occurrence granularity — **APPROVED (DR-25.9, 0.6.0)**: one durable raw-voltage record per entry into `out_of_range`, plus a count. **Count finalization and D-D2 persistence remain OPEN.** **DR-04C** tie-breaking — **NOT READY** (no anchor decision exists). **DR-04D** cycle-boundary samples — **NOT READY**, dependent on **D-D2**. **DR-04E** interrupted-cycle anchors — **NOT READY**, dependent on **D-D2**. **DR-04F** persistence ordering — **NOT READY**, dependent on **D-D2**. **DR-04B** cycle min/max raw anchors — **REJECTED / OMITTED**; no anchor fields, tracking logic, schema columns or tie-breaking rules are introduced. **DR-04G** bounded diagnostic RAM window — **REJECTED / NOT ADOPTED**; no diagnostic retention buffer is introduced.
 
 1. every sample durably stored (would conflict with PER-03 as currently written),
 2. event records only,
@@ -339,7 +342,7 @@ When a measurement is out of range:
 6. **Never clamp an invalid reading into range**, in any layer.
 7. **Display invalidity clearly** in the GUI, in live / operator views, and in **reports and exports — including historical / database-derived reports and exports** (scope approved as **DR-01**) — the raw voltage is shown with an explicit invalid indicator.
 
-**Non-escalation:** an out-of-range reading is a **data-validity condition, not an alarm**. Severity is governed by **D-C5, which remains OPEN** (section 10).
+**Non-escalation:** an out-of-range reading is a **data-validity condition, not an alarm**. Severity is governed by **D-C5, which is APPROVED (DR-25.5, 0.6.0)**: out-of-range / invalid data is a data-validity condition plus a system event; the cycle completes and invalid samples are excluded from statistics; no physical alarm and no escalation.
 
 **Retention pointer (P0 / AUD-02):** step 1 above preserves the raw voltage in the live / non-durable representation.
 
@@ -370,7 +373,11 @@ The proposed activation interface uses **16 PLC 24 V inputs** through suitable *
 
 ### 5.3 Acquisition feasibility warning (established)
 
-There are **64 analog channels** and — **according to unverified retailer-page information only** (`UNVERIFIED — NOT AN APPROVED HARDWARE FACT`, section 3.1) — only **4 internal ADC channels** are *claimed* on the candidate board. That figure is **not** an approved hardware fact.
+There are **64 analog channels** and — **according to unverified retailer-page information only** (`UNVERIFIED — NOT AN APPROVED HARDWARE FACT`, section 3.1) — a "4-channel ADC" figure is *claimed* on the candidate board. That figure is a **retailer-page claim (marked UNVERIFIED)**, not an approved hardware fact.
+
+**What the pinout image actually shows (section 3.1a, observation only):** the board's pinout image shows **6 exposed ADC1-capable GPIOs — GPIO32, GPIO33, GPIO34, GPIO35, GPIO36, GPIO39** (labelled ADC1 CH4, CH5, CH6, CH7, CH0, CH3 respectively) and 9 ADC2-capable GPIOs. The ADC1 and ADC2 **GPIO** counts do **not** correspond to the retailer's "4-channel ADC" wording: the two describe different things (board GPIO capability vs. ADC conversion channels), and the image states **no** conversion-channel count.
+
+**Acquisition architecture remains OPEN (HW-02, HW-03).**
 
 It must **not** be assumed that the preliminary ESP32 selection can acquire all channels directly. The acquisition and multiplexing architecture is **OPEN** (HW-02, HW-03), and its resolution is a prerequisite for Phase 3. The **64-channel requirement is an approved requirement** (section 1.2); the claimed 4-channel ADC resource is **not** an approved fact, and the mismatch between them is a working hypothesis, not a settled constraint.
 
@@ -478,7 +485,7 @@ For the purposes of D-D13 counting, a channel is **faulted only** when its state
 
 **`unconfigured` is a configuration / data-readiness state and must not be turned into a fault.** While temperature conversion parameters remain unset (section 4.4), temperature channels are `unconfigured` and are therefore **not** counted as faulted.
 
-**Scope limits of DR-06 — vocabulary and counting semantics only.** DR-06 does **NOT** create an alarm, define alarm severity, define Warning behaviour, define reset behaviour, define hysteresis or debounce, define transition detection, define cycle impact, and does **NOT** resolve **D-C1, D-C2, D-C3, D-C4 or D-C5**. All of those remain **OPEN — NOT APPROVED**.
+**Scope limits of DR-06 — vocabulary and counting semantics only.** DR-06 does **NOT** create an alarm, define alarm severity, define Warning behaviour, define reset behaviour, define hysteresis or debounce, define transition detection, or define cycle impact. At the time DR-06 was written, D-C1…D-C5 were **OPEN**. They were subsequently **APPROVED (DR-25.1…DR-25.5, 0.6.0)** — D-C4 as defaults only.
 
 **The approved D-D12 semantics are preserved unchanged:** *unconfigured temperature conversion = `NULL` + `temp_conversion_configured = false`; numeric `0` only when configured and truly zero valid samples.*
 
@@ -513,11 +520,11 @@ Counted per channel; a channel is counted **at most once** within a cycle; the c
 4. **Reset** behaviour — cycle-start reset **APPROVED for `faulted_channel_count` (DR-07-C2)**; reset at **device restart** remains **OPEN (D-D2)**; reset for `fault_transition_count` remains **OPEN**.
 5. **Reboot** behaviour across a restart — **OPEN (D-D2)**.
 6. **Persistence** behaviour — cycle-summary placement **APPROVED for `faulted_channel_count` (DR-07-C2)**; interrupted-cycle persistence remains **OPEN (D-D2)**; `fault_transition_count` persistence **OPEN**.
-7. Relationship to **D-C5** (what an invalid sensor means for the cycle and for alarms) — **OPEN**.
+7. Relationship to **D-C5** (what an invalid sensor means for the cycle and for alarms) — **RESOLVED (DR-25.5)**: out-of-range / invalid data is a data-validity condition plus a system event; the cycle completes and invalid samples are excluded from statistics; no physical alarm and no escalation.
 8. Relationship to **D-C4** (hysteresis / debounce, and what constitutes one transition) — **OPEN**. D-C4 defaults are **APPROVED (DR-25.4)**; whether DR-07-C3 adopts them is a **separate, undecided** question.
 9. **DR-12 — whether samples during activation stabilisation participate in fault counting** (all three counters) — **OPEN**.
 
-**Status: PARTIALLY RESOLVED.** `invalid_channel_count_now` and `faulted_channel_count` models are **APPROVED** (DR-07-C1, DR-07-C2) and are independent of D-C4 and D-C5. `fault_transition_count` remains **OPEN — DECISION REQUIRED (DR-07-C3, 0.6.0)** — **no longer blocked by D-C4** — and stored as `NULL` (section 7.4). Stabilisation participation remains **OPEN (DR-12)**. Interrupted-cycle and reboot persistence remain **OPEN (D-D2)**.
+**Status: PARTIALLY RESOLVED.** `invalid_channel_count_now` and `faulted_channel_count` models are **APPROVED** (DR-07-C1, DR-07-C2) and are independent of D-C4 and D-C5. `fault_transition_count` remains **OPEN — DECISION REQUIRED (DR-07-C3, 0.6.0)** — **no longer blocked by D-C4** — and stored as `NULL` (section 7.4). Stabilisation participation — **RESOLVED (DR-25.6)**: samples during activation stabilisation are **NOT** counted in fault counters. Interrupted-cycle and reboot persistence remain **OPEN (D-D2)**.
 
 ### 7.2 Legacy names (must not be silently reused)
 
@@ -542,7 +549,7 @@ Until **DR-07-C3** is decided:
 
 ### 7.5 Non-escalation (established — do not pre-empt policy)
 
-An out-of-range or invalid measurement is **not** an alarm and is **not** assigned any Warning or Alarm severity. Whether it produces a Warning, an Alarm, a fault state, blocks cycle completion, or is merely recorded is governed by **D-C5, which remains OPEN**. Nothing in this section establishes or implies any alarm policy.
+An out-of-range or invalid measurement is **not** an alarm and is **not** assigned any Warning or Alarm severity. **D-C5 is APPROVED (DR-25.5, 0.6.0):** out-of-range / invalid data is a data-validity condition plus a system event; the cycle completes and invalid samples are excluded from statistics; no physical alarm and no escalation. D-C1…D-C4 (DR-25.1…DR-25.4) govern any alarm policy for other conditions.
 
 ---
 
@@ -554,7 +561,7 @@ States are described as the intended logical model. Exact enumerations for alarm
 
 | State | Meaning |
 |---|---|
-| `unconfigured` | Conversion parameters not set; no converted value produced (temperature only, until section 4.4 closes). |
+| `unconfigured` | Conversion parameters not set; no converted value produced (applies to pressure and temperature; DR-27 per-channel calibration, both start unconfigured). |
 | `valid` | Value in range, conversion valid, contributes to statistics. |
 | `out_of_range` | Voltage outside the configured range; converted value invalid; raw voltage preserved; excluded from statistics. |
 
@@ -568,7 +575,7 @@ Pressure and temperature are evaluated **independently** (section 6.1).
 | `stabilising` | Activation active; within the stabilisation window; measurements displayed, excluded from cycle statistics, thresholds suppressed. |
 | `running` | Activation active; beyond stabilisation; samples contribute to statistics; thresholds evaluated. |
 | `post_cycle` | Cycle ended; summary finalised. |
-| `fault` | Station-level fault condition. Severity and trigger conditions depend on **D-C5 (OPEN)**. |
+| `fault` | Station-level fault condition. Severity and trigger conditions are governed by **D-C5, APPROVED (DR-25.5)**. |
 
 The **station overall status reflects the worst nozzle status** (established requirement).
 
@@ -580,7 +587,7 @@ The **station overall status reflects the worst nozzle status** (established req
 | `active` | Cycle underway (after the stabilisation delay). |
 | `completed` | Cycle reached a normal end; summary finalised with valid start and end. |
 | `interrupted` | Cycle did **not** reach a normal end (activation lost abnormally, or a reboot occurred). End time and duration must **not** be fabricated. **Detection** of an interruption depends on **D-D2 (OPEN)**; this row defines the **representation** only (section 9.5). |
-| `invalid` | Cycle was completed but is not usable for statistics (for example, no valid samples). Conditions depend on **D-C5 (OPEN)**. |
+| `invalid` | Cycle was completed but is not usable for statistics (for example, no valid samples). Conditions depend on **D-C5, APPROVED (DR-25.5)**. |
 
 ### 8.4 Machine states (system-wide)
 
@@ -589,12 +596,12 @@ The **station overall status reflects the worst nozzle status** (established req
 | `measuring` | Measurement ongoing; PC reachability does not affect this. |
 | `pc_connected` / `pc_disconnected` | Transport-level reachability of the PC; does not stop local measurement. |
 | `journal_pressure` | The record store is nearing capacity (threshold is **OPEN**, D-D6). |
-| `overflow` | The reserved area is saturated; behaviour governed by **D-D10 (OPEN)**. |
+| `overflow` | The reserved area is saturated. D-D10 direction is **APPROVED (DR-25.8, 0.6.0)** — overwrite-oldest. Priority classes, counters and thresholds remain OPEN. |
 | `data_loss_pending` | A record loss is known to the device but not yet durably recorded on the PC (section 12.6). |
 
 ### 8.5 Alarm severity vocabulary (structure only)
 
-The severity vocabulary is **Alarm**, **Warning**, **Information / event**. The **policy** that assigns these, and the transitions between them, is **OPEN** (D-C1…D-C5). This document records the vocabulary and the open decisions; it does **not** decide the policy.
+The severity vocabulary is **Alarm**, **Warning**, **Information / event**. The **policy** that assigns these, and the transitions between them, is **APPROVED (DR-25.1…DR-25.5)**; **D-C4 is defaults only**. This document records the vocabulary and the resolved decisions; it does **not** re-decide the policy.
 
 ---
 
@@ -610,6 +617,7 @@ During stabilisation, measurements are **still displayed**, but:
 
 * samples are **excluded** from cycle statistics;
 * threshold evaluation is **suppressed** (no alarm events are raised on stabilisation samples).
+* samples are also excluded from fault-counter accounting (DR-25.6, 0.6.0 — APPROVED).
 
 The 5-second default is configurable.
 
@@ -700,25 +708,29 @@ Each cycle summary contains: station number; cycle start/end timestamps (or `NUL
 
 Alarms and significant transitions are recorded as **events**, not as a continuous per-second stream. Each alarm event carries a unique record identifier, the originating station / nozzle / channel, the severity, the cause, and the time (with validity metadata per section 11).
 
-### 10.2 Shared physical alarm output and reset (interface established; policy unresolved)
+### 10.2 Shared physical alarm output and reset (interface established; behaviour resolved by DR-25.2)
 
-The system has **one shared physical alarm output** and **one shared reset input** for the whole machine. The interface exists; the behaviour is unresolved. Three concepts must be kept distinct and must **not** be conflated:
+The system has **one shared physical alarm output** and **one shared reset input** for the whole machine. The interface exists. Three concepts must be kept distinct and must **not** be conflated:
 
 1. **Clearance of the hazard condition** — the physical condition that caused the alarm has gone.
 2. **Operator acknowledgement** — a person has seen and accepted the alarm.
 3. **Silencing / de-energising the physical alarm output** — the physical output is turned off (or muted) for some period, which is **not** the same as acknowledging or clearing it.
 
-### 10.3 Open alarm and cycle policies (all OPEN — NOT APPROVED)
+**D-C2 is APPROVED (DR-25.2):** the physical alarm output stays energised until the shared reset input is used; software states follow the measured values independently of the output.
+
+### 10.3 Alarm and cycle policies (resolved 0.6.0 — see §19 DR-25.1…DR-25.5)
 
 | ID | Policy | Status | Alternatives (none chosen) |
 |---|---|---|---|
-| D-C1 | Alarm-to-Warning transition | OPEN — NOT APPROVED | auto-downgrade after N s; never downgrade; downgrade only when all contributing channels recover |
-| D-C2 | Latching and reset | OPEN — NOT APPROVED | auto-clear; latch until operator reset; latch cleared from the PC only; latch with a separate silence action |
-| D-C3 | Effect of alarms on the cycle (including stall / activation-stuck behaviour) | OPEN — NOT APPROVED | record only; abort at ALARM; WARNING records only and ALARM aborts |
-| D-C4 | Warning-to-Alarm escalation timing, hysteresis and debounce | OPEN — NOT APPROVED | — |
-| D-C5 | Faulty / invalid sensor behaviour | OPEN — NOT APPROVED | exclude from statistics; raise an alarm and still complete; refuse to complete the cycle; escalate to machine-level fault |
+| D-C1 | Alarm-to-Warning transition | **APPROVED (DR-25.1, 0.6.0)** — Alarm-to-Warning transitions return the software state and are logged as events | auto-downgrade after N s; never downgrade; downgrade only when all contributing channels recover |
+| D-C2 | Latching and reset | **APPROVED (DR-25.2, 0.6.0)** — the physical alarm output stays energised until the shared reset input is used | auto-clear; latch until operator reset; latch cleared from the PC only; latch with a separate silence action |
+| D-C3 | Effect of alarms on the cycle (including stall / activation-stuck behaviour) | **APPROVED (DR-25.3, 0.6.0)** — alarms are recorded only and never stop or abort a cycle | record only; abort at ALARM; WARNING records only and ALARM aborts |
+| D-C4 | Warning-to-Alarm escalation timing, hysteresis and debounce | **APPROVED — DEFAULTS ONLY (DR-25.4, 0.6.0)** — hysteresis and debounce configurable on the ESP32 settings page; default is no delay and no hysteresis (immediate evaluation) | — |
+| D-C5 | Faulty / invalid sensor behaviour | **APPROVED (DR-25.5, 0.6.0)** — out-of-range / invalid data is a data-validity condition plus a system event; the cycle completes; invalid samples are excluded from statistics; no physical alarm and no escalation | exclude from statistics; raise an alarm and still complete; refuse to complete the cycle; escalate to machine-level fault |
 
-**No alarm logic for these cases may be implemented until the corresponding decision is approved.** Until then, an invalid reading is a data-validity condition only (section 7.5).
+**The alternatives column records options that were considered and rejected; it is retained as history and is not a statement of current policy.**
+
+**D-C4 is approved as defaults only.** Adopting the defaults is *one* possible answer, **not** an automatic resolution of the undecided **DR-07-C3** (`fault_transition_count`), which remains **OPEN — DECISION REQUIRED**.
 
 ---
 
@@ -759,9 +771,9 @@ Aggregation and filtering must handle invalid-time records explicitly and visibl
 * Stored event times are **not rewritten** on a clock step.
 * A backward step must **never** produce a negative duration (section 9.4).
 
-### 11.5 Time authority — D-D7 OPEN
+### 11.5 Time authority — D-D7 APPROVED (DR-17)
 
-Whether the PC clock is the sole time reference, or whether a hardware RTC is required, is **OPEN — NOT APPROVED** (D-D7). No independent time reference currently exists in the design.
+**APPROVED (DR-17, 0.6.0):** the PC is the sole time reference. No hardware RTC. Stored timestamps are UTC.
 
 ### 11.6 Canonical timestamp and duration field naming (P0 / AUD-04 repair)
 
@@ -834,7 +846,7 @@ Messages carry a protocol version, a message type and (for durable records) a un
 
 **PCC-19 — PROPOSED consequential change — NOT APPLIED (added 0.6.0).** DR-25.8 introduces an **overwrite-oldest** exhaustion policy, which implies **overwrite counters**. If those counters ever become **durable**, the wording above — that volatile loss information is the only visibility and *may be permanently erased* by power loss — would need consequential revision, because overwrite counts would then constitute a durable loss trace. **This change is recorded, not applied.** **D-D9 (Option C) remains APPROVED and unchanged**, and no overwrite counter is approved.
 
-### 12.5 Reserved-area exhaustion — D-D10 OPEN — NOT APPROVED
+### 12.5 Reserved-area exhaustion — D-D10 DIRECTION APPROVED (DR-25.8) — SIZES AND THRESHOLDS OPEN
 
 No exhaustion policy is selected. Candidate policies:
 
@@ -845,11 +857,11 @@ No exhaustion policy is selected. Candidate policies:
 | P3 — Explicit overflow state | Refuse new records; the machine keeps measuring but history production stops | Operational consequences must be approved |
 | P4 — Best-effort degradation | Write what fits; drop the rest | **Rejected on principle** — creates silent loss with no counter, flag or indication |
 
-**Silent dropping without a counter, flag, or visible indication is unacceptable.** The final policy depends on **D-D6, D-D8, D-C5**, capacity analysis and operational consequences. See also section 12.6 — the saturated state can structurally prevent stage **L2** of the loss-reporting chain.
+**Silent dropping without a counter, flag, or visible indication is unacceptable.** The final policy depends on **D-D6, D-D8**, capacity analysis and operational consequences (**D-C5 is APPROVED, DR-25.5**). See also section 12.6 — the saturated state can structurally prevent stage **L2** of the loss-reporting chain.
 
 **DR-25.8 (0.6.0) — exhaustion direction APPROVED: overwrite-oldest.** On reserved-area saturation the device **overwrites the oldest stored record**. This fixes the **direction** of the policy and is **traceable and supersedable on its own**.
 
-**What DR-25.8 does NOT decide — OPEN:** record **priority classes**; which record kinds are ever eligible for overwrite; the **counters** and their exposure (see **PCC-19**); the **thresholds** (still **D-D6**); capacity and wear budget (**D-D8**); the **reserved-area size**; and the relationship to **D-C5**. **No exhaustion behaviour is implemented.** Option **P4** remains **rejected on principle**; the approved direction is a *tracked, counted* overwrite, not silent best-effort dropping.
+**What DR-25.8 does NOT decide — OPEN:** record **priority classes**; which record kinds are ever eligible for overwrite; the **counters** and their exposure (see **PCC-19**); the **thresholds** (still **D-D6**); capacity and wear budget (**D-D8**); the **reserved-area size**; and **D-C5 (DR-25.5) treats out-of-range data as a system event, not an alarm, so exhaustion is orthogonal to it**. **No exhaustion behaviour is implemented.** Option **P4** remains **rejected on principle**; the approved direction is a *tracked, counted* overwrite, not silent best-effort dropping.
 
 ### 12.6 Loss-reporting chain L1–L5 (PROPOSED — NOT APPROVED)
 
@@ -871,7 +883,7 @@ Stage **L2** requires that a durable loss record *can be written* to the journal
 
 Consequences recorded as fact — none is decided here:
 
-* Progression **beyond L2 cannot be considered fully specified** until D-D10 is approved, because the availability of L2 under saturation is undetermined.
+* Progression **beyond L2 cannot be considered fully specified** until D-D10 is fully decided, because the availability of L2 under saturation is undetermined.
 * **PER-02** (record priorities for eviction) and **PER-04** (which records may be discarded, and how loss is counted and warned) are both explicitly dependent on D-D10.
 * **AC-19** (no silent discard) is **BLOCKED** by this interaction.
 * Test **T4**'s loss-reporting expectation is conditioned not only on L1–L5 but additionally on **D-D6**, **D-D8** and **D-D10**, because L2 may be structurally impossible in the saturated state.
@@ -901,7 +913,7 @@ Consequences recorded as fact — none is decided here:
 | ID | Requirement | Status |
 |---|---|---|
 | PER-01 | A bounded buffer (RAM + journal) precedes transmission. | Established |
-| PER-02 | Record priorities for eviction. | OPEN — depends on D-C5, D-D6, D-D10 |
+| PER-02 | Record priorities for eviction. | OPEN — depends on D-D6, D-D10 (D-C5 is APPROVED, DR-25.5) |
 | PER-03 | Per-second / per-interval ADC measurements are **not** stored as historical records. | Established |
 | PER-04 | Which records may be discarded, and how loss is counted and warned. | OPEN — depends on D-D6, D-D10 |
 | PER-05 | No silent discard. | Established requirement; acceptance **AC-19** is **BLOCKED — DECISION REQUIRED** by D-D10 (section 12.6) |
@@ -925,7 +937,7 @@ Consequences recorded as fact — none is decided here:
 | Concern | Owner | State |
 |---|---|---|
 | **Preliminary board selection** | **D-A1** | DECIDED — preliminary selection only; confirms **no** hardware fact |
-| **Confirmed board identity** (actual flash size, actual resources) | **D-A8** (mapped to HW-01) | **OPEN — NOT APPROVED** |
+| **Confirmed board identity** (actual flash size, actual resources) | **D-A8** (mapped to HW-01) | **APPROVED (DR-13, 0.6.0)** — board confirmed; flash / chip / ADC still to verify in Phase 2B |
 | **Journal endurance / volume analysis** (write rate, wear budget, file system) | **D-D8** | **OPEN — NOT APPROVED** |
 | **Journal capacity calculation** (partition sizing, buffer target) | **HW-13** (partition layout) and **D-D3** (buffer capacity target) | **OPEN — NOT APPROVED** |
 
@@ -989,7 +1001,7 @@ Consequences recorded as fact — none is decided here:
 * Interrupted cycles have `status = 'interrupted'`, `cycle_end_ms = NULL`, `end_time_valid = 0`, `duration_ms = NULL`.
 * No fabricated timestamps.
 
-**Proposed added columns:** `faulted_channel_count` (default 0) and `fault_transition_count` (**`NULL` until D-C4**) — the fault **vocabulary** is APPROVED (DR-06, section 7.1a), but the **counting model for both remains OPEN under D-D13 / DR-07**, so neither may be implemented; and the two optional `valid_samples_*_both_nozzles` (**`NULL` until HW-02/HW-03**).
+**Proposed added columns:** `faulted_channel_count` (default 0) and `fault_transition_count` (**`NULL` until DR-07-C3 is decided**) — the fault **vocabulary** is APPROVED (DR-06, section 7.1a) and `faulted_channel_count` is APPROVED (DR-07-C2); `fault_transition_count` remains OPEN because its former blocker **D-C4 is APPROVED (DR-25.4, defaults only)** but **DR-07-C3 itself remains OPEN — DECISION REQUIRED**; and the two optional `valid_samples_*_both_nozzles` (**`NULL` until HW-02/HW-03**).
 
 ### 14.4 `nozzle_stats` — proposed columns
 
@@ -1036,9 +1048,9 @@ The Windows application is intended as a local **FastAPI** HTTP / WebSocket serv
 * Validation requirements: rejection of empty, non-numeric, `NaN`, `Infinity`, and a range whose two points are equal; invalid settings must not cause a divide-by-zero or invalid output.
 * The GUI shows **raw voltage and converted value separately**, plus settings-validity and out-of-range status.
 
-### 15.4 Localisation and RTL / LTR (OPEN — NOT APPROVED)
+### 15.4 Localisation and RTL / LTR (APPROVED — DR-19)
 
-Whether the GUI is English-only or English + Persian (with RTL layout) is **OPEN (D-D5)**. If Persian is included, Jalali date presentation and RTL layout must be handled as **presentation concerns only**; stored timestamps remain UTC (section 11).
+**APPROVED (DR-19, 0.6.0):** GUI languages are Persian and English with correct RTL/LTR; selectable Persian (Jalali) and Gregorian calendars as presentation only. Jalali date presentation and RTL layout are **presentation concerns only**; stored timestamps remain UTC (section 11).
 
 ### 15.5 Access control (requirement established; mechanism open)
 
@@ -1056,7 +1068,7 @@ With SQLite in WAL mode, a **plain copy of the main database file is not guarant
 
 **Proposed method:** a WAL-aware snapshot (for example the SQLite online backup API, or `VACUUM INTO`, or a file-set copy under an exclusive lock) to a temporary file, then **integrity verification**, then an **atomic rename** into the backup location. A failed backup must raise a **warning**, never pass silently.
 
-**Not finalised (D-D4):** backup destination, schedule, and retention period.
+**APPROVED (DR-18, 0.6.0):** daily SQLite backup to a different drive; configurable destination path; latest 30 backups retained; a clear warning when the destination is unavailable; a WAL-safe method. The specific WAL-aware technique in the paragraph above remains a proposal. Run-time default (hour of day) remains OPEN.
 
 ### 16.2 Restore (PROPOSED — NOT APPROVED)
 
@@ -1125,10 +1137,11 @@ These criteria are sufficiently specified and are independent of unresolved deci
 | AC-17 | A record is deleted on the device only after a valid matching ACK, and only after it was durably written. |
 | AC-18 | Storage failures, capacity pressure and recovery status are observable, not silent. |
 | AC-20 | Any volatile loss information surfaced anywhere is labelled as temporary and not part of historical storage. |
+| AC-08 | Out-of-range readings raise **zero** alarm events → D-C5 is APPROVED (DR-25.5): out-of-range data is a data-validity condition plus a system event — not an alarm, no escalation. |
 
 **Requirement mapping for the criteria added in P1 (AUD-11):** AC-14 → JRN-01; AC-15 → JRN-02; AC-16 → JRN-03; AC-17 → JRN-04 and JRN-05; AC-18 → JRN-06; AC-19 (section 17.3) → PER-05; AC-20 → D-D9 Option C (section 12.4). These are **traceability representations of requirements that are already stated**; **no new behaviour is introduced**.
 
-> **Note:** AC-07, AC-08, AC-13 and AC-19 are **not** unconditional; they are listed in section 17.3 with their dependencies. **AC-04 has moved here** — its former blocker was resolved by DR-03 and DR-03b.
+> **Note:** AC-07, AC-13 and AC-19 are **not** unconditional; they are listed in section 17.3 with their dependencies. **AC-04 and AC-08 have moved here** — AC-04's former blocker was resolved by DR-03 and DR-03b; **AC-08's was resolved by DR-25.5 (0.6.0), which approved D-C5.**
 
 ### 17.3 Conditional / blocked acceptance criteria (P0 / AUD-03, AUD-05, AUD-06)
 
@@ -1137,13 +1150,12 @@ These criteria depend on OPEN decisions or on unresolved specification questions
 | ID | Criterion | Dependency | Status |
 |---|---|---|---|
 | AC-07 | Raw voltage available for every sample (**live representation**, section 4.2 paragraph 1), **including** the durable retention scope. | **DR-04A APPROVED** — durable raw voltage required for applicable out-of-range readings (section 4.2). Occurrence granularity **OPEN (DR-04A2, D-C4)**. | **BLOCKED — OCCURRENCE GRANULARITY UNRESOLVED (DR-04A2)** |
-| AC-08 | Out-of-range readings raise **zero** alarm events. | **D-C5** (OPEN — NOT APPROVED); see sections 7.5 and 10.3 | **CONDITIONAL — DEPENDS ON D-C5** |
 | AC-13 | An interrupted cycle is stored with `status = 'interrupted'`, `cycle_end_ms = NULL`, `end_time_valid = 0`, `duration_ms = NULL` and `duration_basis = 'null'`, and is never recorded as a completed cycle. | **D-D2** (OPEN — NOT APPROVED) — interruption **detection** is undecided (section 9.5b) | **BLOCKED — D-D2** |
 | AC-19 | No record is discarded silently: every discard is counted and surfaced. | PER-05 (section 13.2); exhaustion behaviour governed by **D-D10**, sized by **D-D6** and **D-D8** (section 12.6) | **BLOCKED — DECISION REQUIRED** |
 
 **Notes.**
 * **AC-04 has moved to section 17.2 (unconditional).** Its former blocker — the undefined `duration_basis` value set — was resolved by **DR-03**, and the NULL-pairing rule was established by **DR-03b**. The established rules of section 9.4 (no fabricated duration; a cross-boot cycle has `duration_ms = NULL`) continue to apply unchanged. **Basis selection after a clock step remains OPEN** and is not asserted here.
-* **AC-08 is not an alarm policy.** It states only that, under the currently approved requirements, an out-of-range reading is a data-validity condition and is **not** itself assigned a severity (section 7.5). The final behaviour — whether such a condition raises a Warning, an Alarm, a fault, or affects cycle completion — depends on the approved **D-C5** policy and is **not decided here**.
+* **AC-08 is now unconditional.** D-C5 was approved in 0.6.0 (**DR-25.5**): out-of-range / invalid data is a data-validity condition plus a system event; the cycle completes and invalid samples are excluded from statistics; no physical alarm and no escalation. AC-08 therefore states a fact, not a policy choice. It was promoted from this section to **section 17.2** in 0.7.2.
 * **AC-13** covers representation only. It remains blocked while interruption **detection** is undecided.
 
 ### 17.4 Claims that are NOT made
@@ -1163,13 +1175,13 @@ No test has been executed. No build has been performed. No performance figure ha
 | AMB-05 | Internal ADC channel count (4, per retailer page) versus the 64-channel need | Feasibility of internal-ADC-only acquisition is in doubt | HW-02 |
 | AMB-06 | Board specifications unconfirmed | Pin map and electrical design blocked | HW-01 |
 | AMB-07 | Journal capacity, reserved area, filesystem, wear budget unspecified | Buffering and overflow policy cannot be fixed | D-D6, D-D8, HW-13 |
-| AMB-08 | Alarm and fault policy unresolved | Alarm logic cannot be written | D-C1…D-C5 |
+| AMB-08 | Alarm and fault policy | **CLOSED by DR-25.1…DR-25.5 (0.6.0)** — alarm logic may be implemented | — |
 | AMB-09 | Cycle marker policy unresolved | Recovery, T5 and T6 suspended | D-D2 |
 | AMB-10 | DHCP allocation range not re-verified against the pinned Arduino-ESP32 version | Network plan provisional | D-B2 |
 | AMB-11 | Time authority (PC-only vs RTC) undecided | Behaviour after long PC downtime undefined | D-D7 |
 | AMB-12 | GUI language and RTL / LTR scope undecided | Localisation work undefined | D-D5 |
 | AMB-13 | Backup destination, schedule and retention undecided | Backup automation undefined | D-D4 |
-| AMB-14 | Reserved-area exhaustion policy undecided | Overflow behaviour undefined | D-D6, D-D8, D-C5 |
+| AMB-14 | Reserved-area exhaustion policy (sizes/thresholds) | Direction APPROVED (DR-25.8); sizes/thresholds undefined | D-D6, D-D8 (D-C5 is APPROVED) |
 | AMB-15 | Settings-PIN mechanism not specified | Protected settings page implementation undefined | **CLOSED by DR-22** — username + password, mandatory default-password change; credential storage remains OPEN |
 
 ### 18.1 PROPOSED Consequential Changes (PCC) — recorded, NOT applied
@@ -1182,37 +1194,42 @@ Each entry records a consequential change that this revision deliberately **does
 | PCC-02 | §5.3 | **REFINEMENT (not contradiction):** §3.1 and §5.3 record "4-channel ADC" as a retailer-page claim already marked UNVERIFIED. The confirmed board's pinout image shows 6 exposed ADC1 GPIOs and 9 ADC2 GPIOs. The retailer claim is not an approved fact. §5.3's "4-channel" wording should be amended to reflect the OBSERVATION while keeping the acquisition architecture OPEN. | **PROPOSED — NOT APPLIED** |
 | PCC-03 | §4.3 | Pressure nominal points 0.5–4.5 V / 0–4 bar are no longer defaults; pressure starts unconfigured; keep only as sensor-level reference. | **PROPOSED — NOT APPLIED** |
 | PCC-04 | §4.4 | Temperature "independent parameters" superseded by per-channel calibration (DR-27). | **PROPOSED — NOT APPLIED** |
-| PCC-05 | §4.5 | Its "Non-escalation" paragraph says D-C5 remains OPEN; D-C5 is now resolved (DR-25.5). | **PROPOSED — NOT APPLIED** |
+| PCC-05 | §4.5 | Its "Non-escalation" paragraph says D-C5 remains OPEN; D-C5 is now resolved (DR-25.5). | **APPLIED (0.7.0)** |
 | PCC-06 | §6.2 / §6.3 | `temp_conversion_configured` grain: device-global → per-channel (DR-27). | **APPLIED (0.6.1)** |
 | PCC-07 | §6.6 | Q1–Q3 superseded by DR-27; Q4–Q8 remain OPEN and are more important now. | **APPLIED (0.6.1)** |
 | PCC-08 | §7.4 | D-C4 now has approved defaults (DR-25.4); DR-07-C3 nevertheless stays OPEN — DECISION REQUIRED (no longer blocked by D-C4). | **APPLIED (0.6.1)** |
 | PCC-09 | §7.1a item 9 | DR-12 resolved (stabilisation samples not counted) — DR-25.6. | **APPLIED (0.6.1)** |
-| PCC-10 | §8.1 | `unconfigured` currently says "(temperature only)" — now applies to pressure too (DR-27). | **PROPOSED — NOT APPLIED** |
-| PCC-11 | §8.2 / §8.3 / §8.5 | Station/cycle/machine states referenced D-C1…D-C5 as OPEN; now DR-25.1…DR-25.5. | **PROPOSED — NOT APPLIED** |
-| PCC-12 | §9.2 | Stabilisation rule needs the fault-counter exclusion (DR-25.6). | **PROPOSED — NOT APPLIED** |
+| PCC-10 | §8.1 | `unconfigured` currently says "(temperature only)" — now applies to pressure too (DR-27). | **APPLIED (0.7.0)** |
+| PCC-11 | §8.2 / §8.3 / §8.5 | Station/cycle/machine states referenced D-C1…D-C5 as OPEN; now DR-25.1…DR-25.5. | **APPLIED (0.7.0)** |
+| PCC-12 | §9.2 | Stabilisation rule needs the fault-counter exclusion (DR-25.6). | **APPLIED (0.7.0)** |
 | PCC-13 | §9.3 / §9.5 / §9.6 | D-D2 gets a direction only (DR-25.7); AC-13, T5, T6 stay blocked. | **APPLIED (0.6.1)** |
-| PCC-14 | §10.2 | Physical-output wording referenced unresolved policy; now DR-25.2. | **PROPOSED — NOT APPLIED** |
+| PCC-14 | §10.2 | Physical-output wording referenced unresolved policy; now DR-25.2. | **APPLIED (0.7.0)** |
 | PCC-15 | §14.2 | New record types (raw-voltage record, `data_loss`, `interrupted_cycle`) need tables — schema is not mine to add. | **PROPOSED — NOT APPLIED** |
 | PCC-16 | §18 AMB-01 / AMB-02 | Still open: datasheet, temperature points. | **PROPOSED — NOT APPLIED** |
-| PCC-17 | §22 | Glossary "Raw voltage — always retained" is lifetime-ambiguous. | **PROPOSED — NOT APPLIED** |
-| PCC-18 | §19 / §23 | DR-08 Q1–Q3 must be shown as SUPERSEDED by DR-27, not left contradicting. | **PROPOSED — NOT APPLIED** |
+| PCC-17 | §22 | Glossary "Raw voltage — always retained" is lifetime-ambiguous. | **APPLIED (0.7.0)** |
+| PCC-18 | §19 / §23 | DR-08 Q1–Q3 must be shown as SUPERSEDED by DR-27, not left contradicting. | **APPLIED (0.7.0)** |
 | PCC-19 | §12.4 | D-D9 volatile-loss wording vs. the new overwrite counters. | **PROPOSED — NOT APPLIED** |
 | PCC-20 | §13.3 | Journal capacity: D-D3 direction approved; **all sizes still OPEN**. | **PROPOSED — NOT APPLIED** |
 | PCC-21 | §16.3 | Reports on demand; user-selected PDF / Excel / CSV. | **PROPOSED — NOT APPLIED** |
-| PCC-22 | §17.2 / §17.3 **AC-08** | "Out-of-range readings raise zero alarm events" becomes unconditional now that D-C5 is resolved (DR-25.5). **Record only — do not move AC-08 yet.** | **PROPOSED — NOT APPLIED** |
+| PCC-22 | §17.2 / §17.3 **AC-08** | "Out-of-range readings raise zero alarm events" becomes unconditional now that D-C5 is resolved (DR-25.5). **Applied in 0.7.2 — AC-08 promoted to unconditional and moved to §17.2.** | **APPLIED (0.7.2)** |
 | PCC-23 | §17.3 **AC-07** | Durable raw-voltage granularity is now approved (DR-25.9). **AC-07 is STILL PARTIALLY BLOCKED**, because DR-25.9 leaves "count finalized / D-D2 persistence" OPEN. **Record only.** | **PROPOSED — NOT APPLIED** |
 | PCC-24 | §4.3 | **Cross-reference to PCC-03** (pressure nominal points superseded by DR-27). No duplicate content. | **PROPOSED — NOT APPLIED** |
 | PCC-25 | §14.2 | **Cross-reference to PCC-15** (new record types need tables). No duplicate content. | **PROPOSED — NOT APPLIED** |
 | PCC-26 | §12.1 | JSON message encoding approved (DR-23); the protocol / message contract itself remains **NOT APPROVED** and is not edited in this revision. | **PROPOSED — NOT APPLIED** |
 | PCC-27 | §2.2 **ARC-09** | "approximately 1 Hz" is fixed to exactly 1 sample per second per channel by DR-24. | **PROPOSED — NOT APPLIED** |
-| PCC-28 | §3.3 | The "D-A8 remains `OPEN — DECISION REQUIRED`" text is stale: **DR-13 closed D-A8** (board confirmed ESP32-D0WDQ6, 30-pin, 4 MB, retailer-stated). HW-01 closed with it. | **PROPOSED — NOT APPLIED** |
-| PCC-29 | §4.2 | The "DR-04A2 — `OPEN — DECISION REQUIRED`, direction only" text is stale: **DR-25.9 approved the granularity** (one durable raw-voltage record per entry into `out_of_range`, plus a count). Count finalization and D-D2 persistence stay OPEN. | **PROPOSED — NOT APPLIED** |
-| PCC-30 | §10.3 | The D-C1 … D-C5 table in the §10.3 body still reads `OPEN — DECISION REQUIRED`; **DR-25.1 … DR-25.5 approved** them (D-C4 = defaults only). The §10.3 body wording is not updated by this revision. | **PROPOSED — NOT APPLIED** |
-| PCC-31 | §11.5 | The "D-D7 remains `OPEN — DECISION REQUIRED`" text is stale: **DR-17 approved D-D7** (PC is the sole time reference; no hardware RTC; PC time zone Tehran; no fabricated timestamps). | **PROPOSED — NOT APPLIED** |
-| PCC-32 | §13.3 | The journal-capacity dependency table still marks board identity as `OPEN — TRACEABILITY DECISION REQUIRED` via **D-A8 or D-A1**; **DR-13 resolved D-A8**. **D-D8, D-D3 and HW-13 remain OPEN** — capacity is still undetermined. | **PROPOSED — NOT APPLIED** |
-| PCC-33 | §14.3 | "fault_transition_count is `NULL` until D-C4 is resolved" is stale as a *blocker* statement: **D-C4 is approved (defaults only, DR-25.4)**. DR-07-C3 nevertheless remains `OPEN — DECISION REQUIRED` and the field stays `NULL`. | **PROPOSED — NOT APPLIED** |
-| PCC-34 | §15.4 | The "D-D5 remains `OPEN — DECISION REQUIRED`" text is stale: **DR-19 approved D-D5** (GUI languages Persian and English, correct RTL/LTR, selectable Jalali and Gregorian calendars as presentation only). | **PROPOSED — NOT APPLIED** |
-| PCC-35 | §16.1 | "Backup path **not finalised (D-D4)**" is stale: **DR-18 approved D-D4** (daily SQLite backup to a different drive, configurable destination path, latest 30 backups). Restore-side details remain as written. | **PROPOSED — NOT APPLIED** |
+| PCC-28 | §3.3 | The "D-A8 remains `OPEN — DECISION REQUIRED`" text is stale: **DR-13 closed D-A8** (board confirmed ESP32-D0WDQ6, 30-pin, 4 MB, retailer-stated). HW-01 closed with it. | **APPLIED (0.7.0)** |
+| PCC-29 | §4.2 | The "DR-04A2 — `OPEN — DECISION REQUIRED`, direction only" text is stale: **DR-25.9 approved the granularity** (one durable raw-voltage record per entry into `out_of_range`, plus a count). Count finalization and D-D2 persistence stay OPEN. | **APPLIED (0.7.0)** |
+| PCC-30 | §10.3 | The D-C1 … D-C5 table in the §10.3 body still reads `OPEN — DECISION REQUIRED`; **DR-25.1 … DR-25.5 approved** them (D-C4 = defaults only). The §10.3 body wording is not updated by this revision. | **APPLIED (0.7.0)** |
+| PCC-31 | §11.5 | The "D-D7 remains `OPEN — DECISION REQUIRED`" text is stale: **DR-17 approved D-D7** (PC is the sole time reference; no hardware RTC; PC time zone Tehran; no fabricated timestamps). | **APPLIED (0.7.0)** |
+| PCC-32 | §13.3 | The journal-capacity dependency table still marks board identity as `OPEN — TRACEABILITY DECISION REQUIRED` via **D-A8 or D-A1**; **DR-13 resolved D-A8**. **D-D8, D-D3 and HW-13 remain OPEN** — capacity is still undetermined. | **APPLIED (0.7.0)** |
+| PCC-33 | §14.3 | "fault_transition_count is `NULL` until D-C4 is resolved" is stale as a *blocker* statement: **D-C4 is approved (defaults only, DR-25.4)**. DR-07-C3 nevertheless remains `OPEN — DECISION REQUIRED` and the field stays `NULL`. | **APPLIED (0.7.0)** |
+| PCC-34 | §15.4 | The "D-D5 remains `OPEN — DECISION REQUIRED`" text is stale: **DR-19 approved D-D5** (GUI languages Persian and English, correct RTL/LTR, selectable Jalali and Gregorian calendars as presentation only). | **APPLIED (0.7.0)** |
+| PCC-35 | §16.1 | "Backup path **not finalised (D-D4)**" is stale: **DR-18 approved D-D4** (daily SQLite backup to a different drive, configurable destination path, latest 30 backups). Restore-side details remain as written. | **APPLIED (0.7.0)** |
+| PCC-36 | §7.1a | Residual stale D-C5 references in §7.1a: the DR-06 scope-limits sentence, open-question item 7, and DR-12 stabilisation participation. **DR-25.1…DR-25.5 and DR-25.6 approved.** | **APPLIED (0.7.1)** |
+| PCC-37 | §12.4 / §12.5 | Residual stale D-D10 references: the §12.5 heading and the L2 progression sentence said D-D10 "OPEN"; it is **direction approved (DR-25.8)**. §12.4 listed D-C5 as a dependency of the exhaustion policy; D-C5 is **APPROVED (DR-25.5)** and is orthogonal to exhaustion. | **APPLIED (0.7.1)** |
+| PCC-38 | §17.1 / §18 AMB rows | Residual stale references: §17.1 PER-02 listed D-C5 as a dependency (now APPROVED); §18 AMB-08 "Alarm and fault policy unresolved" is **closed by DR-25.1…DR-25.5**; §18 AMB-14 now records direction APPROVED with sizes/thresholds still undefined. | **APPLIED (0.7.1)** |
+
+**PCC application summary.** PCC-05, PCC-10, PCC-11, PCC-12, PCC-14, PCC-17, PCC-18 and PCC-28…PCC-35 became **APPLIED (0.7.0)**. Residual stale references in §7.1a, §12.4, §12.5, §17.1 and §18 were applied in **0.7.1** as a follow-up — **PCC-36, PCC-37 and PCC-38, recorded as APPLIED (0.7.1)**. **PCC-22 became APPLIED (0.7.2)** when AC-08 was promoted from §17.3 to §17.2 as an unconditional criterion — its original blocker (D-C5 being OPEN) was resolved by DR-25.5 in 0.6.0.
 
 ### 18.2 Open Questions Register
 
@@ -1297,7 +1314,7 @@ Each entry records a consequential change that this revision deliberately **does
 | CS-01 | Clock-step duration policy | **APPROVED (Policy B)** (section 9.4) — same-boot uptime fallback; **D-D7 remains OPEN** |
 | D-D13 | Fault-counter semantics (`faulted_channel_count`, `fault_transition_count`, `invalid_channel_count_now`) | **OPEN — DECISION REQUIRED** — fault **vocabulary** APPROVED (DR-06); counting model, reset, reboot and persistence remain open (section 7.1a) |
 | TEMP-CONVERSION-CONFIG-GRAIN | Temperature-conversion configuration ownership and grain (symbolic identifier; no D-D number assigned) | **PARTIALLY RESOLVED** — **Q1–Q3 SUPERSEDED by DR-27 (per-channel)**; **Q4–Q8 remain OPEN — DECISION REQUIRED** (section 6.6) |
-| DR-13 | Board confirmed: ESP32-D0WDQ6, 30-pin development board, 4 MB flash (retailer-stated), PlatformIO target esp32dev. Physical board confirmed to match the supplied pinout image. Flash size, chip identity and ADC characteristics to be verified with read-only commands in Phase 2B. Closes D-A8 / HW-01 per section 3.3. Does NOT approve any GPIO map, ADC architecture, multiplexer, divider, protection or alarm circuit (D-A2, D-A3, D-A4, HW-09 stay OPEN). Add the OBSERVATION (not a decision) that the pinout image shows 6 exposed ADC1-capable GPIOs (GPIO 32, 33, 34, 35, 36, 39). ADC2/Wi-Fi interaction and USB-UART chip identity are "general knowledge, to be verified in Phase 2B". | **APPROVED** (2026-10-05) |
+| DR-13 | Board confirmed: ESP32-D0WDQ6, 30-pin development board, 4 MB flash (retailer-stated), PlatformIO target esp32dev. Physical board confirmed to match the supplied pinout image. Flash size, chip identity and ADC characteristics to be verified with read-only commands in Phase 2B. Closes D-A8 / HW-01 per section 3.3. Does NOT approve any GPIO map, ADC architecture, multiplexer, divider, protection or alarm circuit (D-A2, D-A3, D-A4, HW-09 stay OPEN). **Observation (not a decision):** the pinout image shows 6 exposed ADC1-capable GPIOs — GPIO 32, 33, 34, 35, 36, 39. ADC2/Wi-Fi interaction and USB-UART chip identity are "general knowledge, to be verified in Phase 2B". | **APPROVED** (2026-10-05) |
 | DR-14 | Environment: the development PC is Windows 10 64-bit with Python 3.13.0 and internet (development only). The final installation target is a different Windows 10 64-bit PC without internet. | **APPROVED** (2026-10-05) |
 | DR-15 | Network (D-B1, D-B3): PC uses a dedicated USB Wi-Fi adapter for the ESP32 access-point link; no internet is required in operation; the user applies Windows IP / firewall settings manually following documentation written by the assistant in a later phase; the assistant never applies them. Closes D-B1 and D-B3. D-B2 (address plan and DHCP pool) stays OPEN. | **APPROVED** (2026-10-05) |
 | DR-16 | D-B4: Python packages may be installed in a virtual environment inside `pc/` in Phase 2A, with pinned versions. Does NOT authorize installation in Phase 2A-0. | **APPROVED** (2026-10-05) |
@@ -1318,11 +1335,12 @@ Each entry records a consequential change that this revision deliberately **does
 | DR-25.6 | DR-12: samples during activation stabilization are not counted in fault counters. | **APPROVED** (2026-10-05) |
 | DR-25.7 | D-D2 (**DIRECTION ONLY**): the active-cycle marker is written **only at cycle start and at cycle end**. Timing of the end-marker clear, completion ordering, and all interrupted-cycle detection details stay OPEN. | **APPROVED (direction only)** (2026-10-05) |
 | DR-25.8 | D-D3 / D-D10 (**DIRECTION ONLY**): durable journal capacity = whatever internal flash allows (no time target); when full, new records overwrite the oldest. Loss must never be silent (PER-05 stays in force): every overwrite is counted and surfaced (`live_state` counter, visible dashboard flag, and a `data_loss` record where possible). Priority: **system events overwritten first; cycle summaries and alarm events last**. This is a new option beyond P1–P4 of section 12.5 and does **NOT** approve P4. D-D6, D-D8, HW-13 and all sizes/thresholds stay OPEN. | **APPROVED (direction only)** (2026-10-05) |
-| DR-25.9 | DR-04A2: for each entry of a channel into `out_of_range`, **ONE** durable raw-voltage record (the first sample) plus the sample count is kept, never one record per sample. When the count is finalized and its relation to D-D2 persistence stay OPEN. DR-07-C3 (`fault_transition_count`) stays **OPEN — DECISION REQUIRED** (no longer blocked by D-C4 defaults). | **APPROVED (granularity)**; DR-07-C3 remains OPEN (2026-10-05) |
+| DR-25.9 | DR-04A2: for each entry of a channel into `out_of_range`, **ONE** durable raw-voltage record (the first sample) plus the sample count is kept, never one record per sample. | **APPROVED (granularity)** (2026-10-05) |
+| DR-25.9-b | The **count finalization** and its relation to **D-D2 persistence** for the DR-25.9 occurrence record are **not** decided. | **OPEN — DECISION REQUIRED** (2026-10-05) |
 | DR-26 | Sensor-agnostic measurement: any sensor with an analog voltage output must be connectable; measurement is voltage-based; no sensor datasheet or sensor type required. NOT assumed: sensor supply voltage, ratiometric behavior, gauge vs absolute pressure. | **APPROVED** (2026-10-05) |
 | **DR-27** | Per-channel calibration. **AMENDS and SUPERSEDES DR-08 Q1–Q3** (device-global temperature configuration ownership). Every one of the 64 channels is configured and calibrated separately in software (32 pressure, 32 temperature). `temp_conversion_configured` is derived from each channel's own calibration. DR-08 Q4–Q8 stay OPEN and are more important now. First version has exactly two conversion modes: **LINEAR** (two points, Arduino `map()` semantics) and **NON-LINEAR** (five points, piecewise-linear interpolation). Polynomial, scale/offset and equation-based (NTC) conversions are **DEFERRED**. Output units fixed to bar and degrees Celsius; user chooses output range of points. Validation: calibration points must be finite and have distinct, ascending voltages. Voltage domain: calibration points and valid-voltage window are **ADC-input volts (0–3.3 V, after any divider; divider ratio absorbed in calibration)**. Inside 0–3.3 V but outside calibrated span: linear extrapolation along the end segment, stays valid. Outside 0–3.3 V: `out_of_range`. Each channel has an **OPTIONAL** valid-voltage window whose default is 0–3.3 V. Nominal pressure points of section 4.3 (0.5–4.5 V = 0–4 bar) are **NOT applicable as defaults**; keep only as "sensor-level reference, applicability under review". Pressure starts unconfigured, like temperature. NOT decided here (**OPEN**): whether the D-D12 NULL-vs-0 rule extends to pressure counters; a "copy calibration to other channels" convenience. | **APPROVED** (2026-10-05) — supersedes DR-08 Q1–Q3 |
 | DR-28 | Polarity: the active level of the station inputs (per input or global: OPEN), the alarm output and the reset input must be configurable on the ESP32 settings web page and persisted in NVS. Default stays LOW = active per section 5.1 until changed. | **APPROVED** (2026-10-05) |
-| DR-29 | Hardware design is left open to the designer. User-procurable CANDIDATE parts (candidates only, NOT approved; D-A2, D-A3, D-A4 stay OPEN): CD74HC4067 16-channel analog multiplexer module, ADS1115 16-bit 4-channel I2C ADC module, PCF8574 8-bit I2C I/O expander module. Add an OBSERVATION (not a decision): these candidates imply sequential scanning; HW-14 stays OPEN. The PC-to-ESP32 distance is reported as suitable. | **APPROVED (observation only)** (2026-10-05) |
+| DR-29 | Hardware design is left open to the designer. User-procurable CANDIDATE parts (candidates only, NOT approved; D-A2, D-A3, D-A4 stay OPEN): CD74HC4067 16-channel analog multiplexer module, ADS1115 16-bit 4-channel I2C ADC module, PCF8574 8-bit I2C I/O expander module. **Observation (not a decision):** these candidates imply sequential scanning; HW-14 stays OPEN. The PC-to-ESP32 distance is reported as suitable. | **APPROVED (observation only)** (2026-10-05) |
 
 **DR-25 binding rule (relocated from the removed section 27.1):** revising or superseding any one **DR-25.x** sub-decision has **no effect** on any other. The bundle is an indexing convenience, **not** a single atomic decision.
 
@@ -1371,7 +1389,7 @@ Each entry records a consequential change that this revision deliberately **does
 | Reserved-area / overflow policy | **direction APPROVED (0.6.0)** — overwrite-oldest (DR-25.8); **D-D6, D-D8, priority classes and counters remain OPEN** |
 | Unknown-time record handling validation | **— (RESOLVED)** — **D-D7 APPROVED (DR-17)** — PC is the sole time reference |
 | Temperature-conversion configuration grain (`TEMP-CONVERSION-CONFIG-GRAIN`) | **Q1–Q3 SUPERSEDED by DR-27 (per-channel)**; **Q4–Q8 `OPEN — DECISION REQUIRED`** (section 6.6) |
-| RAW-VOLTAGE-RETENTION occurrence model (DR-04A2) | **OPEN — DECISION REQUIRED (0.6.0)**; **no longer blocked by D-C4**; direction only via DR-25.9 (section 4.2). DR-04A APPROVED |
+| RAW-VOLTAGE-RETENTION occurrence model (DR-04A2) | **APPROVED (granularity, DR-25.9, 0.6.0)** — one durable raw-voltage record per entry into `out_of_range`, plus a count (section 4.2). **Count finalization and D-D2 persistence remain OPEN.** DR-04A APPROVED |
 | `fault_transition_count` (DR-07-C3) | **OPEN — DECISION REQUIRED (0.6.0)**; **no longer blocked by D-C4** (section 7.1a) |
 | Fault counting during activation stabilisation (DR-12) | **RESOLVED (DR-25.6)** — samples during activation stabilisation are **not** counted in fault counters |
 | `faulted_channel_count` interrupted-cycle / reboot persistence | **D-D2** |
@@ -1421,7 +1439,7 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | **ACK** | Acknowledgement from the PC after the record has been committed to SQLite. |
 | **Deduplication** | Rejecting a replayed record id so it does not create a second row. |
 | **live_state** | The 1 Hz, non-persisted, non-acknowledged status message. |
-| **Raw voltage** | The unconverted measured voltage, always retained. |
+| **Raw voltage** | The unconverted measured voltage, always retained in the live representation; durable retention for out-of-range readings approved via DR-04A; occurrence granularity DR-25.9. |
 | **Out of range** | A voltage outside the configured conversion range; the converted value is invalid; the raw voltage is preserved. |
 | **Valid sample** | A sample whose converted value is valid for the quantity concerned. |
 | **Loss indicator** | A flag recording that loss occurred. It never recovers the lost data. |
@@ -1439,7 +1457,7 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | Pressure linear conversion | §4.3; D-A5 method DECIDED | §17.1 conversion tests |
 | Pressure points nominal / unverified | §4.3; `approved = 0` | Labels present in reports / exports |
 | Temperature uncalibrated | §4.4; D-A5 remainder OPEN | §17.1 unconfigured-temperature test |
-| Out-of-range handling | §4.5, §6.5; **D-C5 APPROVED (DR-25.5)** | §17.1 out-of-range tests; **AC-08 — now unconditional** (PCC-22) — do not move AC-08 yet |
+| Out-of-range handling | §4.5, §6.5; **D-C5 APPROVED (DR-25.5)** | §17.1 out-of-range tests; **AC-08 — unconditional since 0.7.2 (DR-25.5)** |
 | Raw voltage retention | §4.2 — **DR-04A APPROVED** (out-of-range category); report scope **APPROVED (DR-01)** | **AC-07 BLOCKED — DR-04A2** |
 | Validity independence | §6.1; D-D11 APPROVED | §17.1; AC-09 |
 | Per-nozzle counters | §6.2; D-D11 APPROVED | §17.1 |
@@ -1488,14 +1506,14 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | DR-04 RAW-VOLTAGE-RETENTION (0.4.0) | §4.2 | **OPEN — DECISION REQUIRED** (DR-01 prerequisite satisfied) |
 | DR-07 D-D13 counting model (0.4.0) | §7.1a | **PARTIALLY RESOLVED (0.5.0)** — DR-07-C1 / DR-07-C2 APPROVED; DR-07-C3 OPEN |
 | DR-04A core durable raw-voltage scope (0.5.0) | §4.2 | **APPROVED** — out-of-range category only |
-| DR-04A2 out-of-range occurrence granularity (0.5.0) | §4.2, §20 | **DEFERRED — OPEN — DECISION REQUIRED** (D-C4) |
+| DR-04A2 out-of-range occurrence granularity (0.5.0) | §4.2, §20 | **APPROVED (granularity) — DR-25.9**; count finalization / D-D2 persistence **OPEN** |
 | DR-04B / DR-04C cycle anchors and tie-breaking (0.5.0) | §4.2 | **REJECTED / NOT READY** — not adopted |
 | DR-04D / DR-04E / DR-04F boundary, interrupted, ordering (0.5.0) | §4.2, §20 | **NOT READY** (D-D2) |
 | DR-04G diagnostic RAM window (0.5.0) | §4.2 | **REJECTED / NOT ADOPTED** |
 | DR-07-C1 `invalid_channel_count_now` (0.5.0) | §7.1, §7.1a | **APPROVED** — instantaneous, live-only, non-durable |
 | DR-07-C2 `faulted_channel_count` (0.5.0) | §7.1, §7.1a | **APPROVED** — cumulative distinct-channel; D-D2 aspects OPEN |
 | DR-07-C3 `fault_transition_count` (0.5.0) | §7.1, §7.1a | **OPEN — DECISION REQUIRED**; **no longer blocked by D-C4** (DR-25.4 defaults approved); stored as `NULL` |
-| DR-12 fault counting during stabilisation (0.5.0) | §7.1a, §9.2 | **DEFERRED — OPEN — DECISION REQUIRED**; §9.2 preserved, not extended |
+| DR-12 fault counting during stabilisation (0.5.0) | §7.1a, §9.2 | **RESOLVED (DR-25.6)** — stabilisation samples are not counted in fault counters; §9.2 preserved, not extended |
 | CS-01 clock-step duration policy (0.5.0) | §9.4 | **APPROVED (Policy B)**; D-D7 remains OPEN |
 
 ---
@@ -1512,6 +1530,9 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | 0.6.0 | 2026-10-04 | **Phase 2A-0 documentation-only round.** Archived v0.5.0 byte-identical; created `docs/PROTOCOL_CONTRACT.md` (**PROPOSED — NOT APPROVED**). **DR-27** supersedes **DR-08 Q1–Q3** (per-channel temperature-calibration ownership). **DR-25** split into **DR-25.1 … DR-25.9** so each sub-decision is independently traceable and supersedable; **DR-25.4 = defaults only**, **DR-25.6/7/8/9 = direction only**. **DR-07-C3** moved from `DEFERRED — BLOCKED by D-C4` to **`OPEN — DECISION REQUIRED`** (`fault_transition_count` stays `NULL`). **D-C1…D-C5, D-D2 (direction), D-D3, D-D10 (direction) and DR-04A2 (direction)** updated in §19, §20 and §21. **D-B4 MET**; Phase 2A still **NOT AUTHORIZED** (needs contract approval + explicit authorization); Phase 2B **NOT AUTHORIZED**. §3.1a added. **PCC-19…PCC-21 recorded and NOT applied.** **No OPEN decision was silently resolved.** |
 | 0.6.1 | 2026-10-05 | **Phase 2A-0 repair revision (no new decisions).** Corruption repair D1–D5; DR-13 … DR-29 added; DR-25.1 … DR-25.9 and DR-27 replaced with full normative text; PCC-01 … PCC-27 recorded in §18.1; open-questions register moved to §18.2; unauthorized sections 27/28/29 deleted with content relocated; derived status updates for D-A8, HW-01, D-B1, D-B3, D-D7, D-D4, D-D5, AMB-15, §15.5. **Not a new decision round.**
 | 0.6.2 | 2026-10-05 | **Phase 2A-0 consistency patch (no new decisions, no new PCC semantics).** (A) §19 DR register reordered into numeric order (DR-25 + DR-25.1 … .9 after DR-24; DR-27 after DR-26) with row text byte-for-byte unchanged. (B) §20: 3 stale dependency rows updated (D-D7 via DR-17; DR-07-C3 unblocked; DR-12 RESOLVED via DR-25.6). (C) §23: 9 traceability rows aligned with §19 (DR-08 SUPERSEDED; DR-07-C3 unblocked; D-C1…D-C5, D-C2/D-C3, D-C5, D-D7, D-D10-direction and DR-12 statuses; AC-08 noted as now unconditional but **not moved**). (D) §17.1: 5 "Blocked by" cells updated — **no test executed or marked passed**. (E) PCC-28 … PCC-35 recorded as `PROPOSED — NOT APPLIED`. (F) PCC-06/07/08/09/13 relabelled `APPLIED (0.6.1)`. §4.3, §4.5, §8.1, §9.2, §10.3, §11.5, §13.3, §14.3, §15.4, §16.1, §17.3 byte-unchanged. Phase 2A / Phase 2B still **NOT AUTHORIZED**. **Line endings normalized to CRLF file-wide during the §19 reorder; §16.1 wording unchanged.** |
+| 0.7.0 | 2026-10-05 | **PCC application pass (no new decisions).** Body sections updated to match §19: §4.5, §8.1, §8.2, §8.3, §8.5, §9.2, §10.2, §10.3, §11.5, §13.3, §14.3, §15.4, §16.1, §5.3, §22. Cross-references: §3.3, §4.2, §19 (DR-25.9 split into DR-25.9 / DR-25.9-b), §20, §23. Imperative copy-paste in §19 DR-13 / DR-29 converted to descriptive text. 15 PCCs relabelled `APPLIED (0.7.0)`; the 5 `APPLIED (0.6.1)` not regressed; 15 remain `PROPOSED — NOT APPLIED`. §10.3 "Alternatives (none chosen)" column retained as rejected-option history (not renamed). The 0.6.0 revision-history date is left at 2026-10-04 — discrepancy recorded in V104, not corrected. No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
+| 0.7.2 | 2026-10-05 | **AC-08 promotion (no new decisions).** AC-08 moved from §17.3 to §17.2 as unconditional, with the approved D-C5 (DR-25.5) semantics inline. §17.2 closing note updated so AC-08 is no longer listed as non-unconditional. §17.3 AC-08 note rewritten as "now unconditional". PCC-22 → APPLIED (0.7.2). §23 "Out-of-range handling" caveat removed. §17.1 "see AC-08" reference left unchanged and reported. No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
+| 0.7.1 | 2026-10-05 | **Follow-up: complete D-C5 / D-D10 body alignment (no new decisions).** §7.5 and §8.4 `overflow` corrected; §7.1a (PCC-36), §12.4 / §12.5 (PCC-37), §17.1 PER-02 and §18 AMB-08 / AMB-14 (PCC-38) corrected. §17.3 AC-08 and its companion sentence deliberately left unchanged per PCC-22. §8.4 `journal_pressure` (D-D6 genuinely OPEN) unchanged. PCC-36, PCC-37, PCC-38 added as APPLIED (0.7.1). No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
 
 ## 25. Verification Record
 
@@ -1607,6 +1628,33 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | V88 | **0.6.2 (G)** version bumped to 0.6.2 in header, footer, §0.1 revision history and §24 change log, labelled "consistency patch (no new decisions, no new PCC semantics)" | Checked |
 | V89 | **0.6.2:** protected sections byte-unchanged (SHA256 compared before/after) — §4.3, §4.5, §8.1, §9.2, §10.3, §11.5, §13.3, §14.3, §15.4, §16.1, §17.3 | Checked |
 | V90 | **0.6.2:** scope respected — only `docs/PROJECT_SPECIFICATION.md` written; `docs/PROTOCOL_CONTRACT.md`, `docs/archive/`, `docs/hardware/` and `.clinerules/` untouched; no code, SQL, package, test, installer or configuration work performed; Phase 2A and Phase 2B remain NOT AUTHORIZED | Checked |
+| V91 | **0.7.0 (A1) §4.5** non-escalation paragraph now cites D-C5 APPROVED (DR-25.5); the stale "D-C5, which remains OPEN" text is gone | Checked |
+| V92 | **0.7.0 (A2) §8.1** `unconfigured` now reads "applies to pressure and temperature; DR-27 per-channel calibration, both start unconfigured" | Checked |
+| V93 | **0.7.0 (A3/A4) §8.2 / §8.3** fault and invalid rows now cite D-C5 APPROVED (DR-25.5); no "D-C5 (OPEN)" remains | Checked |
+| V94 | **0.7.0 (A5) §8.5** severity policy now cites APPROVED (DR-25.1…DR-25.5) with D-C4 defaults only | Checked |
+| V95 | **0.7.0 (A6) §9.2** stabilisation bullet added: samples excluded from fault-counter accounting (DR-25.6) | Checked |
+| V96 | **0.7.0 (A7) §10.2** D-C2 APPROVED (DR-25.2) added; the three-concept distinction is retained verbatim | Checked |
+| V97 | **0.7.0 (A8) §10.3** all five Status cells updated to APPROVED (DR-25.1–.5); D-C4 marked DEFAULTS ONLY; **the "Alternatives (none chosen)" column was NOT renamed** and now carries a note that it records rejected options, not policy | Checked |
+| V98 | **0.7.0 (A9) §11.5** time authority now APPROVED (DR-17) — PC is sole time reference, no hardware RTC | Checked |
+| V99 | **0.7.0 (A10) §13.3** board-identity row now APPROVED (DR-13) with flash/chip/ADC still to verify in Phase 2B | Checked |
+| V100 | **0.7.0 (A11) §14.3** `fault_transition_count` NULL until **DR-07-C3** (not D-C4); D-C4 recorded as APPROVED defaults only | Checked |
+| V101 | **0.7.0 (A12) §15.4** localisation now APPROVED (DR-19); presentation-only caveat retained | Checked |
+| V102 | **0.7.0 (A13) §16.1** backup now APPROVED (DR-18) including the destination-unavailable warning and WAL-safe method; the specific WAL technique remains a proposal; run-time default stays OPEN | Checked |
+| V103 | **0.7.0 (A14) §22** glossary "Raw voltage" now states live-representation retention, DR-04A durable scope and DR-25.9 granularity | Checked |
+| V104 | **0.7.0 (A15) §5.3** retailer "4-channel ADC" claim replaced with the pinout observation — 6 ADC1-capable GPIOs (32, 33, 34, 35, 36, 39) **verified against `docs/hardware/esp32-pinout.jpg`** (ADC1 CH0/3/4/5/6/7), recorded as observation only; HW-02/HW-03 remain OPEN | Checked |
+| V105 | **0.7.0 (B) cross-references** §3.3 D-A8 APPROVED (DR-13); §4.2 DR-04A2 APPROVED (DR-25.9); §19 DR-25.9 split into DR-25.9 (APPROVED, granularity) + **DR-25.9-b** (OPEN — count finalization / D-D2 persistence); §20 and §23 rows updated for DR-04A2 and DR-12 (RESOLVED DR-25.6) | Checked |
+| V106 | **0.7.0 (C1)** §19 DR-13 and DR-29 imperative copy-paste ("Add the OBSERVATION…") converted to descriptive text | Checked |
+| V107 | **0.7.0 (D)** 15 PCCs relabelled `APPLIED (0.7.0)` (PCC-05, 10, 11, 12, 14, 17, 18, 28–35); the 5 previously `APPLIED (0.6.1)` (PCC-06, 07, 08, 09, 13) were **not** regressed; 15 remain `PROPOSED — NOT APPLIED` | Checked |
+| V108 | **0.7.0 (B6) date discrepancy recorded, not corrected:** the 0.6.0 revision-history row remains **2026-10-04**. DR-13/17/18/19/27 carry (2026-10-05), but the §19 DR-25 bundle row carries **no approval date**, so it cannot be shown that every decision the 0.6.0 row cites was approved on 2026-10-05. Left unchanged per instruction and logged here | Checked |
+| V109 | **0.7.0** no new decision, no new section, no row removed; sections outside the approved edit list are byte-unchanged; `docs/PROTOCOL_CONTRACT.md`, `docs/archive/`, `.clinerules/`, `docs/hardware/`, `.gitignore`, `.gitattributes` and `README.md` untouched; Phase 2A and Phase 2B remain NOT AUTHORIZED | Checked |
+| V110 | **0.7.1 (FIX 1) §7.5** non-escalation now states D-C5 is APPROVED (DR-25.5) with the full approved semantics; the stale "D-C5, which remains OPEN" sentence is gone. This was the defect flagged at the end of the 0.7.0 pass | Checked |
+| V111 | **0.7.1 (FIX 2) §8.4** `overflow` row now records the D-D10 direction as APPROVED (DR-25.8, overwrite-oldest) with priority classes, counters and thresholds still OPEN. **FIX 3 verified and deliberately unchanged:** the `journal_pressure` row still says the threshold is OPEN under D-D6 — D-D6 is genuinely undecided | Checked |
+| V112 | **0.7.1 (PCC-36) §7.1a** three corrections — the DR-06 scope-limits sentence split so it no longer claims D-C1…D-C5 remain OPEN; open-question item 7 now RESOLVED (DR-25.5); DR-12 stabilisation participation now RESOLVED (DR-25.6), samples not counted in fault counters | Checked |
+| V113 | **0.7.1 (PCC-37) §12.4 / §12.5** four corrections — the §12.5 heading no longer reads "D-D10 OPEN — NOT APPROVED" (now DIRECTION APPROVED (DR-25.8), sizes and thresholds OPEN); the L2 progression sentence now requires D-D10 to be "fully decided" rather than "approved"; §12.4 no longer lists D-C5 as a dependency of the exhaustion policy and records it as APPROVED (DR-25.5) and orthogonal to exhaustion | Checked |
+| V114 | **0.7.1 (PCC-38) §17.1 / §18** three corrections — §17.1 PER-02 no longer lists D-C5 as a dependency; §18 AMB-08 now records the alarm and fault policy as CLOSED by DR-25.1…DR-25.5; §18 AMB-14 now records direction APPROVED with sizes/thresholds undefined | Checked |
+| V115 | **0.7.1** scan-driven completeness: every `D-C5` and `D-D10` occurrence was inspected sentence-by-sentence. **Deliberately unchanged:** §17.3 **AC-08** and its companion sentence (PCC-22 forbids moving AC-08 before an explicit decision) and §7.4's D-C5 cross-reference (correct as written). AC-08's remaining "D-C5 (OPEN)" wording is therefore a **known, recorded residual** to be resolved only when AC-08 is moved by explicit decision. No new decision, no new section, no row removed; only `docs/PROJECT_SPECIFICATION.md` written; Phase 2A and Phase 2B remain NOT AUTHORIZED | Checked |
+| V116 | **0.7.2 (AC-08 promotion)** AC-08 moved from **§17.3 (conditional)** to **§17.2 (unconditional)**, appearing exactly once and only in the §17.2 criterion table. The blocker recorded by PCC-22 — D-C5 being OPEN — was resolved by **DR-25.5 in 0.6.0**; no new decision was taken. The **§17.2 closing note was updated in the same pass**: it now lists only AC-07, AC-13 and AC-19 as non-unconditional and records AC-04 and AC-08 as "have moved here", so §17.2 does not contradict itself. The §17.3 AC-08 note now reads "AC-08 is now unconditional" and points to §17.2. `CONDITIONAL — DEPENDS ON D-C5` = 0 occurrences | Checked |
+| V117 | **0.7.2 (PCC-22 + traceability)** PCC-22 relabelled **APPLIED (0.7.2)** with the promotion recorded in its description; the §18.1 application summary notes the promotion and its cause. §23 "Out-of-range handling" now reads "AC-08 — unconditional since 0.7.2 (DR-25.5)" with the "do not move AC-08 yet" caveat removed. **Reported unchanged, as instructed:** the §17.1 "Out-of-range" test row still cites "see AC-08" — that reference remains accurate and was outside this patch's scope. PCC register totals reconcile to 38 (15 APPLIED 0.7.0 + 5 APPLIED 0.6.1 + 4 APPLIED 0.7.1/0.7.2 + 14 PROPOSED). No new decision, no new section, no row removed; only `docs/PROJECT_SPECIFICATION.md` written; Phase 2A and Phase 2B remain NOT AUTHORIZED | Checked |
 
 ## 26. Section Index
 
@@ -1640,4 +1688,4 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | 25 | Verification Record |
 | 26 | Section Index |
 
-*End of document — TOUGHENING MACHINE Project Specification Baseline v0.6.2.*
+*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.2.*
