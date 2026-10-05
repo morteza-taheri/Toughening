@@ -41,3 +41,26 @@
 - Documents, identifiers, file names and commit messages: English.
 - Code comments (when code exists): Persian.
 - GUI text: Persian and English through i18n resource files, RTL/LTR, Jalali and Gregorian calendars as presentation only.
+
+## 7. Git rules
+- Never run `git add`, `git commit`, or `git push` without my
+  explicit authorization in the current task prompt.
+- Never store credentials, tokens, passwords or secrets in any
+  file, commit message, or log.
+- The repository is public. Never commit secrets, third-party
+  images, private keys, or anything not intentionally public.
+- `docs/hardware/esp32-pinout.jpg` is intentionally excluded via
+  .gitignore. Do not add it.
+- Before every commit, re-read the staged diff and confirm it
+  contains only the files authorized by the current task prompt.
+
+## 8. OPEN questions — stop and ask
+- Where the specification or the protocol contract says OPEN,
+  NOT APPROVED, BLOCKED, DEFERRED, PROPOSED, or "DECISION
+  REQUIRED", you MUST stop and ask. Do not pick a default, do
+  not extend by symmetry, do not infer from a parallel.
+- If you cannot quote a DECIDED, APPROVED, or spec-derived line
+  that authorizes a choice, mark the item BLOCKED and stop.
+- "Sensible defaults", "probably fine", "for symmetry", and
+  "by analogy" are prohibited as justifications for resolving
+  an OPEN item.
