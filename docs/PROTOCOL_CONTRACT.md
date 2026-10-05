@@ -1,21 +1,21 @@
 # TOUGHENING MACHINE — PROTOCOL / MESSAGE CONTRACT
 
-> ## STATUS: **APPROVED AS PHASE 2A INPUT — final approval after Phase 2A completes**
+> ## STATUS: **APPROVED — final, 2026-10-05**
 >
-> This document is approved **as the Phase 2A working input** (user decision, 2026-10-05). It is **not** a finally approved schema.
+> This document is approved **as the message contract** (user decision, 2026-10-05). It was exercised from both sides in Phase 2A: the PC server implements it, the firmware skeleton defers its contract-driven parts by name, and 21 tests exercise it.
 > Per `docs/PROJECT_SPECIFICATION.md` §12.1 and §21, **explicit user approval of this document is required before Phase 2A may begin**, and Phase 2A additionally requires the user's **explicit statement that Phase 2A is authorized**.
-> Gaps 3–8 (section 11) are **resolved during Phase 2A**. **Final approval of this contract is a separate task after Phase 2A completes.**
-> **Phase 2A is AUTHORIZED (as working input). Phase 2B is NOT AUTHORIZED.**
+> **This contract is revisable by an explicit decision round; nothing in it is frozen against future amendment.**
+> **Phase 2A complete. Phase 2B complete. Phase 3 and later phases remain NOT AUTHORIZED.**
 
 | Field | Value |
 |---|---|
 | Document | `docs/PROTOCOL_CONTRACT.md` |
-| Status | **APPROVED AS PHASE 2A INPUT — final approval after Phase 2A completes** |
-| Version | 0.2.4 (draft) |
+| Status | **APPROVED — final, 2026-10-05** |
+| Version | 1.0.0 |
 | Date | 2026-10-05 |
-| Companion | `docs/PROJECT_SPECIFICATION.md` v0.7.2 |
-| Supersedes | v0.2.3 (2026-10-05, draft — Phase 2A working input). Earlier drafts v0.2.2, v0.2.1, v0.2.0 (withdrawn — structurally corrupt) and v0.1.0 (2026-10-04). No earlier **fully approved** contract exists. |
-| Implementation status | **None. No simulator, no firmware, no server exists.** |
+| Companion | `docs/PROJECT_SPECIFICATION.md` v0.7.3 |
+| Supersedes | v0.2.4 (2026-10-05, approved as the Phase 2A working input). Earlier: v0.2.3, v0.2.2, v0.2.1, v0.2.0 (withdrawn — structurally corrupt) and v0.1.0 (2026-10-04). This is the **first final approval** of the message contract. |
+| Implementation status | **PC skeleton and simulator exist (`pc/`); firmware skeleton exists and compiles (`firmware/`). No SQLite, no flashing, no hardware interaction.** |
 
 ---
 
@@ -955,11 +955,11 @@ These rules restate the specification. They are **not** changed by this draft.
 
 ## 9. Non-inference
 
-* This draft **approves nothing beyond its stated Phase 2A-input status**. It is a review artefact.
-* This contract is approved as the Phase 2A working input (user decision, 2026-10-05). Gaps 3–8 are resolved during Phase 2A; final approval is a separate task after Phase 2A.
-* The gate (§21) also requires the user's **explicit statement that Phase 2A is authorized**; that statement was given with this status change. **D-B4 is MET (0.6.0)**, but a met gate condition is **not** an authorization.
+* This contract is APPROVED (final, 2026-10-05). It was exercised from both sides in Phase 2A: the PC server implements it, the firmware skeleton defers its contract-driven parts by name, and 21 tests exercise it (11 pass; 10 skip with a contract-OPEN or missing-subsystem reason).
+* It remains **revisable by an explicit decision round**; nothing in it is frozen against future amendment.
+* The gate (§21) also required the user's **explicit statement that Phase 2A is authorized**; that statement was given. **D-B4 is MET (0.6.0)**, but a met gate condition is **not** an authorization.
 * It creates **no** SQL schema, **no** migration and **no** hardware dependency.
-* **Phase 2B and all later phases remain NOT AUTHORIZED.**
+* **Phase 3 and all later phases remain NOT AUTHORIZED.**
 
 ---
 ## 10. Protocol test cases (names and intent only — no code)
@@ -1047,7 +1047,7 @@ Gap 8 remains **OPEN**. The `journal_pressure_indicator` threshold (D-D6), `live
 
 ---
 
-*End of document — TOUGHENING MACHINE Protocol / Message Contract v0.2.4 — APPROVED AS PHASE 2A INPUT.*
+*End of document — TOUGHENING MACHINE Protocol / Message Contract v1.0.0 — APPROVED, final 2026-10-05.*
 
 
 

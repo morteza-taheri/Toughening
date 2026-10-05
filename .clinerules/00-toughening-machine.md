@@ -1,7 +1,7 @@
 # TOUGHENING MACHINE — Standing Rules for the AI Assistant
 
 ## 1. Authority and scope
-- The authoritative requirements document is docs/PROJECT_SPECIFICATION.md. Read it fully at the start of every task. Its status labels (DECIDED, APPROVED, PROPOSED — NOT APPROVED, OPEN — NOT APPROVED, BLOCKED, DEFERRED) are binding. docs/PROTOCOL_CONTRACT.md is a draft until I approve it.
+- The authoritative requirements document is docs/PROJECT_SPECIFICATION.md. Read it fully at the start of every task. Its status labels (DECIDED, APPROVED, PROPOSED — NOT APPROVED, OPEN — NOT APPROVED, BLOCKED, DEFERRED) are binding. docs/PROTOCOL_CONTRACT.md v1.0.0 is APPROVED as the message contract; it remains revisable by an explicit decision round.
 - No phase is authorized by default. A phase is authorized only when the current task prompt names it and states that it is authorized. Satisfied gate conditions never authorize a phase by themselves; only my explicit statement does.
 - Silence in the spec is not approval. Never resolve, assume, or pick a "sensible default" for any OPEN decision. List it as a question instead.
 - File scope: only the files and folders named in the current task prompt may be created or changed. Documents go in docs/. Never work outside the project workspace.
