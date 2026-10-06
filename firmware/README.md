@@ -20,7 +20,7 @@ NOT AUTHORIZED.
 | File | Purpose |
 |---|---|
 | `platformio.ini` | Build environment `esp32dev` only. |
-| `src/main.cpp` | Phase 2C-3b: Wi-Fi AP, WebSocket client, WDT, LED heartbeat, structured logging. |
+| `src/main.cpp` | Phase 2C-3c: Wi-Fi AP, WebSocket client, WDT, LED heartbeat, structured logging, NVS settings. |
 
 Build output lands in `.pio/`, which is git-ignored (workspace
 `.gitignore` line 13).
@@ -29,6 +29,19 @@ Build output lands in `.pio/`, which is git-ignored (workspace
 
 Wi-Fi AP + WebSocket client skeleton. No hardware I/O.
 Real credentials and PC address belong in NVS (later phase).
+
+## Status (Phase 2C-3c)
+
+Settings live in ESP32 NVS under namespace `"toughening"`.
+First boot writes defaults; subsequent boots load them.
+A reset-to-defaults helper exists but is not yet reachable
+over the network.
+
+## Security note
+
+NVS is stored as plaintext (no flash encryption enabled).
+Physical flash access is required to read credentials.
+Flash/NVS encryption is deferred to a later phase.
 
 ## Known environment notes
 
