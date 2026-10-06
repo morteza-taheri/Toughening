@@ -20,10 +20,15 @@ NOT AUTHORIZED.
 | File | Purpose |
 |---|---|
 | `platformio.ini` | Build environment `esp32dev` only. |
-| `src/main.cpp` | Skeleton: banner + 5 s heartbeat. |
+| `src/main.cpp` | Phase 2C-3b: Wi-Fi AP, WebSocket client, WDT, LED heartbeat, structured logging. |
 
 Build output lands in `.pio/`, which is git-ignored (workspace
 `.gitignore` line 13).
+
+## Status (Phase 2C-3b)
+
+Wi-Fi AP + WebSocket client skeleton. No hardware I/O.
+Real credentials and PC address belong in NVS (later phase).
 
 ## Known environment notes
 

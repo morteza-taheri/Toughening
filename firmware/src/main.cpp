@@ -1,91 +1,213 @@
 /**
- * TOUGHENING MACHINE — Phase 2B firmware skeleton.
+ * TOUGHENING MACHINE — Phase 2C-3b firmware: Wi-Fi AP + WebSocket client.
  *
  * PROPOSED — NOT APPROVED. Compile only. No upload, no flash,
  * no hardware interaction.
  *
  * WHAT THIS FILE DOES
- *   Initialises the serial console, prints one banner, then logs a
- *   heartbeat every 5 seconds. Nothing else.
+ *   Starts an ESP32 Wi-Fi access point, connects a WebSocket client
+ *   to the PC-side server, feeds a task watchdog, and blinks an LED.
+ *   No sensing, no ADC, no MUX.
  *
- * OPEN ITEMS THIS SKELETON DOES NOT DECIDE (per .clinerules §8)
- *   Each item below is recorded in docs/PROJECT_SPECIFICATION.md and is
- *   OPEN. This file asserts nothing about any of them.
- *
- *   D-A2   ADC / acquisition architecture ........... OPEN
- *   D-A3   Multiplexer topology .................... OPEN
- *   D-A4   Signal conditioning / divider design .... OPEN
- *   D-D2   Active-cycle marker, completion ordering,
- *          interrupted-cycle detection ............ direction only
- *                                                    (DR-25.7);
- *                                                    detection OPEN
- *   HW-02  Simultaneous station acquisition ........ OPEN
- *   HW-03  Direct same-pass counting ............... OPEN
- *   HW-04  Station input conditioning .............. OPEN
- *   HW-05  Station input protection ................ OPEN
- *   HW-06  Reset input interface ................... OPEN
- *   HW-07  Alarm output interface .................. OPEN
- *   HW-08  Alarm output drive/protection ........... OPEN
- *   HW-09  Power supply / rail definition .......... OPEN
- *   HW-10  Board identification details ............ OPEN
- *   HW-11  Flash size / chip identity .............. OPEN (verify in 2B)
- *   HW-12  USB-UART bridge identity ................ OPEN
- *   HW-13  Flash partition layout .................. OPEN
- *   HW-14  ADC2 / Wi-Fi coexistence ................ OPEN
- *
- *   D-D1, D-D6, D-D7, D-D8, D-D11, D-D12, DR-04C..F, DR-07-C3,
- *   DR-27 (pressure NULL-vs-0), AC-07, AC-13 and AC-19 remain OPEN or
- *   blocked and are equally not decided here.
- *
- * DEFERRED — deliberately absent from this skeleton
- *   Wi-Fi / access point association .............. later phase
- *   WebSocket client to pc/server.py ............. later phase
- *   Sensor or ADC reads ........................... Phase 3 (HW-02,
- *                                                HW-03, HW-14)
- *   Multiplexer / channel scanning ............... Phase 3
- *   NVS settings storage .......................... settings phase
- *   Durable journal, batching, ACK handling ...... journal phase
- *   Cycle, alarm and system event generation ..... later phases
- *   Alarm output driving / polarity ............... Phase 3+
- *
- * NO HARDWARE CONSTANTS APPEAR BELOW. The only literal number in this
- * file is the console baud rate, which is a UART parameter, not a pin.
+ * OPEN ITEMS THIS FILE DOES NOT DECIDE
+ *   See the Phase 2B skeleton block above; this file adds no new
+ *   decisions. Wi-Fi credentials and PC address are placeholders
+ *   only and will move to NVS in a later phase.
  */
 
 #include <Arduino.h>
+#include <WiFi.h>
+#include <WebSocketsClient.h>
+#include <esp_task_wdt.h>
 
-static const unsigned long HEARTBEAT_INTERVAL_MS = 5000UL;
-static const unsigned long SERIAL_BAUD = 115200UL;
+// ---------------------------------------------------------------------------
+// Constants — all PROPOSED unless noted
+// ---------------------------------------------------------------------------
+static const unsigned long SERIAL_BAUD = 115200UL;  // UART parameter
 
-static unsigned long lastHeartbeatMs = 0;
-static unsigned long heartbeatCount = 0;
+// Wi-Fi access point
+// PROPOSED — user must change before deployment.
+// Real credentials belong in NVS (later phase), never in
+// source, never in a public repository.
+static const char* WIFI_SSID     = "TougheningMachine-AP";
+static const char* WIFI_PASSWORD = "CHANGE_ME_BEFORE_USE";
 
-void setup() {
-    Serial.begin(SERIAL_BAUD);
-    // Brief pause so the banner is not lost before the port settles.
-    delay(200);
+// WebSocket
+// PROPOSED: PC address 192.168.4.2 is OPEN (D-B2).
+// The final address will be configurable in NVS.
+static const char* WS_HOST = "192.168.4.2";
+static const uint16_t WS_PORT = 8000;
+static const char* WS_URL = "/ws/device";
 
-    Serial.println();
-    Serial.println("TOUGHENING MACHINE firmware skeleton");
-    Serial.println("phase: 2B (firmware skeleton)");
-    Serial.println("status: PROPOSED - NOT APPROVED");
-    Serial.println("build: compile only; no upload, no flash, no hardware interaction");
-    Serial.println("skeleton does not decide: D-A2, D-A3, D-A4, D-D2, HW-02..HW-14");
-    Serial.println();
+// Watchdog
+static const unsigned long WDT_TIMEOUT_SEC = 5UL;  // PROPOSED (DR-35)
+
+// LED heartbeat — GPIO 13 is PROPOSED (DR-35); verify in Phase 3.
+static const int LED_GPIO = 13;
+static const unsigned long LED_BLINK_PERIOD_MS = 100UL;  // 10 Hz
+
+// Backoff — PROPOSED
+static const unsigned long BACKOFF_INITIAL_MS = 1000UL;
+static const unsigned long BACKOFF_MAX_MS = 30000UL;
+static const unsigned long BACKOFF_JITTER_PCT = 20UL;
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+static WebSocketsClient webSocket;
+
+static unsigned long lastLedMs = 0;
+static bool ledState = false;
+
+static unsigned long lastReconnectMs = 0;
+static unsigned long reconnectDelayMs = BACKOFF_INITIAL_MS;
+
+// ---------------------------------------------------------------------------
+// Structured logging helper
+// Format: [<uptime_ms>] <tag>: <msg>
+// Never logs credentials.
+// ---------------------------------------------------------------------------
+static void log_info(const char* tag, const char* msg) {
+    Serial.print("[");
+    Serial.print((unsigned long)millis());
+    Serial.print("] ");
+    Serial.print(tag);
+    Serial.print(": ");
+    Serial.println(msg);
 }
 
+// ---------------------------------------------------------------------------
+// WebSocket event handler
+// ---------------------------------------------------------------------------
+static void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
+    (void)length;
+    switch (type) {
+        case WStype_DISCONNECTED:
+            log_info("ws", "disconnected");
+            break;
+        case WStype_CONNECTED: {
+            log_info("ws", "connected");
+            // Send one hello message per Contract §3.3 using placeholders.
+            char hello[256];
+            snprintf(hello, sizeof(hello),
+                "{\"protocol_version\":\"1.1.0\",\"type\":\"hello\","
+                "\"message_id\":\"skeleton-1\",\"device_id\":\"skeleton\","
+                "\"boot_id\":\"skeleton\",\"seq\":1,"
+                "\"ts_sent_ms\":%lu,\"ts_sent_valid\":1,"
+                "\"payload\":{"
+                "\"firmware_version\":\"0.1.0\","
+                "\"protocol_versions_supported\":[\"1.1.0\"],"
+                "\"boot_id\":\"skeleton\","
+                "\"station_count\":1,"
+                "\"channel_count\":1}}",
+                (unsigned long)millis());
+            webSocket.sendTXT(hello);
+            log_info("ws", "hello sent");
+            break;
+        }
+        case WStype_TEXT:
+            // Incoming messages will be handled in a later phase.
+            break;
+        default:
+            break;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wi-Fi AP keep-alive
+// ---------------------------------------------------------------------------
+static void ensure_ap() {
+    if (WiFi.softAPSSID().length() == 0) {
+        log_info("wifi", "AP down — restarting");
+        WiFi.softAP(WIFI_SSID, WIFI_PASSWORD);
+        log_info("wifi", "AP restarted");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Backoff with jitter
+// Returns a delay in milliseconds.
+// ---------------------------------------------------------------------------
+static unsigned long next_backoff(unsigned long current) {
+    unsigned long next = current * 3 / 2;  // 1.5x growth
+    if (next > BACKOFF_MAX_MS) {
+        next = BACKOFF_MAX_MS;
+    }
+    long jitterRange = (long)(next * BACKOFF_JITTER_PCT / 100);
+    long jitter = random(-jitterRange, jitterRange);
+    long result = (long)next + jitter;
+    if (result < (long)BACKOFF_INITIAL_MS / 2) {
+        result = BACKOFF_INITIAL_MS / 2;
+    }
+    if (result > (long)BACKOFF_MAX_MS * 2) {
+        result = BACKOFF_MAX_MS * 2;
+    }
+    return (unsigned long)result;
+}
+
+// ---------------------------------------------------------------------------
+// setup
+// ---------------------------------------------------------------------------
+void setup() {
+    Serial.begin(SERIAL_BAUD);
+    delay(200);
+
+    log_info("boot", "TOUGHENING MACHINE firmware Phase 2C-3b");
+    log_info("boot", "PROPOSED — NOT APPROVED. Compile only.");
+
+    // LED
+    pinMode(LED_GPIO, OUTPUT);
+    digitalWrite(LED_GPIO, LOW);
+
+    // Wi-Fi AP
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(WIFI_SSID, WIFI_PASSWORD);
+    log_info("wifi", "AP started");
+
+    // WebSocket client — manual reconnect with backoff
+    webSocket.setReconnectInterval(0);
+    webSocket.onEvent(webSocketEvent);
+    webSocket.begin(WS_HOST, WS_PORT, WS_URL);
+    log_info("ws", "connecting");
+
+    // Task watchdog — panic handler resets the chip.
+    // Logging before reset is not available through this API.
+    esp_task_wdt_init(WDT_TIMEOUT_SEC, true);
+    esp_task_wdt_add(NULL);
+    log_info("wdt", "enabled");
+}
+
+// ---------------------------------------------------------------------------
+// loop
+// ---------------------------------------------------------------------------
 void loop() {
     const unsigned long nowMs = millis();
 
-    // Unsigned subtraction keeps this correct across the millis() rollover.
-    if ((unsigned long)(nowMs - lastHeartbeatMs) >= HEARTBEAT_INTERVAL_MS) {
-        lastHeartbeatMs = nowMs;
-        heartbeatCount++;
-        Serial.print("heartbeat ");
-        Serial.print(heartbeatCount);
-        Serial.print(" uptime_ms=");
-        Serial.println(nowMs);
+    // Feed the watchdog every iteration
+    esp_task_wdt_reset();
+
+    // LED heartbeat — non-blocking 10 Hz
+    if ((unsigned long)(nowMs - lastLedMs) >= LED_BLINK_PERIOD_MS) {
+        lastLedMs = nowMs;
+        ledState = !ledState;
+        digitalWrite(LED_GPIO, ledState ? HIGH : LOW);
     }
 
-    // No sensing, no network, no storage, no output driving.
+    // Ensure AP stays up
+    ensure_ap();
+
+    // WebSocket — reconnect with backoff if disconnected
+    webSocket.loop();
+    if (webSocket.isConnected()) {
+        if (reconnectDelayMs != BACKOFF_INITIAL_MS) {
+            reconnectDelayMs = BACKOFF_INITIAL_MS;
+        }
+    } else {
+        if ((unsigned long)(nowMs - lastReconnectMs) >= reconnectDelayMs) {
+            lastReconnectMs = nowMs;
+            log_info("ws", "reconnect attempt");
+            webSocket.begin(WS_HOST, WS_PORT, WS_URL);
+            reconnectDelayMs = next_backoff(reconnectDelayMs);
+        }
+    }
 }
