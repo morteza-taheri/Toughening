@@ -1,15 +1,17 @@
-"""TOUGHENING MACHINE — PC side WebSocket server (Phase 2C Stage 1).
+"""TOUGHENING MACHINE — PC side WebSocket server (Phase 2C Stage 2).
 
 APPROVED — Phase 2C is authorized as a software-only continuation of
 Phase 2A. Hardware phases (3+) remain NOT AUTHORIZED.
 See docs/PROJECT_SPECIFICATION.md §12, §15 and
 docs/PROTOCOL_CONTRACT.md v1.1.0.
 
-This module validates the message envelope and payload, then dispatches
-by type. Payload-level validation was added in Phase 2C Stage 1 with
-full Contract v1.1.0 support: reset_command / reset_result message
-types, live_state alarm_state / warning_state fields, and the
-nack reason vocabulary (contract §8 item 3 — PROPOSED).
+This module validates the message envelope and payload, persists durable
+records to SQLite (commit-before-ACK), and dispatches by type.
+
+Phase 2C Stage 1 added payload-level validation and Contract v1.1.0
+support (reset_command / reset_result, alarm_state / warning_state).
+Phase 2C Stage 2 adds minimal SQLite persistence: commit-before-ACK and
+idempotent replay (§12.2).
 
 Where a decision would eventually be needed, a comment names the
 OPEN item instead of choosing a value.
@@ -22,7 +24,9 @@ from typing import Optional, Tuple
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
-app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 1)")
+from pc import db as pc_db
+
+app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2)")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,6 +36,23 @@ log = logging.getLogger("pc.server")
 
 SERVER_VERSION = "0.1.0"
 PROTOCOL_VERSION = "1.1.0"
+
+# SQLite persistence (Phase 2C Stage 2). Lazily initialised by
+# init_persistence(); tests set this directly via a fixture.
+_db_conn = None
+
+
+def init_persistence(db_path: Optional[str] = None):
+    """Open the database, create tables, and store the connection.
+
+    Safe to call multiple times; only the first call opens a connection.
+    """
+    global _db_conn
+    if _db_conn is None:
+        conn = pc_db.open_db(db_path)
+        pc_db.init_db(conn)
+        _db_conn = conn
+    return _db_conn
 
 # PROTOCOL_CONTRACT.md v1.1.0 §3.1 — envelope fields required on every
 # ESP32-originated message. Presence and type are validated; VALUES are
@@ -606,9 +627,26 @@ def dispatch(message: dict) -> Optional[dict]:
 
     if message_type in DURABLE_TYPES:
         log.info("%s received record_id=%r", message_type, record_id)
-        # TODO: real SQLite commit in a later phase; the commit-before-ACK
-        # invariant is currently stubbed. The reply below is NOT evidence
-        # that anything was durably written.
+
+        if _db_conn is not None and record_id is not None:
+            status = pc_db.commit_record(_db_conn, message)
+            if status == "error":
+                log.error(
+                    "storage error for %s record_id=%r",
+                    message_type, record_id,
+                )
+                return {
+                    "type": "nack",
+                    "nacked_record_id": record_id,
+                    "reason": "storage_error",
+                    "retryable": True,
+                }
+            log.info(
+                "%s record_id=%r committed (status=%s)",
+                message_type, record_id, status,
+            )
+        # Commit-before-ACK invariant (§12.2): the ack is only built
+        # AFTER commit_record has called conn.commit().
         return {
             "type": "ack",
             "acked_record_id": record_id,
@@ -625,11 +663,23 @@ def dispatch(message: dict) -> Optional[dict]:
                     continue
                 nested_id = _record_id(record)
                 log.info("batch record index=%d record_id=%r", index, nested_id)
+                if _db_conn is not None and nested_id is not None:
+                    status = pc_db.commit_record(_db_conn, record)
+                    if status == "error":
+                        log.error(
+                            "storage error for batch record index=%d record_id=%r",
+                            index, nested_id,
+                        )
+                        return {
+                            "type": "nack",
+                            "nacked_record_id": nested_id,
+                            "reason": "storage_error",
+                            "retryable": True,
+                        }
                 record_ids.append(nested_id)
-        # TODO: real commit per §12.2.
         # v1.1.0 §11.5 (Gap 7): a batch is answered by ONE ack carrying
         # acked_record_ids, never by N separate acks, and never together
-        # with acked_record_id.
+        # with acked_record_id. Only sent AFTER all records committed.
         return {
             "type": "ack",
             "acked_record_ids": record_ids,
@@ -703,6 +753,9 @@ async def ws_device(websocket: WebSocket) -> None:
     host = client.host if client is not None else "unknown"
     await websocket.accept()
     log.info("device connected host=%s", host)
+
+    if _db_conn is None:
+        init_persistence()
 
     try:
         while True:

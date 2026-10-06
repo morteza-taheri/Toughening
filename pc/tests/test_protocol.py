@@ -1,4 +1,4 @@
-"""Protocol tests for the TOUGHENING MACHINE PC-side server (Phase 2C Stage 1).
+"""Protocol tests for the TOUGHENING MACHINE PC-side server (Phase 2C Stage 2).
 
 Contract under test: docs/PROTOCOL_CONTRACT.md v1.1.0
 Specification:        docs/PROJECT_SPECIFICATION.md v0.7.5
@@ -7,10 +7,10 @@ Test IDs T-P01 … T-P17 are the contract §10 test list, used verbatim.
 
 A test is implemented only where the contract actually specifies enough to
 assert it. Where a test depends on something Phase 2A does not implement —
-SQLite persistence, ESP32 firmware behaviour, or the OPEN PC-side envelope —
-it is marked `@pytest.mark.skip` with the reason quoted. No test asserts a
-value for any OPEN item, and no calibration, sensor or hardware value
-appears anywhere in this file.
+ESP32 firmware behaviour, or the OPEN PC-side envelope — it is marked
+`pytest.skip` with the reason quoted. No test asserts a value for any OPEN
+item, and no calibration, sensor or hardware value appears anywhere in this
+file.
 
 IMPORT PATH: this file prepends the workspace root to sys.path so
 `from pc.server import ...` works when pytest is invoked from the
@@ -18,7 +18,9 @@ workspace root, with or without pc/tests/__init__.py.
 """
 
 import json
+import os
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -30,7 +32,9 @@ WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
 
+from pc import db as pc_db  # noqa: E402
 from pc.server import app, dispatch, validate_envelope, validate_payload  # noqa: E402
+import pc.server as server  # noqa: E402
 
 CLIENT = TestClient(app)
 
@@ -54,6 +58,33 @@ DURABLE_TYPES = (
     "data_loss",
     "raw_voltage_record",
 )
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _test_db():
+    """Initialize a fresh SQLite database for all tests in this module.
+
+    Uses a temp file so no artifacts are left on disk. The connection
+    is stored on server._db_conn so dispatch() can commit records.
+    """
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.environ["TOUGHENING_DB_PATH"] = path
+
+    # Reset from any previous run, then initialise.
+    server._db_conn = None
+    conn = server.init_persistence(path)
+
+    yield conn
+
+    server._db_conn = None
+    pc_db.close_db(conn)
+    os.close(fd)
+    os.unlink(path)
+    for ext in ("wal", "shm"):
+        sidecar = f"{path}-{ext}"
+        if os.path.exists(sidecar):
+            os.unlink(sidecar)
+    del os.environ["TOUGHENING_DB_PATH"]
 
 
 def envelope(msg_type, seq, payload=None, record_seq=None):
@@ -281,7 +312,7 @@ def test_tp01_pc_originated_types_skipped():
 
 
 # ---------------------------------------------------------------------------
-# T-P02 — skipped. Needs SQLite; Phase 2A has none.
+# T-P02 — implemented. SQLite persistence + idempotent replay.
 # ---------------------------------------------------------------------------
 
 
@@ -289,12 +320,32 @@ def test_tp02_idempotent_replay_of_batch_100x():
     """T-P02: replay a batch 100x. Expected: "Exactly one row per
     record_id in SQLite; no duplicates."
 
-    No persistence exists, so 'exactly one row' cannot be observed.
+    Phase 2C Stage 2 adds SQLite persistence. The commit-before-ACK
+    invariant and idempotent replay (§12.2) are now testable.
     """
-    pytest.skip(
-        "No SQLite persistence in Phase 2A — pc/server.py is documented "
-        "'No SQLite persistence', so 'exactly one row per record_id in "
-        "SQLite' (contract §10 T-P02) cannot be observed."
+    record_seq = 42
+    record_id_target = f"{DEVICE_ID}:{BOOT_ID}:{record_seq}"
+    nested = envelope(
+        "cycle_summary", record_seq,
+        minimal_payload("cycle_summary"), record_seq=record_seq,
+    )
+    message = envelope(
+        "batch", 1,
+        {"records": [nested], "record_count": 1, "has_more": False},
+    )
+    for _ in range(100):
+        reply = roundtrip(message)
+        assert reply is not None
+        assert reply["type"] == "ack"
+        assert reply["committed"] is True
+
+    # Exactly one row per record_id in the database
+    count = server._db_conn.execute(
+        "SELECT COUNT(*) FROM records WHERE record_id = ?",
+        (record_id_target,),
+    ).fetchone()[0]
+    assert count == 1, (
+        f"expected 1 row for {record_id_target}, got {count}"
     )
 
 
@@ -367,22 +418,56 @@ def test_tp04_nan_infinity_empty_and_wrong_types_rejected():
 
 
 # ---------------------------------------------------------------------------
-# T-P05 — skipped. Requires SQLite commit ordering.
+# T-P05 — skipped (full scenario). Ordering property is tested below.
 # ---------------------------------------------------------------------------
 
 
 def test_tp05_commit_before_ack_ordering():
     """T-P05: "Terminate the PC between the SQLite commit and sending
-    ack." Expected: "The record is not lost and not duplicated."
+    ack." Expected: "The record is not lost and not duplicated; it is
+    retransmitted and acknowledged later."
 
-    There is no SQLite commit in Phase 2A, so the ordering between
-    commit and ack cannot be exercised.
+    The full scenario requires process-level control (terminating the
+    PC mid-commit and restarting) which is out of reach in this test
+    harness. The ordering property — that the ack is only sent after
+    the record is durably committed — is asserted separately in
+    `test_commit_before_ack_ordering`.
     """
     pytest.skip(
-        "No SQLite commit in Phase 2A — pc/server.py stubs commit-before-ACK "
-        "with 'TODO: real SQLite commit in a later phase', so the ordering "
-        "in contract §10 T-P05 cannot be exercised."
+        "Full T-P05 scenario requires process-level control (terminating "
+        "the PC between commit and ack, then restarting) — out of reach "
+        "in this test harness. The commit-before-ACK ordering invariant "
+        "is asserted in test_commit_before_ack_ordering instead."
     )
+
+
+def test_commit_before_ack_ordering():
+    """Assert the commit-before-ACK invariant (contract §12.2).
+
+    Send a durable record, receive the ack, then verify the record
+    exists in the database. If the ack were sent before commit, the
+    record might not yet be stored — its presence proves the commit
+    completed first.
+    """
+    record_seq = 100
+    message = envelope(
+        "cycle_summary", record_seq,
+        minimal_payload("cycle_summary"), record_seq=record_seq,
+    )
+    reply = roundtrip(message)
+    assert reply is not None
+    assert reply["type"] == "ack"
+    assert reply["committed"] is True
+
+    # The record MUST be in the database by the time the ack was received.
+    record_id = message["record_id"]
+    row = server._db_conn.execute(
+        "SELECT record_id, record_type, payload_json FROM records WHERE record_id = ?",
+        (record_id,),
+    ).fetchone()
+    assert row is not None, f"record {record_id} must be committed before ack"
+    assert row[0] == record_id
+    assert row[1] == "cycle_summary"
 
 
 # ---------------------------------------------------------------------------
