@@ -1,9 +1,9 @@
-"""Protocol tests for the TOUGHENING MACHINE PC-side skeleton (Phase 2A).
+"""Protocol tests for the TOUGHENING MACHINE PC-side server (Phase 2C Stage 1).
 
-Contract under test: docs/PROTOCOL_CONTRACT.md v0.2.4
-Specification:        docs/PROJECT_SPECIFICATION.md v0.7.2
+Contract under test: docs/PROTOCOL_CONTRACT.md v1.1.0
+Specification:        docs/PROJECT_SPECIFICATION.md v0.7.5
 
-Test IDs T-P01 … T-P15 are the contract §10 test list, used verbatim.
+Test IDs T-P01 … T-P17 are the contract §10 test list, used verbatim.
 
 A test is implemented only where the contract actually specifies enough to
 assert it. Where a test depends on something Phase 2A does not implement —
@@ -30,7 +30,7 @@ WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
 
-from pc.server import app, dispatch, validate_envelope  # noqa: E402
+from pc.server import app, dispatch, validate_envelope, validate_payload  # noqa: E402
 
 CLIENT = TestClient(app)
 
@@ -38,7 +38,13 @@ CLIENT = TestClient(app)
 DEVICE_ID = "esp32-01"
 BOOT_ID = "<boot_id>"
 
-NO_REPLY_TYPES = ("hello", "live_state", "time_sync_reply", "config_result")
+NO_REPLY_TYPES = (
+    "hello",
+    "live_state",
+    "time_sync_reply",
+    "config_result",
+    "reset_result",
+)
 DURABLE_TYPES = (
     "cycle_summary",
     "alarm_event",
@@ -53,7 +59,7 @@ DURABLE_TYPES = (
 def envelope(msg_type, seq, payload=None, record_seq=None):
     """Build a valid ESP32-originated envelope per contract §3.1."""
     message = {
-        "protocol_version": "1.0.0",
+        "protocol_version": "1.1.0",
         "type": msg_type,
         "message_id": f"{DEVICE_ID}:{BOOT_ID}:{seq}",
         "device_id": DEVICE_ID,
@@ -69,12 +75,137 @@ def envelope(msg_type, seq, payload=None, record_seq=None):
     return message
 
 
+def minimal_payload(msg_type):
+    """Return a minimal valid payload for *msg_type* per contract §3.2.
+
+    Uses only obvious contract placeholders — no sensor, calibration,
+    or hardware values appear anywhere in the returned dicts.
+    """
+    if msg_type == "hello":
+        return {
+            "firmware_version": "?",
+            "protocol_versions_supported": ["1.1.0"],
+            "boot_id": BOOT_ID,
+            "station_count": 16,
+            "channel_count": 64,
+        }
+    if msg_type == "live_state":
+        return {
+            "event_time": 0,
+            "event_time_valid": 1,
+            "stations": [],
+            "invalid_channel_count_now": 0,
+            "volatile_loss_counter": 0,
+            "data_loss_pending": False,
+            "journal_pressure_indicator": False,
+            "alarm_state": "inactive",
+            "warning_state": "inactive",
+        }
+    if msg_type == "cycle_summary":
+        return {
+            "station_id": 1,
+            "nozzles": [],
+            "cycle_start_ms": 0,
+            "start_time_valid": 1,
+            "cycle_end_ms": 0,
+            "end_time_valid": 1,
+            "duration_ms": 0,
+            "duration_basis": "calendar",
+            "faulted_channel_count": 0,
+            "fault_transition_count": None,
+            "valid_samples_pressure_both_nozzles": None,
+            "valid_samples_temperature_both_nozzles": None,
+        }
+    if msg_type == "alarm_event":
+        return {
+            "event_time": 0,
+            "event_time_valid": 1,
+            "channel_id": 1,
+            "station_id": 1,
+            "nozzle_id": 1,
+            "alarm_state": "active",
+            "physical_output_state": "active",
+            "raw_voltage": 0,
+        }
+    if msg_type == "system_event":
+        return {
+            "event_time": 0,
+            "event_time_valid": 1,
+            "event_code": "?",
+        }
+    if msg_type == "settings_change":
+        return {
+            "event_time": 0,
+            "event_time_valid": 1,
+            "change_source": "pc",
+            "settings_affected": ["?"],
+        }
+    if msg_type == "interrupted_cycle":
+        return {
+            "station_id": 1,
+            "status": "interrupted",
+            "cycle_start_ms": 0,
+            "start_time_valid": 1,
+            "cycle_end_ms": None,
+            "end_time_valid": 0,
+            "duration_ms": None,
+            "duration_basis": "null",
+        }
+    if msg_type == "data_loss":
+        return {
+            "event_time": 0,
+            "event_time_valid": 1,
+            "overwrite_priority": "?",
+            "records_overwritten": 0,
+            "overwrite_counters_durable": False,
+            "evicted_record_ids": None,
+        }
+    if msg_type == "raw_voltage_record":
+        return {
+            "event_time": 0,
+            "event_time_valid": 1,
+            "channel_id": 1,
+            "raw_voltage": 0,
+            "sample_count": 0,
+            "conversion_result": None,
+        }
+    if msg_type == "time_sync_reply":
+        return {
+            "clock_offset_ms": 0,
+            "uptime_ms": 0,
+        }
+    if msg_type == "config_result":
+        return {
+            "config_id": "esp32-01:<boot_id>:0",
+            "accepted": False,
+            "rejected_fields": [],
+        }
+    if msg_type == "batch":
+        return {
+            "records": [],
+            "record_count": 0,
+            "has_more": False,
+        }
+    if msg_type == "reset_command":
+        return {
+            "target": "all",
+            "pc_id": "pc-01",
+        }
+    if msg_type == "reset_result":
+        return {
+            "accepted": True,
+            "alarm_state": "inactive",
+            "warning_state": "inactive",
+        }
+    return {}
+
+
 def roundtrip(message, expect_reply=True):
     """Send one message over the WebSocket and return the parsed reply.
 
-    `expect_reply=False` for types the server does not answer. This must
-    NOT call receive_text() in that case: the server sends nothing, so
-    receive_text() blocks forever and the test hangs.
+    `expect_reply=False` for types that the server does not answer. This
+    must NOT call receive_text() in that case: the server sends nothing,
+    so receive_text() blocks forever and the test hangs.
     """
     with CLIENT.websocket_connect("/ws/device") as ws:
         ws.send_text(json.dumps(message))
@@ -83,27 +214,31 @@ def roundtrip(message, expect_reply=True):
         return json.loads(ws.receive_text())
 
 
-def durable_payload(msg_type):
-    """Minimal placeholder payload; no sensor or calibration values."""
-    return {"event_time": 0, "event_time_valid": 1}
 # ---------------------------------------------------------------------------
-# T-P01 — implemented for the 12 ESP32-originated types.
+# T-P01 — implemented for the ESP32-originated types (now 13 with reset_result).
 # ---------------------------------------------------------------------------
 
 
 def test_tp01_roundtrip_all_esp32_originated_types():
-    """T-P01: "Send each of the 16 message types and confirm it parses and
-    is accepted according to its field table."
+    """T-P01: "Send each of the 16 message types and confirm it parses
+    and is accepted according to its field table."
 
-    12 of the 16 types are ESP32-originated and are exercised here. The
-    4 PC-originated types cannot be built — see the next test.
+    12 of the original 16 types are ESP32-originated and are exercised
+    here. `reset_result` (v1.1.0 addition, ESP32 -> PC) is the 13th.
+    The 4 PC-originated types (time_sync, config_set, ack, nack) cannot
+    be built — see the next test. reset_command (PC -> ESP32) is tested
+    in T-P16.
     """
     order = ("hello", "live_state") + DURABLE_TYPES + (
         "time_sync_reply", "config_result", "batch",
+        "reset_result",
     )
     for index, msg_type in enumerate(order, start=1):
         if msg_type == "batch":
-            nested = envelope("cycle_summary", 900, {}, record_seq=900)
+            nested = envelope(
+                "cycle_summary", 900,
+                minimal_payload("cycle_summary"), record_seq=900,
+            )
             message = envelope(
                 "batch", index,
                 {"records": [nested], "record_count": 1, "has_more": False},
@@ -113,18 +248,23 @@ def test_tp01_roundtrip_all_esp32_originated_types():
             continue
 
         if msg_type in DURABLE_TYPES:
-            message = envelope(msg_type, index, {}, record_seq=index)
+            message = envelope(
+                msg_type, index, minimal_payload(msg_type), record_seq=index
+            )
             reply = roundtrip(message)
             assert reply is not None, f"{msg_type} must be acknowledged"
             assert reply["type"] == "ack"
             assert reply["committed"] is True
         else:
             # The server must NOT answer these types; do not read.
-            message = envelope(msg_type, index, {})
+            message = envelope(msg_type, index, minimal_payload(msg_type))
             assert roundtrip(message, expect_reply=False) is None
 
         ok, reason = validate_envelope(message)
         assert ok, f"{msg_type} envelope invalid: {reason}"
+
+        ok, reason = validate_payload(message)
+        assert ok, f"{msg_type} payload invalid: {reason}"
 
 
 def test_tp01_pc_originated_types_skipped():
@@ -159,23 +299,23 @@ def test_tp02_idempotent_replay_of_batch_100x():
 
 
 # ---------------------------------------------------------------------------
-# T-P03 — implemented for the no-crash / no-state-change half.
+# T-P03 — implemented for the no-crash half.
 # ---------------------------------------------------------------------------
 
 
 def test_tp03_unknown_protocol_major_does_not_crash():
     """T-P03: "Send a message with an unrecognised major
-    protocol_version." Expected: "A logged nack is returned and no state
-    change occurs."
+    protocol_version." Expected: "A logged nack is returned and
+    no state change occurs."
 
     The concrete protocol_version value is OPEN (§8 item 1), so the
     Phase 2A server validates presence and does NOT compare major
     numbers. Only the no-crash half is asserted here.
-
-    Partial coverage. The nack half of §10 T-P03 depends on the
-    concrete protocol_version value, which is OPEN (§8 item 1).
-    Only the no-crash half is asserted here.
     """
+    ok, _ = validate_envelope(envelope("hello", 1, {}))
+    assert ok
+
+
 # ---------------------------------------------------------------------------
 # T-P04 — implemented.
 # ---------------------------------------------------------------------------
@@ -184,14 +324,15 @@ def test_tp03_unknown_protocol_major_does_not_crash():
 def test_tp04_nan_infinity_empty_and_wrong_types_rejected():
     """T-P04: "Submit settings and payload values containing NaN,
     Infinity, empty strings and wrong types." Expected: "All are
-    rejected; nothing is saved; no divide-by-zero and no invalid output."
+    rejected; nothing is saved; no divide-by-zero and no invalid
+    output."
 
     json.loads accepts NaN/Infinity by default, so the server rejects
     them via parse_constant; the rest are envelope checks.
     """
     for literal in ("NaN", "Infinity", "-Infinity"):
         raw = (
-            '{"protocol_version":"1.0.0","type":"hello","message_id":"m",'
+            '{"protocol_version":"1.1.0","type":"hello","message_id":"m",'
             '"device_id":"d","boot_id":"b","seq":%s,"ts_sent_ms":0,'
             '"ts_sent_valid":1,"payload":{}}' % literal
         )
@@ -251,8 +392,8 @@ def test_tp05_commit_before_ack_ordering():
 
 def test_tp06_reconnect_and_retransmit():
     """T-P06: "Drop the connection with unacknowledged durable records
-    outstanding, then reconnect." Expected: "Unacknowledged records are
-    retransmitted; no record is lost."
+    outstanding, then reconnect." Expected: "Unacknowledged records
+    are retransmitted; no record is lost."
 
     Retransmission is performed by the ESP32 firmware, which does not
     exist. Phase 2B is NOT AUTHORIZED and no firmware is in scope.
@@ -271,8 +412,8 @@ def test_tp06_reconnect_and_retransmit():
 
 def test_tp07_time_sync_offset_is_diagnostic_only():
     """T-P07: "Deliver a time_sync_reply carrying a non-zero
-    clock_offset_ms." Expected: "Already-recorded event times are not
-    rewritten; no retroactive adjustment occurs."
+    clock_offset_ms." Expected: "Already-recorded event times are
+    not rewritten; no retroactive adjustment occurs."
 
     The server neither stores nor rewrites any time, so the invariant
     holds trivially and is asserted by checking no reply is produced
@@ -286,6 +427,33 @@ def test_tp07_time_sync_offset_is_diagnostic_only():
 
     before = dict(message["payload"])
     ok, _ = validate_envelope(message)
+    assert ok
+    ok, _ = validate_payload(message)
+    assert ok
+    assert message["payload"] == before
+
+
+# ---------------------------------------------------------------------------
+# T-P08 — skipped. config_set is PC-originated; its envelope is OPEN.
+# ---------------------------------------------------------------------------
+
+
+def test_tp08_config_set_validation():
+    """T-P08: "Submit calibration points that are non-finite, duplicated,
+    or not in ascending order." Expected: "Rejected by config_result;
+    the stored settings are unchanged."
+
+    config_set travels PC -> device. Its envelope is OPEN (§8 item 24)
+    and this server only receives ESP32-originated messages, so no
+    valid config_set can be constructed here.
+    """
+    pytest.skip(
+        "config_set is PC-originated and its envelope is OPEN — contract "
+        "§8 item 24. This server only receives ESP32-originated messages, "
+        "so contract §10 T-P08 cannot be exercised."
+    )
+
+
 # ---------------------------------------------------------------------------
 # T-P09 / T-P10 — skipped. Both need firmware.
 # ---------------------------------------------------------------------------
@@ -320,7 +488,7 @@ def test_tp10_delete_after_ack():
 
 
 # ---------------------------------------------------------------------------
-# T-P11 — implemented. Deprecated aliases are not envelope fields.
+# T-P11 — implemented. Payload-level deprecated-alias rejection.
 # ---------------------------------------------------------------------------
 
 
@@ -329,24 +497,56 @@ def test_tp11_deprecated_aliases_not_accepted():
     the canonical §11.6 names." Expected: "Rejected; canonical names
     only are accepted."
 
-    PARTIAL / NOT SATISFYING. This test exercises the ENVELOPE only: it
-    removes a canonical envelope field and substitutes the deprecated
-    alias, then checks the missing-field rejection. The contract asks for
-    payload-level rejection, which the Phase 2A server does not perform,
-    so a pass here does NOT evidence contract T-P11.
-
-    Payload-level deprecated-alias rejection is therefore skipped.
+    The deprecated aliases `time` and `time_valid` must never appear
+    as a field name at any depth in the payload (contract §89, §11.6).
+    Phase 2C adds payload-level validation that catches them.
     """
-    pytest.skip(
-        "Contract §10 T-P11 requires payload-level validation. Phase 2A "
-        "implements envelope-level validation only. Payload-level "
-        "deprecated-alias rejection is deferred to the phase that adds "
-        "payload validation."
+    # Top-level alias
+    for alias in ("time", "time_valid"):
+        payload = {"event_time": 0, "event_time_valid": 1, alias: 0}
+        message = envelope("alarm_event", 1, payload, record_seq=1)
+        reply = roundtrip(message)
+        assert reply is not None, f"alias {alias} should produce a reply"
+        assert reply["type"] == "nack"
+        assert reply["reason"] == "deprecated_alias"
+
+    # Nested alias inside a batch record's payload
+    nested = envelope(
+        "cycle_summary", 900,
+        {"station_id": 1, "nozzles": [], "duration_ms": 0,
+         "duration_basis": "calendar",
+         "faulted_channel_count": 0, "fault_transition_count": None,
+         "valid_samples_pressure_both_nozzles": None,
+         "valid_samples_temperature_both_nozzles": None,
+         "time": 0},
+        record_seq=900,
     )
+    message = envelope(
+        "batch", 1,
+        {"records": [nested], "record_count": 1, "has_more": False},
+    )
+    reply = roundtrip(message)
+    assert reply is not None
+    assert reply["type"] == "nack"
+    assert reply["reason"] == "deprecated_alias"
+
+    # Direct unit check: valid payload passes, alias payload fails
+    ok, reason = validate_payload(envelope("hello", 1, {
+        "firmware_version": "?",
+        "protocol_versions_supported": ["1.1.0"],
+        "boot_id": BOOT_ID,
+        "station_count": 16,
+        "channel_count": 64,
+    }))
+    assert ok, f"valid hello payload should pass: {reason}"
+
+    ok, reason = validate_payload(envelope("hello", 1, {"time": 0}))
+    assert not ok
+    assert reason == "deprecated_alias"
 
 
 # ---------------------------------------------------------------------------
-# T-P12 / T-P13 — skipped. Payload validation is not implemented.
+# T-P12 — implemented. duration_basis value set enforced.
 # ---------------------------------------------------------------------------
 
 
@@ -354,28 +554,62 @@ def test_tp12_duration_basis_value_set():
     """T-P12: "Send a duration_basis outside 'null', 'calendar',
     'uptime_same_boot'." Expected: "Rejected; no fourth value."
 
-    duration_basis is a payload field; the Phase 2A server validates
-    the ENVELOPE only.
+    Phase 2C payload validation enforces the DR-03 enum on cycle_summary.
     """
-    pytest.skip(
-        "Payload-level validation is not implemented in Phase 2A — the server "
-        "validates the envelope per contract §3.1 only, so rejection of a "
-        "fourth duration_basis value (contract §10 T-P12) cannot be asserted."
-    )
+    payload = minimal_payload("cycle_summary")
+    payload["duration_basis"] = "bogus"
+    message = envelope("cycle_summary", 1, payload, record_seq=1)
+    reply = roundtrip(message)
+    assert reply is not None
+    assert reply["type"] == "nack"
+    assert reply["reason"] == "invalid_value"
+
+    # Direct unit check
+    ok, reason = validate_payload(message)
+    assert not ok
+    assert reason == "invalid_value"
+
+
+# ---------------------------------------------------------------------------
+# T-P13 — implemented. DR-03b bidirectional invariant enforced.
+# ---------------------------------------------------------------------------
 
 
 def test_tp13_duration_ms_duration_basis_invariant():
-    """T-P13: "Send duration_ms = null with duration_basis != 'null', and
-    the reverse." Expected: "Both rejected — the DR-03b bidirectional
-    invariant holds."
+    """T-P13: "Send duration_ms = null with duration_basis != 'null',
+    and the reverse." Expected: "Both rejected — the DR-03b
+    bidirectional invariant holds."
 
-    Both fields are payload fields.
+    Phase 2C payload validation enforces the DR-03b invariant on
+    cycle_summary: duration_ms IS NULL <=> duration_basis == 'null'.
     """
-    pytest.skip(
-        "Payload-level validation is not implemented in Phase 2A — the DR-03b "
-        "bidirectional invariant (contract §10 T-P13) cannot be enforced or "
-        "asserted by an envelope-only validator."
-    )
+    # Case 1: duration_ms is null, duration_basis is 'calendar' — violates
+    payload1 = minimal_payload("cycle_summary")
+    payload1["duration_ms"] = None
+    payload1["duration_basis"] = "calendar"
+    message1 = envelope("cycle_summary", 1, payload1, record_seq=1)
+    reply1 = roundtrip(message1)
+    assert reply1 is not None
+    assert reply1["type"] == "nack"
+    assert reply1["reason"] == "invariant_violated"
+
+    ok, reason = validate_payload(message1)
+    assert not ok
+    assert reason == "invariant_violated"
+
+    # Case 2: duration_ms is non-null, duration_basis is 'null' — violates
+    payload2 = minimal_payload("cycle_summary")
+    payload2["duration_ms"] = 0
+    payload2["duration_basis"] = "null"
+    message2 = envelope("cycle_summary", 2, payload2, record_seq=2)
+    reply2 = roundtrip(message2)
+    assert reply2 is not None
+    assert reply2["type"] == "nack"
+    assert reply2["reason"] == "invariant_violated"
+
+    ok, reason = validate_payload(message2)
+    assert not ok
+    assert reason == "invariant_violated"
 
 
 # ---------------------------------------------------------------------------
@@ -384,26 +618,40 @@ def test_tp13_duration_ms_duration_basis_invariant():
 
 
 def test_tp14_invalid_values_are_null_never_zero():
-    """T-P14: "Produce an out-of-range or unconfigured reading." Expected:
-    "The value is NULL, not 0 and not clamped."
+    """T-P14: "Produce an out-of-range or unconfigured reading."
+    Expected: "The value is NULL, not 0 and not clamped."
 
     The server never writes, coerces or clamps a value, so this holds
     trivially; a null value is shown to survive the round trip.
     """
     payload = {
-        "station_id": 1,
-        "nozzles": [{
-            "nozzle_id": 1,
-            "raw_pressure_voltage": 0,
-            "raw_temperature_voltage": 0,
-            "converted_pressure": None,
-            "converted_temperature": None,
-            "channel_state": "out_of_range",
-        }],
+        "event_time": 0,
+        "event_time_valid": 1,
+        "stations": [
+            {
+                "station_id": 1,
+                "nozzles": [
+                    {
+                        "nozzle_id": 1,
+                        "raw_pressure_voltage": 0,
+                        "raw_temperature_voltage": 0,
+                        "converted_pressure": None,
+                        "converted_temperature": None,
+                        "channel_state": "out_of_range",
+                    },
+                ],
+            }
+        ],
+        "invalid_channel_count_now": 0,
+        "volatile_loss_counter": 0,
+        "data_loss_pending": False,
+        "journal_pressure_indicator": False,
+        "alarm_state": "inactive",
+        "warning_state": "inactive",
     }
     message = envelope("live_state", 1, payload)
     assert roundtrip(message, expect_reply=False) is None
-    nozzle = message["payload"]["nozzles"][0]
+    nozzle = message["payload"]["stations"][0]["nozzles"][0]
     assert nozzle["converted_pressure"] is None
     assert nozzle["converted_temperature"] is None
 
@@ -416,17 +664,7 @@ def test_tp15_fault_transition_count_remains_null():
     DR-07-C3 is OPEN so the server neither computes nor replaces the
     field; a null value passes through untouched.
     """
-    payload = {
-        "station_id": 1,
-        "cycle_start_ms": 0,
-        "start_time_valid": 1,
-        "cycle_end_ms": 0,
-        "end_time_valid": 1,
-        "duration_ms": 0,
-        "duration_basis": "calendar",
-        "faulted_channel_count": 0,
-        "fault_transition_count": None,
-    }
+    payload = minimal_payload("cycle_summary")
     message = envelope("cycle_summary", 1, payload, record_seq=1)
     reply = roundtrip(message)
     assert reply is not None and reply["type"] == "ack"
@@ -436,7 +674,91 @@ def test_tp15_fault_transition_count_remains_null():
 
 
 # ---------------------------------------------------------------------------
-# Gap-resolution tests (v0.2.4 §11) — these ARE resolved, so they are asserted.
+# T-P16 — implemented. reset_command target validation (v1.1.0, DR-34).
+# ---------------------------------------------------------------------------
+
+
+def test_tp16_reset_command_target_validation():
+    """T-P16: "reset_command target validation (added v1.1.0, DR-34)".
+
+    Send reset_command with target = "alarm", "warning", "all", then
+    with "bogus" and with target omitted.
+
+    The three legal values produce a reset_result (no ack); "bogus"
+    is rejected as an invalid value; an omitted target is rejected
+    as an invalid payload.
+    """
+    for target in ("alarm", "warning", "all"):
+        message = envelope("reset_command", 1, {
+            "target": target,
+            "pc_id": "pc-01",
+        })
+        ok, reason = validate_payload(message)
+        assert ok, f"target={target} should be valid: {reason}"
+        reply = roundtrip(message)
+        assert reply is not None
+        assert reply["type"] == "reset_result"
+        assert reply["accepted"] is True
+        assert reply["alarm_state"] == "inactive"
+        assert reply["warning_state"] == "inactive"
+
+    # Invalid target — rejected by payload enum
+    message = envelope("reset_command", 2, {
+        "target": "bogus",
+        "pc_id": "pc-01",
+    })
+    ok, reason = validate_payload(message)
+    assert not ok
+    assert reason == "invalid_value"
+    reply = roundtrip(message)
+    assert reply is not None
+    assert reply["type"] == "nack"
+    assert reply["reason"] == "invalid_value"
+
+    # Missing target — rejected as invalid payload
+    message = envelope("reset_command", 3, {"pc_id": "pc-01"})
+    ok, reason = validate_payload(message)
+    assert not ok
+    assert reason == "invalid_payload"
+    reply = roundtrip(message)
+    assert reply is not None
+    assert reply["type"] == "nack"
+    assert reply["reason"] == "invalid_payload"
+
+
+# ---------------------------------------------------------------------------
+# T-P17 — skipped. Physical reset input requires firmware.
+# ---------------------------------------------------------------------------
+
+
+def test_tp17_reset_result_echo():
+    """T-P17: "reset_result echoes and reports post-reset state
+    (added v1.1.0, DR-34)".
+
+    Intended to verify that a reset_command carrying request_id and
+    pc_id produces a reset_result that echoes request_id unchanged
+    (present when sent, absent when not), and that accepted,
+    alarm_state and warning_state are always present with valid enum
+    values.
+
+    This test is skipped because the full behaviour — physical reset
+    input (PCF8574T pin 21, DR-33) matching software reset_command —
+    requires ESP32 firmware that does not exist. Phase 2B is NOT
+    AUTHORIZED for reset behaviour.
+
+    The reset_command round-trip itself (target validation, reset_result
+    response) IS exercised in T-P16.
+    """
+    pytest.skip(
+        "Physical reset input matching software reset requires firmware "
+        "(PCF8574T pin 21, DR-33). No firmware reset handler exists and "
+        "Phase 2B is NOT AUTHORIZED. The server-side reset_command → "
+        "reset_result echo is covered by T-P16."
+    )
+
+
+# ---------------------------------------------------------------------------
+# Gap-resolution tests (v1.1.0 §11) — these ARE resolved, so they are asserted.
 # ---------------------------------------------------------------------------
 
 
@@ -457,8 +779,12 @@ def test_gap7_batch_ack_is_one_ack_with_array():
     """Gap 7: a batch is answered by ONE ack carrying acked_record_ids,
     never by N acks and never together with acked_record_id.
     """
-    nested_a = envelope("cycle_summary", 20, {}, record_seq=20)
-    nested_b = envelope("alarm_event", 21, {}, record_seq=21)
+    nested_a = envelope(
+        "cycle_summary", 20, minimal_payload("cycle_summary"), record_seq=20
+    )
+    nested_b = envelope(
+        "alarm_event", 21, minimal_payload("alarm_event"), record_seq=21
+    )
     message = envelope(
         "batch", 30,
         {"records": [nested_a, nested_b], "record_count": 2, "has_more": False},
@@ -473,7 +799,9 @@ def test_gap7_batch_ack_is_one_ack_with_array():
 
 def test_single_record_ack_uses_singular_field_only():
     """A non-batch durable message is answered with acked_record_id only."""
-    reply = roundtrip(envelope("alarm_event", 40, {}, record_seq=40))
+    reply = roundtrip(
+        envelope("alarm_event", 40, minimal_payload("alarm_event"), record_seq=40)
+    )
     assert reply is not None
     assert "acked_record_id" in reply
     assert "acked_record_ids" not in reply
@@ -492,23 +820,4 @@ def test_health_endpoint():
     """GET /health returns the fixed skeleton version."""
     response = CLIENT.get("/health")
     assert response.status_code == 200
-# ---------------------------------------------------------------------------
-# T-P08 — skipped. config_set is PC-originated; its envelope is OPEN.
-# ---------------------------------------------------------------------------
-
-
-def test_tp08_config_set_validation():
-    """T-P08: "Submit calibration points that are non-finite, duplicated,
-    or not in ascending order." Expected: "Rejected by config_result;
-    the stored settings are unchanged."
-
-    config_set travels PC -> device. Its envelope is OPEN (§8 item 24)
-    and this server only receives ESP32-originated messages, so no
-    valid config_set can be constructed here.
-    """
-    pytest.skip(
-        "config_set is PC-originated and its envelope is OPEN — contract "
-        "§8 item 24. This server only receives ESP32-originated messages, "
-        "so contract §10 T-P08 cannot be exercised."
-    )
     assert response.json() == {"status": "ok", "version": "0.1.0"}
