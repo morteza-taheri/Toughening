@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document title | TOUGHENING MACHINE — Project Specification Baseline |
-| Document version | 0.7.3 (final approval of PROTOCOL_CONTRACT.md v1.0.0 — no new decisions) |
+| Document version | 0.7.4 (Decision Round D — hardware architecture closure) |
 | Revision status | **BASELINE — FOR REVIEW** |
 | Created | 2026-10-04 |
 | Workspace | `D:\PMC\Documents\PlatformIO\Projects\Toughening` |
@@ -11,7 +11,7 @@
 | Source basis | Requirements, decisions and review findings recorded in the project conversation prior to this document |
 | Implementation status | **No implementation exists. No implementation phase has been started.** Phase 2A-0 (documentation only) is COMPLETE. |
 | Supersedes | **0.5.0 (decision round B approvals)** — archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.5.0.md` (SHA256 `06D71C124E647D5807E7381F617AAAB2A7FAC9A926BF8F27632E13C747DDB426`, 119 532 bytes). |
-| Companion document | `docs/PROTOCOL_CONTRACT.md` — **APPROVED, final 2026-10-05** (v1.0.0) |
+| Companion document | `docs/PROTOCOL_CONTRACT.md` — **APPROVED, final 2026-10-05** (v1.1.0) |
 
 ---
 
@@ -33,6 +33,7 @@
 | 0.7.1 | 2026-10-05 | **Follow-up: complete D-C5 / D-D10 body alignment (no new decisions).** Follows the 0.7.0 pass, which left residual references that still contradicted §19. **§7.5** non-escalation now cites D-C5 APPROVED (DR-25.5). **§8.4** `overflow` row now cites the D-D10 direction as APPROVED (DR-25.8); the `journal_pressure` row (D-D6 genuinely OPEN) is unchanged. **§7.1a** (PCC-36): the DR-06 scope-limits sentence split so it no longer claims D-C1…D-C5 are OPEN; open-question item 7 now RESOLVED (DR-25.5); DR-12 stabilisation participation now RESOLVED (DR-25.6). **§12.4 / §12.5** (PCC-37): the §12.5 heading no longer says "D-D10 OPEN — NOT APPROVED"; the L2 progression sentence now says D-D10 must be "fully decided" rather than "approved"; D-C5 is removed from the exhaustion-policy dependency list and recorded as APPROVED and orthogonal. **§17.1** PER-02 no longer lists D-C5 as a dependency. **§18** (PCC-38): AMB-08 now records the alarm/fault policy as CLOSED by DR-25.1…DR-25.5; AMB-14 now records direction APPROVED with sizes/thresholds undefined. **Deliberately NOT changed:** §17.3 **AC-08** and its companion sentence — PCC-22 forbids moving AC-08 before an explicit decision; §7.4 line 511 is a correct cross-reference. **New PCCs PCC-36, PCC-37, PCC-38 recorded as APPLIED (0.7.1).** No new decision, no new section, no row removed. Phase 2A / Phase 2B remain NOT AUTHORIZED. |
 | 0.7.2 | 2026-10-05 | **AC-08 promotion (no new decisions).** **D-C5 was approved in 0.6.0 (DR-25.5)**, which removes the blocker that made PCC-22 "record only". **AC-08 is promoted from §17.3 (conditional) to §17.2 (unconditional)** with the approved D-C5 semantics stated inline: out-of-range readings raise zero alarm events; out-of-range data is a data-validity condition plus a system event, not an alarm, no escalation. **The §17.2 closing note was updated in the same pass** so it no longer lists AC-08 as non-unconditional (AC-07, AC-13 and AC-19 remain non-unconditional; AC-04 and AC-08 are the entries that have moved). The §17.3 note for AC-08 now records it as unconditional and points to §17.2. **PCC-22 → APPLIED (0.7.2)**. **§23** "Out-of-range handling" caveat "do not move AC-08 yet" removed. **Unchanged and reported:** §17.1 line "Out-of-range … see AC-08" still points at AC-08; that reference remains accurate (AC-08 exists and states zero alarm events) and was outside this patch's scope. No new decision, no new section, no row removed. Phase 2A / Phase 2B remain NOT AUTHORIZED. |
 | 0.7.3 | 2026-10-05 | **Final approval of PROTOCOL_CONTRACT.md (v1.0.0).** No new decisions. The contract is now an approved companion document. `docs/PROTOCOL_CONTRACT.md` v0.2.4 → **v1.0.0**, status **APPROVED — final, 2026-10-05**; §9 non-inference rewritten; the three stale Phase 2B / implementation-status statements corrected. **§12.1** approval status, **§20** "Protocol / message contract approval" row and the **§21** Phase 2A gate text updated to the final approval. **§23** traceability row added. **§25** V118–V121 added. The contract remains revisable by an explicit decision round. **Phase 3 and all later phases remain NOT AUTHORIZED.** |
+| 0.7.4 | 2026-10-05 | **Decision Round D — hardware architecture closure.** `docs/PROTOCOL_CONTRACT.md` v1.0.0 → **v1.1.0**: `reset_command`, `reset_result`, `live_state` `alarm_state` / `warning_state`, tests T-P16 / T-P17. Spec: **D-A2, D-A3, D-A4 APPROVED** (DR-31 / DR-32 / DR-33); **HW-02 … HW-09, HW-11, HW-12, HW-14 CLOSED**; **HW-10 = user responsibility (DR-38)**; **HW-13 stays OPEN**; voltage domain amended to 0–5 V (**DR-30**, amends DR-27). **DR-30 … DR-40** added. **§0.1, §3.1a, §3.2, §3.3, §5.3, §12.1, §19, §19.1, §20, §21, §23, §24, §25** updated; V122–V135 added. LED GPIO13 and WDT 5 s remain **PROPOSED — NOT DECIDED**. **Phase 3 remains NOT AUTHORIZED.** |
 
 ### 0.2 Status label definitions (used throughout this document)
 
@@ -214,26 +215,26 @@ The candidate prototype board is a **30-pin ESP32 development board** (ECA produ
 
 **Explicit labelling requirement.** ADC2 / Wi-Fi coexistence limitations are **general knowledge, to be verified in Phase 2B**. They are **not** asserted as facts anywhere in this document and must not be cited as facts.
 
-**No hardware fact is approved by this record.** HW-01, HW-02, HW-03 and D-A8 remain **OPEN — NOT APPROVED**.
+**No hardware fact is approved by this record.** **HW-01 and D-A8 are APPROVED (DR-13). HW-02 and HW-03 are CLOSED by DR-31.**
 
 ### 3.2 Hardware open-issues register
 
 | ID | Issue | Status |
 |---|---|---|
-| HW-01 | Target ESP32 board/module confirmation (physical board, real flash size, bridge variant, usable ADC characteristics) | **APPROVED (DR-13)** — board confirmed; flash size, chip identity and ADC characteristics still to be verified read-only in Phase 2B |
-| HW-02 | ADC acquisition architecture (internal ADC + multiplexer vs external precision ADC) | OPEN — NOT APPROVED |
-| HW-03 | Multiplexer architecture and channel count | OPEN — NOT APPROVED |
-| HW-04 | Analog front end — attenuation/buffering for the 0.5–4.5 V sensor output | OPEN — NOT APPROVED |
-| HW-05 | Input protection (over-voltage, reverse polarity, transients) | OPEN — NOT APPROVED |
-| HW-06 | 16× PLC 24 V digital input conditioning | OPEN — NOT APPROVED |
-| HW-07 | Optocoupler / input expansion topology | OPEN — NOT APPROVED |
-| HW-08 | Physical alarm output driver | OPEN — NOT APPROVED |
-| HW-09 | GPIO pin map | OPEN — NOT APPROVED |
-| HW-10 | Power supply and grounding design | OPEN — NOT APPROVED |
-| HW-11 | TMAP34 datasheet | OPEN — NOT APPROVED |
-| HW-12 | TMAP34 wiring, pin assignment and supply range | OPEN — NOT APPROVED |
+| HW-01 | Target ESP32 board/module confirmation (physical board, real flash size, bridge variant, usable ADC characteristics) | **APPROVED (DR-13)** — board confirmed; flash/chip/ADC characteristics pending explicit read-only verification (Phase 2B compiled but did not read the physical chip) |
+| HW-02 | ADC acquisition architecture (internal ADC + multiplexer vs external precision ADC) | **CLOSED (DR-31)** — 4× CD74HC4067 MUX + 1× ADS1115 (VDD 5 V, PGA ±6.144 V) + 3× PCF8574T (5 V bus, level shifter); 16 MUX states × 4 ADS1115 channels = 64 |
+| HW-03 | Multiplexer architecture and channel count | **CLOSED (DR-31)** — 4× CD74HC4067, 16 MUX states × 4 channels = 64 channels |
+| HW-04 | Analog front end — attenuation/buffering for the 0.5–4.5 V sensor output | **CLOSED (DR-32)** — optocoupler + 5 V limit; PCB design is the user's responsibility (DR-38) |
+| HW-05 | Input protection (over-voltage, reverse polarity, transients) | **CLOSED (DR-32)** — optocoupler + 5 V limit; PCB design is the user's responsibility (DR-38) |
+| HW-06 | 16× PLC 24 V digital input conditioning | **CLOSED (DR-33)** — 1 alarm output + 1 reset input via PCF8574T |
+| HW-07 | Optocoupler / input expansion topology | **CLOSED (DR-33)** — 3× PCF8574T pin map: 0–15 activation, 16–19 S0–S3, 20 alarm, 21 reset, 22–23 spare |
+| HW-08 | Physical alarm output driver | **CLOSED (DR-33)** — PCF8574T pin 20 |
+| HW-09 | GPIO pin map | **CLOSED (DR-37)** — I2C SDA = GPIO21, SCL = GPIO22, LED = GPIO13 (PROPOSED, verify Phase 3); remaining GPIOs reserved |
+| HW-10 | Power supply and grounding design | **USER RESPONSIBILITY (DR-38)** — PCB design is left to the user; the specification approves no electrical value here |
+| HW-11 | TMAP34 datasheet | **CLOSED (DR-39, per DR-26 sensor-agnostic)** — not required; measurement is voltage-based and no sensor datasheet is used |
+| HW-12 | TMAP34 wiring, pin assignment and supply range | **CLOSED (DR-39, per DR-26 sensor-agnostic)** — not required; the voltage-based input accepts any analog-voltage sensor |
 | HW-13 | Flash partition layout for the durable journal | OPEN — NOT APPROVED |
-| HW-14 | Sampling model (simultaneous vs sequential per station) | OPEN — NOT APPROVED |
+| HW-14 | Sampling model (simultaneous vs sequential per station) | **CLOSED (DR-40)** — sequential scanning confirmed |
 
 ### 3.3 Hardware register ↔ decision register mapping (P0 / AUD-01 repair)
 
@@ -250,7 +251,7 @@ The hardware open-issues register (section 3.2) and the decision register (secti
 
 **Binding rule (P0 / AUD-01):** The hardware issue register is **subordinate** to the decision register. A hardware issue does **not** independently close, approve, or override a decision. The authoritative approval state is the corresponding D-* decision state.
 
-**Status preserved by this repair:** the mapping records relationships only and changes no status. D-A2, D-A3 and D-A4 remain **OPEN — NOT APPROVED**. **D-A8 is APPROVED (DR-13)** and **HW-01 is closed with it**. HW-02 must not be interpreted as independently approved.
+**Status preserved by this repair:** the mapping records relationships only and changes no status. **D-A2, D-A3 and D-A4 are APPROVED (DR-31/32/33). D-A8 is APPROVED (DR-13).** **HW-01 is closed with it**. HW-02 must not be interpreted as independently approved.
 
 ---
 
@@ -378,9 +379,9 @@ There are **64 analog channels** and — **according to unverified retailer-page
 
 **What the pinout image actually shows (section 3.1a, observation only):** the board's pinout image shows **6 exposed ADC1-capable GPIOs — GPIO32, GPIO33, GPIO34, GPIO35, GPIO36, GPIO39** (labelled ADC1 CH4, CH5, CH6, CH7, CH0, CH3 respectively) and 9 ADC2-capable GPIOs. The ADC1 and ADC2 **GPIO** counts do **not** correspond to the retailer's "4-channel ADC" wording: the two describe different things (board GPIO capability vs. ADC conversion channels), and the image states **no** conversion-channel count.
 
-**Acquisition architecture remains OPEN (HW-02, HW-03).**
+**Acquisition architecture is APPROVED (DR-31).**
 
-It must **not** be assumed that the preliminary ESP32 selection can acquire all channels directly. The acquisition and multiplexing architecture is **OPEN** (HW-02, HW-03), and its resolution is a prerequisite for Phase 3. The **64-channel requirement is an approved requirement** (section 1.2); the claimed 4-channel ADC resource is **not** an approved fact, and the mismatch between them is a working hypothesis, not a settled constraint.
+It must **not** be assumed that the preliminary ESP32 selection can acquire all channels directly. The acquisition and multiplexing architecture is **APPROVED (DR-31)** — 4× CD74HC4067 MUX + 1× ADS1115 + 3× PCF8574T — and building it is a prerequisite for Phase 3. The **64-channel requirement is an approved requirement** (section 1.2); the claimed 4-channel ADC resource is **not** an approved fact, and the mismatch between them is a working hypothesis, not a settled constraint.
 
 ---
 
@@ -814,10 +815,12 @@ The document previously used several names for the same concepts. The canonical 
 | `settings_change` | either → other | Yes (history) |
 | `ack` | PC → ESP32 | Acknowledges a record id |
 | `nack` | PC → ESP32 | Rejects a record id, with reason |
+| `reset_command` | PC → ESP32 | **No** — non-durable, no `ack`; `reset_command` targets `"alarm"`, `"warning"` or `"all"` |
+| `reset_result` | ESP32 → PC | **No** — non-durable; carries `accepted` and the post-reset state |
 
 Messages carry a protocol version, a message type and (for durable records) a unique `record_id`.
 
-**Approval status (P1 / AUD-13).** The message contract is **APPROVED (final, 2026-10-05)** as `docs/PROTOCOL_CONTRACT.md` **v1.0.0**. It remains revisable by an explicit decision round. It was exercised from both sides in Phase 2A (commit `b30e74f`): the PC server implements it, the firmware skeleton defers its contract-driven parts by name, and 21 tests exercise it.
+**Approval status (P1 / AUD-13).** The message contract is **APPROVED (final, 2026-10-05)** as `docs/PROTOCOL_CONTRACT.md` **v1.1.0** (revised from v1.0.0 in Decision Round D, **DR-34**). The two reset messages and the `live_state` `alarm_state` / `warning_state` fields are defined in the contract, not in this table; this specification lists them here for traceability only. It remains revisable by an explicit decision round. It was exercised from both sides in Phase 2A (commit `b30e74f`): the PC server implements it, the firmware skeleton defers its contract-driven parts by name, and 21 tests exercise it.
 
 ### 12.2 Acknowledgement and deduplication (established requirement)
 
@@ -1264,11 +1267,11 @@ Each entry records a consequential change that this revision deliberately **does
 | ID | Decision | Status |
 |---|---|---|
 | D-A1 | ESP32 board — 30-pin ESP32-D0WDQ6 (retailer-page evidence) | **DECIDED — preliminary selection only**; exact model, flash, pinout and electricals require confirmation |
-| D-A2 | ADC acquisition architecture | **OPEN — NOT APPROVED** |
-| D-A3 | Analog front end / protection | **OPEN — NOT APPROVED** |
-| D-A4 | Digital input expansion + alarm output driver | **OPEN — NOT APPROVED** |
+| D-A2 | ADC acquisition architecture | **APPROVED (DR-31, 2026-10-05)** — 4× CD74HC4067 MUX + 1× ADS1115 (VDD 5 V, PGA ±6.144 V) + 3× PCF8574T (5 V bus, level shifter); 16 MUX states × 4 ADS1115 channels = 64 |
+| D-A3 | Analog front end / protection | **APPROVED (DR-32, 2026-10-05)** — optocoupler + 5 V limit; PCB layout is the user's responsibility (DR-38) |
+| D-A4 | Digital input expansion + alarm output driver | **APPROVED (DR-33, 2026-10-05)** — 1 alarm output + 1 reset input; PCF8574T pin map: 0–15 activation, 16–19 S0–S3, 20 alarm, 21 reset, 22–23 spare |
 | D-A5 | TMAP34 sensor, conversion, wiring | **Method DECIDED** (linear, configurable); **remainder OPEN** (datasheet, pinout, wiring, supply range, `temp_*` values) |
-| D-A8 | Board confirmation gate | **APPROVED (DR-13, 2026-10-05)** — board confirmed; flash/chip/ADC still to verify read-only in Phase 2B |
+| D-A8 | Board confirmation gate | **APPROVED (DR-13, 2026-10-05)** — board confirmed; Flash/chip/ADC characteristics pending explicit read-only verification (Phase 2B compiled but did not read the physical chip) |
 | D-B1 | Dedicated network adapter for the control link | **APPROVED (DR-15, 2026-10-05)** — dedicated USB Wi-Fi adapter |
 | D-B2 | Address plan + DHCP pool; re-verify against pinned Arduino-ESP32 version | **OPEN — NOT APPROVED** |
 | D-B3 | Approval to apply Windows config + scoped TCP 8000 firewall rule | **APPROVED (DR-15, 2026-10-05)** — the **user applies** these manually; the assistant documents only |
@@ -1290,8 +1293,8 @@ Each entry records a consequential change that this revision deliberately **does
 | D-D10 | Reserved-area exhaustion policy | **DIRECTION APPROVED (0.6.0)** — overwrite-oldest via **DR-25.8**; priority classes, counters and thresholds remain **OPEN** |
 | D-D11 | Valid-sample aggregation policy | **APPROVED** — mandatory per-nozzle counters; optional direct station counters (hardware-dependent) |
 | D-D12 | Unconfigured vs zero | **APPROVED** — `NULL` + explicit configuration flag |
-| HW-02 | ADC acquisition architecture | **OPEN — NOT APPROVED** |
-| HW-03 | Multiplexer architecture | **OPEN — NOT APPROVED** |
+| HW-02 | ADC acquisition architecture | **CLOSED (DR-31)** |
+| HW-03 | Multiplexer architecture | **CLOSED (DR-31)** |
 | DR-01 | Report / export scope (historical / database-derived included) | **APPROVED** — Option A (section 4.5, section 16.3) |
 | DR-02 | Canonical cycle-start names `cycle_start_ms` / `start_time_valid` | **APPROVED** — no cycle-start invariant introduced (section 11.6) |
 | DR-03 | `duration_basis` value set: `'null'`, `'calendar'`, `'uptime_same_boot'` | **APPROVED** (section 9.4) |
@@ -1315,7 +1318,7 @@ Each entry records a consequential change that this revision deliberately **does
 | CS-01 | Clock-step duration policy | **APPROVED (Policy B)** (section 9.4) — same-boot uptime fallback; **D-D7 remains OPEN** |
 | D-D13 | Fault-counter semantics (`faulted_channel_count`, `fault_transition_count`, `invalid_channel_count_now`) | **OPEN — DECISION REQUIRED** — fault **vocabulary** APPROVED (DR-06); counting model, reset, reboot and persistence remain open (section 7.1a) |
 | TEMP-CONVERSION-CONFIG-GRAIN | Temperature-conversion configuration ownership and grain (symbolic identifier; no D-D number assigned) | **PARTIALLY RESOLVED** — **Q1–Q3 SUPERSEDED by DR-27 (per-channel)**; **Q4–Q8 remain OPEN — DECISION REQUIRED** (section 6.6) |
-| DR-13 | Board confirmed: ESP32-D0WDQ6, 30-pin development board, 4 MB flash (retailer-stated), PlatformIO target esp32dev. Physical board confirmed to match the supplied pinout image. Flash size, chip identity and ADC characteristics to be verified with read-only commands in Phase 2B. Closes D-A8 / HW-01 per section 3.3. Does NOT approve any GPIO map, ADC architecture, multiplexer, divider, protection or alarm circuit (D-A2, D-A3, D-A4, HW-09 stay OPEN). **Observation (not a decision):** the pinout image shows 6 exposed ADC1-capable GPIOs — GPIO 32, 33, 34, 35, 36, 39. ADC2/Wi-Fi interaction and USB-UART chip identity are "general knowledge, to be verified in Phase 2B". | **APPROVED** (2026-10-05) |
+| DR-13 | Board confirmed: ESP32-D0WDQ6, 30-pin development board, 4 MB flash (retailer-stated), PlatformIO target esp32dev. Physical board confirmed to match the supplied pinout image. **Flash/chip/ADC characteristics pending explicit read-only verification (Phase 2B compiled but did not read the physical chip).** Closes D-A8 / HW-01 per section 3.3. It approved no GPIO map, ADC architecture, multiplexer, divider, protection or alarm circuit at the time; those were settled later in Decision Round D by **DR-31/DR-32/DR-33/DR-37**. **Observation (not a decision):** the pinout image shows 6 exposed ADC1-capable GPIOs — GPIO 32, 33, 34, 35, 36, 39. ADC2/Wi-Fi interaction and USB-UART chip identity are "general knowledge, to be verified in Phase 2B". | **APPROVED** (2026-10-05) |
 | DR-14 | Environment: the development PC is Windows 10 64-bit with Python 3.13.0 and internet (development only). The final installation target is a different Windows 10 64-bit PC without internet. | **APPROVED** (2026-10-05) |
 | DR-15 | Network (D-B1, D-B3): PC uses a dedicated USB Wi-Fi adapter for the ESP32 access-point link; no internet is required in operation; the user applies Windows IP / firewall settings manually following documentation written by the assistant in a later phase; the assistant never applies them. Closes D-B1 and D-B3. D-B2 (address plan and DHCP pool) stays OPEN. | **APPROVED** (2026-10-05) |
 | DR-16 | D-B4: Python packages may be installed in a virtual environment inside `pc/` in Phase 2A, with pinned versions. Does NOT authorize installation in Phase 2A-0. | **APPROVED** (2026-10-05) |
@@ -1341,7 +1344,18 @@ Each entry records a consequential change that this revision deliberately **does
 | DR-26 | Sensor-agnostic measurement: any sensor with an analog voltage output must be connectable; measurement is voltage-based; no sensor datasheet or sensor type required. NOT assumed: sensor supply voltage, ratiometric behavior, gauge vs absolute pressure. | **APPROVED** (2026-10-05) |
 | **DR-27** | Per-channel calibration. **AMENDS and SUPERSEDES DR-08 Q1–Q3** (device-global temperature configuration ownership). Every one of the 64 channels is configured and calibrated separately in software (32 pressure, 32 temperature). `temp_conversion_configured` is derived from each channel's own calibration. DR-08 Q4–Q8 stay OPEN and are more important now. First version has exactly two conversion modes: **LINEAR** (two points, Arduino `map()` semantics) and **NON-LINEAR** (five points, piecewise-linear interpolation). Polynomial, scale/offset and equation-based (NTC) conversions are **DEFERRED**. Output units fixed to bar and degrees Celsius; user chooses output range of points. Validation: calibration points must be finite and have distinct, ascending voltages. Voltage domain: calibration points and valid-voltage window are **ADC-input volts (0–3.3 V, after any divider; divider ratio absorbed in calibration)**. Inside 0–3.3 V but outside calibrated span: linear extrapolation along the end segment, stays valid. Outside 0–3.3 V: `out_of_range`. Each channel has an **OPTIONAL** valid-voltage window whose default is 0–3.3 V. Nominal pressure points of section 4.3 (0.5–4.5 V = 0–4 bar) are **NOT applicable as defaults**; keep only as "sensor-level reference, applicability under review". Pressure starts unconfigured, like temperature. NOT decided here (**OPEN**): whether the D-D12 NULL-vs-0 rule extends to pressure counters; a "copy calibration to other channels" convenience. | **APPROVED** (2026-10-05) — supersedes DR-08 Q1–Q3 |
 | DR-28 | Polarity: the active level of the station inputs (per input or global: OPEN), the alarm output and the reset input must be configurable on the ESP32 settings web page and persisted in NVS. Default stays LOW = active per section 5.1 until changed. | **APPROVED** (2026-10-05) |
-| DR-29 | Hardware design is left open to the designer. User-procurable CANDIDATE parts (candidates only, NOT approved; D-A2, D-A3, D-A4 stay OPEN): CD74HC4067 16-channel analog multiplexer module, ADS1115 16-bit 4-channel I2C ADC module, PCF8574 8-bit I2C I/O expander module. **Observation (not a decision):** these candidates imply sequential scanning; HW-14 stays OPEN. The PC-to-ESP32 distance is reported as suitable. | **APPROVED (observation only)** (2026-10-05) |
+| DR-29 | Hardware design is left open to the designer. User-procurable CANDIDATE parts (candidates only, NOT approved; **D-A2, D-A3, D-A4 were CLOSED in Decision Round D (DR-31/32/33)**): CD74HC4067 16-channel analog multiplexer module, ADS1115 16-bit 4-channel I2C ADC module, PCF8574 8-bit I2C I/O expander module. **Observation (not a decision):** these candidates imply sequential scanning; HW-14 is CLOSED by DR-40. The PC-to-ESP32 distance is reported as suitable. | **APPROVED (observation only)** (2026-10-05) |
+| **DR-30** | **Voltage domain — AMENDS and SUPERSEDES the 0–3.3 V window of DR-27.** With DR-31's 5 V analog input domain, the calibration-voltage domain, the valid-voltage window and the `out_of_range` boundary are **ADC-input volts, 0–5 V**. Inside 0–5 V but outside the calibrated span: linear extrapolation along the end segment, stays valid. Outside 0–5 V: `out_of_range`. The default valid-voltage window becomes **0–5 V**. Raw voltage is still never modified and values are still `NULL`, never `0` and never clamped. All other DR-27 rules (per-channel configuration, LINEAR / NON-LINEAR modes, bar and °C output, ascending distinct validation) are unchanged. | **APPROVED** (2026-10-05) — amends DR-27 |
+| **DR-31** | **D-A2 CLOSED — ADC acquisition architecture.** 4× CD74HC4067 16-channel analog multiplexer + 1× ADS1115 16-bit 4-channel I2C ADC (VDD **5 V**, PGA **±6.144 V**) + 3× PCF8574T I2C I/O expanders (5 V bus, ESP32-side level shifting). Addressing: **16 MUX states × 4 ADS1115 channels = 64 channels**, matching the approved 64-channel requirement (section 1.2). Scanning is sequential (DR-40). Closes **HW-02** and **HW-03**. | **APPROVED** (2026-10-05) |
+| **DR-32** | **D-A3 CLOSED — analog front end / protection.** Optocoupler isolation and a **5 V input limit**; no 24 V reaches the ESP32. Component ratings, divider ratio, PCB layout and grounding are the **user's** responsibility (DR-38); this specification approves no electrical value. Closes **HW-04** and **HW-05**. | **APPROVED** (2026-10-05) |
+| **DR-33** | **D-A4 CLOSED — digital input expansion + alarm output driver.** One alarm output and one reset input, both through PCF8574T. Pin map: **pins 0–15** station/valve activation, **pins 16–19** MUX select S0–S3, **pin 20** alarm output, **pin 21** reset input, **pins 22–23** reserved spare (DR-36). Physical reset and alarm are shared hardware, so the GUI supplies software alarm/warning indicators and drives them with contract `reset_command` (DR-34). Closes **HW-06**, **HW-07**, **HW-08**. | **APPROVED** (2026-10-05) |
+| **DR-34** | **Contract v1.1.0.** `docs/PROTOCOL_CONTRACT.md` v1.0.0 → **v1.1.0**: adds `reset_command` (PC → ESP32, non-durable, no `ack`) and `reset_result` (ESP32 → PC, non-durable, carries `accepted` and the post-reset state); adds `alarm_state` (one of `inactive` / `active`) and `warning_state` (one of `inactive` / `active` / `acknowledged`) to `live_state`; adds tests **T-P16** and **T-P17**. Message index becomes **18**. | **APPROVED** (2026-10-05) |
+| **DR-35** | **Board-level GPIO and watchdog.** LED on **GPIO13** and watchdog timer **5 s**. Both remain **PROPOSED — NOT DECIDED**: GPIO13 must be verified against the physical board and the pinout image in **Phase 3** before any code drives it, and the 5 s watchdog period is not fixed by this decision. Nothing in this row authorizes Phase 3. | **PROPOSED — NOT APPROVED** (2026-10-05) |
+| **DR-36** | **Two spare PCF8574T pins (22–23) are reserved** and must not be consumed by a later feature without an explicit decision round. | **APPROVED** (2026-10-05) |
+| **DR-37** | **HW-09 CLOSED — GPIO pin map.** I2C **SDA = GPIO21**, **SCL = GPIO22**; **LED = GPIO13** (PROPOSED — DR-35, verify Phase 3); all other GPIOs **reserved**, not assignable without a decision round. No ADC GPIO is claimed as used by this map. | **APPROVED** (2026-10-05) |
+| **DR-38** | **HW-10 = user responsibility.** Power supply, grounding and PCB layout are designed and verified by the **user**. The specification records no voltage, current, trace width or ground scheme. | **APPROVED** (2026-10-05) |
+| **DR-39** | **HW-11 and HW-12 CLOSED (per DR-26 sensor-agnostic).** The TMAP34 datasheet and TMAP34 wiring/pin/supply details are **not required**: measurement is voltage-based and any sensor with an analog voltage output is connectable. Closes **HW-11** and **HW-12**; it closes **no** other issue and approves no datasheet value. | **APPROVED** (2026-10-05) |
+| **DR-40** | **HW-14 CLOSED — sampling model is sequential scanning.** The 16 MUX states are visited in turn across the 4 ADS1115 channels; simultaneous acquisition of all 64 channels is not used. Sampling rate stays **1 sample per second per channel** (section 1.2); DR-29's observation about sequential scanning is now a decision. | **APPROVED** (2026-10-05) |
 
 **DR-25 binding rule (relocated from the removed section 27.1):** revising or superseding any one **DR-25.x** sub-decision has **no effect** on any other. The bundle is an indexing convenience, **not** a single atomic decision.
 
@@ -1355,7 +1369,7 @@ Each entry records a consequential change that this revision deliberately **does
 * D-D1 being DECIDED does **not** approve journal capacity, priorities, or exhaustion behaviour.
 * D-A1 being DECIDED does **not** approve any GPIO, ADC, multiplexer, divider or protection decision.
 * **Hardware register subordination (P0 / AUD-01):** the hardware open-issues register (section 3.2) is **subordinate** to this decision register. A hardware ID (HW-*) does **not** independently close, approve, or override a D-* decision; the authoritative approval state is the D-* state. See the mapping table in section 3.3.
-* Approval of a decision does **not** close a mapped hardware issue, and a hardware issue does **not** close a mapped decision. `D-A2`, `D-A3`, `D-A4`, `HW-02` and `HW-03` all remain **OPEN — NOT APPROVED**. (`D-A8` and `HW-01` are closed by **DR-13**.)
+* Approval of a decision does **not** close a mapped hardware issue, and a hardware issue does **not** close a mapped decision. **HW-13 remains OPEN. D-A2, D-A3, D-A4 are APPROVED (DR-31/32/33); HW-02 and HW-03 are CLOSED by DR-31.** (`D-A8` and `HW-01` are closed by **DR-13**.)
 
 ### 19.2 Identifier gaps (P1 / AUD-08)
 
@@ -1380,7 +1394,7 @@ Each entry records a consequential change that this revision deliberately **does
 |---|---|
 | Phase 2A (protocol simulator, PC skeleton, hardware-independent tests) | **D-B4 MET (0.6.0)**; still requires **approved protocol / message contract** (§12.1) **and explicit user authorization** (§21) |
 | Phase 2B (firmware skeleton, compile test) | **D-A8 — MET (DR-13)**; still requires **explicit user authorization**. A met gate condition does **not** authorize a phase |
-| Phase 3 (single-channel bench bring-up) | **D-A2, D-A3**, hardware built |
+| Phase 3 (single-channel bench bring-up) | **D-A2, D-A3 — APPROVED (DR-31 / DR-32)**; **hardware still to be built**. Gate condition **partially** satisfied. A met gate condition does **not** authorize a phase — **Phase 3 requires an explicit user statement** (§21) |
 | Journal capacity planning | **D-D8**, **D-D3**, **HW-13**, and board identity via **D-A8** or **D-A1** — `OPEN — TRACEABILITY DECISION REQUIRED` (section 13.3) |
 | Fault-counter semantics (`faulted_channel_count`, `invalid_channel_count_now`, `fault_transition_count`) | **DR-07-C1 / DR-07-C2 APPROVED**; **DR-07-C3 OPEN — DECISION REQUIRED (no longer blocked by D-C4)**; stabilisation **RESOLVED (DR-25.6)** |
 | Alarm engine implementation | **D-C1…D-C5 APPROVED (0.6.0, defaults)** via DR-25.1…DR-25.5 |
@@ -1394,7 +1408,7 @@ Each entry records a consequential change that this revision deliberately **does
 | `fault_transition_count` (DR-07-C3) | **OPEN — DECISION REQUIRED (0.6.0)**; **no longer blocked by D-C4** (section 7.1a) |
 | Fault counting during activation stabilisation (DR-12) | **RESOLVED (DR-25.6)** — samples during activation stabilisation are **not** counted in fault counters |
 | `faulted_channel_count` interrupted-cycle / reboot persistence | **D-D2** |
-| Protocol / message contract approval | **APPROVED (final, 2026-10-05)** — `docs/PROTOCOL_CONTRACT.md` v1.0.0 (section 12.1, section 21) |
+| Protocol / message contract approval | **APPROVED (final, 2026-10-05)** — `docs/PROTOCOL_CONTRACT.md` v1.1.0 (revised from v1.0.0 in Decision Round D, **DR-34**) (section 12.1, section 21) |
 | Protocol / message contract — **final approval** | §12.1 | **APPROVED (final, 2026-10-05)** — `docs/PROTOCOL_CONTRACT.md` v1.0.0. Implemented from both sides in Phase 2A (commit `b30e74f`); this final-approval change is recorded in spec v0.7.3 |
 | Any network or Windows change | **D-B1, D-B2, D-B3** |
 
@@ -1403,9 +1417,9 @@ Each entry records a consequential change that this revision deliberately **does
 | Phase | Content | Gate to enter |
 |---|---|---|
 | **1 (this document)** | Specification baseline | **Approval of this document** |
-| **2A** | Protocol simulator, message contract, PC skeleton, hardware-independent tests | Approval of this document **+ D-B4 (MET, 0.6.0)** **+ `PROTOCOL_CONTRACT.md` v1.0.0 APPROVED (final, 2026-10-05)** **+ explicit user statement that Phase 2A is authorized** |
+| **2A** | Protocol simulator, message contract, PC skeleton, hardware-independent tests | Approval of this document **+ D-B4 (MET, 0.6.0)** **+ `PROTOCOL_CONTRACT.md` v1.1.0 APPROVED (final, 2026-10-05)** **+ explicit user statement that Phase 2A is authorized** |
 | **2B** | Firmware skeleton and compile test | **D-A8 — MET (DR-13)** **+ explicit user statement that Phase 2B is authorized** |
-| 3 | Single-channel bench bring-up; voltage and calibration validation | **D-A2, D-A3** |
+| 3 | Single-channel bench bring-up; voltage and calibration validation | **D-A2, D-A3 — APPROVED (DR-31 / DR-32)** **+ hardware built** **+ explicit user statement that Phase 3 is authorized** |
 | 4 | Full 64-channel acquisition and timing budget | Phase 3 complete |
 | 5 | Cycle statistics, alarm engine, journal / ACK / overflow end-to-end | **D-C1…D-C5, D-D10** |
 | 6 | Calibration — adopt an approved curve / constants | **D-A5** closed |
@@ -1497,7 +1511,7 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | D-D9 volatile-loss labelling (P1 / AUD-11) | §12.4 | **AC-20** |
 | D-D10 ↔ L1–L5 interaction (P1 / AUD-12) | §12.6 | Progression beyond **L2** blocked; T4 conditioned additionally on D-D6, D-D8, D-D10 |
 | Phase 2A gate (P1 / AUD-13) | §21, §12.1 | Requires document approval **+ D-B4** **+ approved protocol / message contract** |
-| Board / ADC claims (P1 / AUD-14) | §3.1, §5.3 | `UNVERIFIED — NOT AN APPROVED HARDWARE FACT`; D-A8, HW-01, D-A2, HW-02, HW-03 remain OPEN |
+| Board / ADC claims (P1 / AUD-14) | §3.1, §5.3 | `UNVERIFIED — NOT AN APPROVED HARDWARE FACT` (retailer 4-channel ADC figure); **D-A8, HW-01 APPROVED (DR-13)**; **D-A2, D-A3, D-A4 APPROVED and HW-02, HW-03, HW-04 … HW-09, HW-14 CLOSED by DR-31 … DR-40**; **DR-30 amends DR-27 to the 0–5 V domain** | Architecture decided; the retailer ADC claim is still not an approved fact, and flash/chip/ADC remain pending read-only verification |
 | Journal-capacity dependency (P1 / AUD-15) | §13.3, §20 | `OPEN — TRACEABILITY DECISION REQUIRED` (D-A1 vs D-A8); **no sizing performed** |
 | DR-01 report/export scope (0.4.0) | §4.5(7), §16.3 | **APPROVED** — historical / database-derived in scope |
 | DR-02 cycle-start naming (0.4.0) | §11.6 | **APPROVED** — `cycle_start_ms`, `start_time_valid`; **no invariant introduced** |
@@ -1534,6 +1548,7 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | 0.6.2 | 2026-10-05 | **Phase 2A-0 consistency patch (no new decisions, no new PCC semantics).** (A) §19 DR register reordered into numeric order (DR-25 + DR-25.1 … .9 after DR-24; DR-27 after DR-26) with row text byte-for-byte unchanged. (B) §20: 3 stale dependency rows updated (D-D7 via DR-17; DR-07-C3 unblocked; DR-12 RESOLVED via DR-25.6). (C) §23: 9 traceability rows aligned with §19 (DR-08 SUPERSEDED; DR-07-C3 unblocked; D-C1…D-C5, D-C2/D-C3, D-C5, D-D7, D-D10-direction and DR-12 statuses; AC-08 noted as now unconditional but **not moved**). (D) §17.1: 5 "Blocked by" cells updated — **no test executed or marked passed**. (E) PCC-28 … PCC-35 recorded as `PROPOSED — NOT APPLIED`. (F) PCC-06/07/08/09/13 relabelled `APPLIED (0.6.1)`. §4.3, §4.5, §8.1, §9.2, §10.3, §11.5, §13.3, §14.3, §15.4, §16.1, §17.3 byte-unchanged. Phase 2A / Phase 2B still **NOT AUTHORIZED**. **Line endings normalized to CRLF file-wide during the §19 reorder; §16.1 wording unchanged.** |
 | 0.7.0 | 2026-10-05 | **PCC application pass (no new decisions).** Body sections updated to match §19: §4.5, §8.1, §8.2, §8.3, §8.5, §9.2, §10.2, §10.3, §11.5, §13.3, §14.3, §15.4, §16.1, §5.3, §22. Cross-references: §3.3, §4.2, §19 (DR-25.9 split into DR-25.9 / DR-25.9-b), §20, §23. Imperative copy-paste in §19 DR-13 / DR-29 converted to descriptive text. 15 PCCs relabelled `APPLIED (0.7.0)`; the 5 `APPLIED (0.6.1)` not regressed; 15 remain `PROPOSED — NOT APPLIED`. §10.3 "Alternatives (none chosen)" column retained as rejected-option history (not renamed). The 0.6.0 revision-history date is left at 2026-10-04 — discrepancy recorded in V104, not corrected. No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
 | 0.7.2 | 2026-10-05 | **AC-08 promotion (no new decisions).** AC-08 moved from §17.3 to §17.2 as unconditional, with the approved D-C5 (DR-25.5) semantics inline. §17.2 closing note updated so AC-08 is no longer listed as non-unconditional. §17.3 AC-08 note rewritten as "now unconditional". PCC-22 → APPLIED (0.7.2). §23 "Out-of-range handling" caveat removed. §17.1 "see AC-08" reference left unchanged and reported. No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
+| 0.7.4 | 2026-10-05 | **Decision Round D — hardware architecture closure.** **D-A2, D-A3, D-A4 APPROVED** via DR-31 / DR-32 / DR-33; **HW-02 … HW-09, HW-11, HW-12, HW-14 CLOSED**; **HW-10 = user responsibility (DR-38)**; **HW-13 stays OPEN**. **DR-30** (0–5 V domain, amends DR-27) … **DR-40** (sequential scanning) added. **Contract v1.0.0 → v1.1.0**: `reset_command`, `reset_result`, `live_state` `alarm_state` / `warning_state`, tests T-P16 / T-P17 (DR-34). LED GPIO13 and WDT 5 s remain **PROPOSED — NOT DECIDED** (DR-35). §0.1, §3.1a, §3.2, §3.3, §5.3, §12.1, §19, §19.1, §20, §21, §23, §24, §25 updated; V122–V135 added. **Phase 3 and all later phases still NOT AUTHORIZED.** |
 | 0.7.3 | 2026-10-05 | **Final approval of PROTOCOL_CONTRACT.md (v1.0.0) — no new decisions.** Contract v0.2.4 → v1.0.0, status **APPROVED — final, 2026-10-05**. §12.1, §20 and §21 gate text updated; §23 traceability row added; V118–V121 added. The contract remains revisable by an explicit decision round. Phase 3 and all later phases still **NOT AUTHORIZED**. |
 | 0.7.1 | 2026-10-05 | **Follow-up: complete D-C5 / D-D10 body alignment (no new decisions).** §7.5 and §8.4 `overflow` corrected; §7.1a (PCC-36), §12.4 / §12.5 (PCC-37), §17.1 PER-02 and §18 AMB-08 / AMB-14 (PCC-38) corrected. §17.3 AC-08 and its companion sentence deliberately left unchanged per PCC-22. §8.4 `journal_pressure` (D-D6 genuinely OPEN) unchanged. PCC-36, PCC-37, PCC-38 added as APPLIED (0.7.1). No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
 
@@ -1662,6 +1677,20 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | V119 | **0.7.3 (spec gate alignment)** §12.1 approval status changed from "not an approved schema" to **APPROVED (final, 2026-10-05)** as v1.0.0; §20 "Protocol / message contract approval" row changed from "required before Phase 2A" to **APPROVED (final, 2026-10-05)**; §21 Phase 2A gate text changed to "`PROTOCOL_CONTRACT.md` v1.0.0 APPROVED (final, 2026-10-05)". Header Companion line updated to the final approval. §0.1 and §24 gained 0.7.3 rows | Checked |
 | V120 | **0.7.3 (§23 traceability)** A "Protocol / message contract — final approval" row was added to §23, citing §12.1, the Phase 2A implementation commit `b30e74f`, and spec v0.7.3. **No commit SHA is written for the current (final-approval) commit** — it does not exist yet, and inventing one would be fabrication | Checked |
 | V121 | **0.7.3 (scope)** Only three files were modified: `docs/PROTOCOL_CONTRACT.md`, `docs/PROJECT_SPECIFICATION.md` (§0.1, §12.1, §20, §21, §23, §24, §25, header, footer only) and `.clinerules/00-toughening-machine.md` (one clause in §1 only, removing "is a draft until I approve it"). `docs/archive/`, `docs/hardware/`, `pc/`, `firmware/`, `.gitignore`, `.gitattributes` and `README.md` untouched. **No new decision was made. Phase 3 and all later phases remain NOT AUTHORIZED** | Checked |
+| V122 | **0.7.4 (version bump)** Spec **v0.7.3 → v0.7.4**; header `Document version` and footer updated; Companion line now reads `docs/PROTOCOL_CONTRACT.md` **v1.1.0**. §0.1 and §24 each gained a 0.7.4 row. | Checked |
+| V123 | **0.7.4 (D-A2 / D-A3 / D-A4)** §19 rows now **APPROVED (DR-31 / DR-32 / DR-33)**; the duplicate **HW-02 / HW-03** rows in §19 now read **CLOSED (DR-31)**. | Checked |
+| V124 | **0.7.4 (§3.2 register)** **HW-02 … HW-09, HW-11, HW-12, HW-14 CLOSED** with their DR citation; **HW-10 = USER RESPONSIBILITY (DR-38)**; **HW-13 left OPEN — NOT APPROVED** (flash partition → Phase 5/6). | Checked |
+| V125 | **0.7.4 (DR-30 … DR-40)** Eleven new rows inserted **immediately after DR-29**, none renumbered, no existing DR row altered except the two stale clauses inside DR-13 and DR-29. | Checked |
+| V126 | **0.7.4 (DR-30 amends DR-27)** Voltage domain **0–3.3 V → 0–5 V**; DR-27 text left in place and explicitly **AMENDED and SUPERSEDED**, per the document's established DR-27-amends-DR-08 pattern. Sections still stating 0–3.3 V are listed in the round report as a follow-up. | Checked |
+| V127 | **0.7.4 (DR-35 not over-promoted)** LED **GPIO13** and WDT **5 s** are recorded as **PROPOSED — NOT APPROVED** in §19 and described as *"verify in Phase 3"* in §3.2 / DR-37. They are **not** labelled DECIDED or APPROVED anywhere. | Checked |
+| V128 | **0.7.4 (stale-statement repairs)** §3.3, §3.1a, §5.3, §19.1, DR-13, DR-29, D-A8, HW-01 and the §23 traceability row rewritten to the new statuses; the exact wording was supplied or authorized by the user in this round. | Checked |
+| V129 | **0.7.4 (contract v1.1.0 header)** `PROTOCOL_CONTRACT.md` Version **1.0.0 → 1.1.0**, Companion → spec **v0.7.4**, Supersedes → v1.0.0 with the revision named, footer → v1.1.0. | Checked |
+| V130 | **0.7.4 (18 messages)** §3.2 index gained rows **17 `reset_command`** and **18 `reset_result`**; the summary sentence now reads **Eleven** proposed additions. Sections **§3.19** and **§3.20** added before §4. | Checked |
+| V131 | **0.7.4 (live_state)** `alarm_state` (`inactive` / `active`) and `warning_state` (`inactive` / `active` / `acknowledged`) added to the §3.4 field table **and** to its JSON example. | Checked |
+| V132 | **0.7.4 (T-P16 / T-P17)** Two tests added to §10, marked *added v1.1.0, DR-34*. T-P16 covers `target` validation and the absence of `ack`; T-P17 covers `request_id` echo and the post-reset state fields. | Checked |
+| V133 | **0.7.4 (protocol_version consistency)** Per the added §3.1 note, `protocol_version` mirrors the document version: all **17 pre-existing examples** were updated from `"1.0.0"` to `"1.1.0"` so the new note does not contradict them. | Checked |
+| V134 | **0.7.4 (scope)** Only two files were modified: `docs/PROJECT_SPECIFICATION.md` and `docs/PROTOCOL_CONTRACT.md`. `docs/archive/`, `docs/hardware/`, `pc/`, `firmware/`, `.clinerules/`, `.gitignore`, `.gitattributes` and `README.md` untouched. | Checked |
+| V135 | **0.7.4 (phase status)** §21 Phase 3 gate rows now read **D-A2 / D-A3 APPROVED**, **hardware still to be built**, gate **partially** satisfied, and state that a satisfied gate **does not** authorize a phase. **Phase 3 and all later phases remain NOT AUTHORIZED.** | Checked |
 
 ## 26. Section Index
 
@@ -1695,4 +1724,4 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | 25 | Verification Record |
 | 26 | Section Index |
 
-*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.3.*
+*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.4.*

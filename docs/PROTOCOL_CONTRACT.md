@@ -11,10 +11,10 @@
 |---|---|
 | Document | `docs/PROTOCOL_CONTRACT.md` |
 | Status | **APPROVED — final, 2026-10-05** |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Date | 2026-10-05 |
-| Companion | `docs/PROJECT_SPECIFICATION.md` v0.7.3 |
-| Supersedes | v0.2.4 (2026-10-05, approved as the Phase 2A working input). Earlier: v0.2.3, v0.2.2, v0.2.1, v0.2.0 (withdrawn — structurally corrupt) and v0.1.0 (2026-10-04). This is the **first final approval** of the message contract. |
+| Companion | `docs/PROJECT_SPECIFICATION.md` v0.7.4 |
+| Supersedes | v1.0.0 (2026-10-05, final approval). **Revised 2026-10-05 (v1.1.0): `reset_command`, `reset_result`, `live_state` alarm/warning states.** Earlier: v0.2.4, v0.2.3, v0.2.2, v0.2.1, v0.2.0 (withdrawn — structurally corrupt) and v0.1.0 (2026-10-04). |
 | Implementation status | **PC skeleton and simulator exist (`pc/`); firmware skeleton exists and compiles (`firmware/`). No SQLite, no flashing, no hardware interaction.** |
 
 ---
@@ -90,7 +90,9 @@ Every ESP32-originated message carries the following envelope. Envelope fields a
 
 **`ts_sent_ms` is an envelope field, not `event_time`.** Payload-level event times use `event_time` / `event_time_valid`. The two are distinct and must not be conflated. *(spec-derived, §11.6)*
 
-**PC-originated messages** (`time_sync`, `config_set`, `ack`, `nack`) are sent by the PC, which has no `boot_id` and no device-local monotonic sequence. The envelope fields applicable to a PC-originated message are recorded as **OPEN** in §8; this draft does not invent them.
+**PC-originated messages** (`time_sync`, `config_set`, `ack`, `nack`, `reset_command`) are sent by the PC, which has no `boot_id` and no device-local monotonic sequence. The envelope fields applicable to a PC-originated message are recorded as **OPEN** in §8; this draft does not invent them.
+
+**`protocol_version` mirrors this document's version number.** This document is currently **v1.1.0**, so every example below carries `"protocol_version": "1.1.0"`.
 
 ---
 
@@ -114,8 +116,10 @@ Every ESP32-originated message carries the following envelope. Envelope fields a
 | 14 | `batch` | ESP32 → PC | wrapper | Yes | `[proposed addition]` |
 | 15 | `ack` | PC → ESP32 | — | — | `[spec §12.1]` |
 | 16 | `nack` | PC → ESP32 | — | — | `[spec §12.1]` |
+| 17 | `reset_command` | PC → ESP32 | No | No | `[spec §12.1]` |
+| 18 | `reset_result` | ESP32 → PC | No | No | `[spec §12.1]` |
 
-Seven of these are named in specification §12.1. Nine are **proposed additions** and are not in §12.1.
+Seven of these are named in specification §12.1. **Eleven** are **proposed additions** and are not in §12.1.
 
 ---
 
@@ -133,7 +137,7 @@ Sent once after the connection opens, before any other message.
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "hello",
   "message_id": "esp32-01:<boot_id>:1",
   "device_id": "esp32-01",
@@ -176,6 +180,8 @@ Sent once after the connection opens, before any other message.
 | `volatile_loss_counter` | integer | Yes | Temporary overwrite counter per **DR-25.8**; **volatile** under **D-D9 Option C**. *(PROPOSED: non-negative integer, resets on reboot)* |
 | `data_loss_pending` | boolean | Yes | Flag that unsurfaced loss exists and has not yet been reported as `data_loss`. *(PROPOSED: `true` or `false`)* |
 | `journal_pressure_indicator` | boolean | Yes | Whether the record store is nearing capacity. The **threshold is OPEN (D-D6)**; this message must not assert a threshold value. *(PROPOSED: `true` or `false`; threshold OPEN — D-D6)* |
+| `alarm_state` | string | Yes | **Added in v1.1.0 (DR-34).** Exactly `"inactive"` or `"active"`. A summary field so the GUI need not query history. *(PROPOSED: one of those two)* |
+| `warning_state` | string | Yes | **Added in v1.1.0 (DR-34).** Exactly `"inactive"`, `"active"` or `"acknowledged"`. *(PROPOSED: one of those three)* |
 
 **The field set above is required-in-schema. The packing structure — array layout, nesting, flattening, encoding — remains OPEN** and is **not** decided by this contract. *(OPEN — packing)*
 
@@ -185,7 +191,7 @@ Sent once after the connection opens, before any other message.
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "live_state",
   "message_id": "esp32-01:<boot_id>:2",
   "device_id": "esp32-01",
@@ -214,7 +220,9 @@ Sent once after the connection opens, before any other message.
     "invalid_channel_count_now": 0,
     "volatile_loss_counter": 0,
     "data_loss_pending": false,
-    "journal_pressure_indicator": false
+    "journal_pressure_indicator": false,
+    "alarm_state": "inactive",
+    "warning_state": "inactive"
   }
 }
 ```
@@ -260,7 +268,7 @@ One record per completed cycle. Aggregation principle: **one counter value per c
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "cycle_summary",
   "message_id": "esp32-01:<boot_id>:3",
   "device_id": "esp32-01",
@@ -336,7 +344,7 @@ Out-of-range / invalid sensor data is a **data-validity condition plus a system 
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "alarm_event",
   "message_id": "esp32-01:<boot_id>:4",
   "device_id": "esp32-01",
@@ -376,7 +384,7 @@ Device-level events. The **event vocabulary is OPEN** and is not invented here.
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "system_event",
   "message_id": "esp32-01:<boot_id>:5",
   "device_id": "esp32-01",
@@ -414,7 +422,7 @@ Validation happens **on the ESP32 before saving**: rejection of empty, non-numer
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "settings_change",
   "message_id": "esp32-01:<boot_id>:6",
   "device_id": "esp32-01",
@@ -457,7 +465,7 @@ Per §9.5(b), **D-D2 is OPEN — NOT APPROVED**: no detection mechanism may be i
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "interrupted_cycle",
   "message_id": "esp32-01:<boot_id>:7",
   "device_id": "esp32-01",
@@ -501,7 +509,7 @@ Durable journal capacity is "whatever internal flash allows (no time target)"; w
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "data_loss",
   "message_id": "esp32-01:<boot_id>:8",
   "device_id": "esp32-01",
@@ -539,7 +547,7 @@ Durable journal capacity is "whatever internal flash allows (no time target)"; w
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "raw_voltage_record",
   "message_id": "esp32-01:<boot_id>:9",
   "device_id": "esp32-01",
@@ -576,7 +584,7 @@ PC-originated: this message carries no `boot_id`, `seq` or `ts_sent_*`, because 
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "time_sync",
   "payload": {
     "pc_time_ms": 0,
@@ -598,7 +606,7 @@ PC-originated: this message carries no `boot_id`, `seq` or `ts_sent_*`, because 
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "time_sync_reply",
   "message_id": "esp32-01:<boot_id>:10",
   "device_id": "esp32-01",
@@ -634,7 +642,7 @@ Carries calibration, polarity and hysteresis/debounce settings. **Authentication
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "config_set",
   "payload": {
     "config_kind": "<string>",
@@ -664,7 +672,7 @@ Carries calibration, polarity and hysteresis/debounce settings. **Authentication
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "config_result",
   "message_id": "esp32-01:<boot_id>:11",
   "device_id": "esp32-01",
@@ -700,7 +708,7 @@ Each element of `records` is a full message object with its own envelope (`proto
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "batch",
   "message_id": "esp32-01:<boot_id>:12",
   "device_id": "esp32-01",
@@ -711,7 +719,7 @@ Each element of `records` is a full message object with its own envelope (`proto
   "payload": {
     "records": [
       {
-        "protocol_version": "1.0.0",
+        "protocol_version": "1.1.0",
         "type": "cycle_summary",
         "message_id": "esp32-01:<boot_id>:13",
         "device_id": "esp32-01",
@@ -760,7 +768,7 @@ Sent by the PC **only after** the record is committed to SQLite (§12.2). PC-ori
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "ack",
   "payload": {
     "acked_record_id": "<record_id>",
@@ -785,13 +793,85 @@ PC-originated: no `boot_id`, `seq` or `ts_sent_*`; the applicable PC-side envelo
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "1.1.0",
   "type": "nack",
   "payload": {
     "nacked_record_id": "<record_id>",
     "nacked_message_id": "<string>",
     "reason": "<string>",
     "retryable": false
+  }
+}
+```
+
+---
+
+### 3.19 `reset_command` — PC → ESP32, non-durable
+
+**Added in v1.1.0 (DR-34).** Raised by the GUI **"Reset Alarm"** and **"Reset Warning"** buttons. The physical reset input (PCF8574T pin 21, DR-33) produces the same software behaviour as `target = "all"` — physical reset and alarm are shared hardware, so the GUI supplies the software alarm/warning indicators.
+
+**This message is not acknowledged by an `ack`. A `reset_result` message is the response — it carries `accepted` and the post-reset state.**
+
+Non-durable: no `record_id`, no `ack`.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `target` | string | Yes | Exactly `"alarm"`, `"warning"` or `"all"`. *(PROPOSED: one of those three)* |
+| `request_id` | string | No | Echoed unchanged by `reset_result`. Absent when the caller supplies none. *(PROPOSED: `"{pc_id}:{seq}"` of the request)* |
+| `pc_id` | string | Yes | Identifier of the PC role, e.g. `"pc-01"`. *(PROPOSED: `"pc-01"`)* |
+
+**Rejected alternative:** reusing `device_id` for the PC role. Rejected because §3.1 defines `device_id` as *"Fixed identifier of the single ESP32"*. A separate `pc_id` keeps that definition intact while `device_id` continues to name the addressed ESP32.
+
+**Rejected alternative:** no `record_id` — a reset is an immediate action, not a durable history record. *(PROPOSED)*
+
+**OPEN:** the PC-originated envelope (§8, item 24) is unresolved — the PC has no `boot_id` and no device-local sequence (§3.1). The example below therefore carries **illustrative placeholders only**; it fixes no envelope value.
+
+```json
+{
+  "protocol_version": "1.1.0",
+  "type": "reset_command",
+  "message_id": "pc-01:<seq>",
+  "device_id": "esp32-01",
+  "boot_id": "<placeholder — OPEN, §8>",
+  "seq": 0,
+  "ts_sent_ms": 0,
+  "ts_sent_valid": 0,
+  "payload": {
+    "target": "all",
+    "request_id": "pc-01:<seq>",
+    "pc_id": "pc-01"
+  }
+}
+```
+
+---
+
+### 3.20 `reset_result` — ESP32 → PC, non-durable
+
+**Added in v1.1.0 (DR-34).** Answers `reset_command`. Non-durable: no `record_id`, no `ack`.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `request_id` | string | No | Echoed unchanged from `reset_command`. Absent when the request carried none. *(PROPOSED)* |
+| `accepted` | boolean | Yes | Whether the reset was applied. *(PROPOSED: `true` or `false`)* |
+| `alarm_state` | string | Yes | Post-reset state: `"inactive"` or `"active"`. *(spec-derived, §3.4)* |
+| `warning_state` | string | Yes | Post-reset state: `"inactive"`, `"active"` or `"acknowledged"`. *(spec-derived, §3.4)* |
+
+```json
+{
+  "protocol_version": "1.1.0",
+  "type": "reset_result",
+  "message_id": "esp32-01:<boot_id>:15",
+  "device_id": "esp32-01",
+  "boot_id": "<boot_id>",
+  "seq": 15,
+  "ts_sent_ms": 0,
+  "ts_sent_valid": 1,
+  "payload": {
+    "request_id": "pc-01:<seq>",
+    "accepted": true,
+    "alarm_state": "inactive",
+    "warning_state": "inactive"
   }
 }
 ```
@@ -983,6 +1063,8 @@ These rules restate the specification. They are **not** changed by this draft.
 | T-P13 | `duration_ms` / `duration_basis` invariant | Send `duration_ms = null` with `duration_basis != 'null'`, and the reverse. | Both rejected — the **DR-03b** bidirectional invariant holds. |
 | T-P14 | Invalid values are `NULL`, never `0` | Produce an out-of-range or unconfigured reading. | The value is `NULL`, **not** `0` and **not** clamped. |
 | T-P15 | `fault_transition_count` remains `NULL` | Exercise a fault transition. | The field stays `NULL`; it is never implemented while **DR-07-C3** is open, and never reported as `0`. |
+| T-P16 | `reset_command` `target` validation *(added v1.1.0, DR-34)* | Send `reset_command` with `target` = `"alarm"`, `"warning"`, `"all"`, then with `"bogus"` and with `target` omitted. | The three legal values are accepted; `"bogus"` and an omitted `target` are rejected. **No `ack` is sent** — `reset_result` is the response. |
+| T-P17 | `reset_result` echoes and reports post-reset state *(added v1.1.0, DR-34)* | Send a `reset_command` carrying `request_id` and `pc_id`; send a second carrying neither. | The reply's `request_id` is echoed unchanged when present and absent when not; `accepted`, `alarm_state` and `warning_state` are always present, and `alarm_state` / `warning_state` are one of their permitted values. |
 
 ---
 
@@ -1047,7 +1129,7 @@ Gap 8 remains **OPEN**. The `journal_pressure_indicator` threshold (D-D6), `live
 
 ---
 
-*End of document — TOUGHENING MACHINE Protocol / Message Contract v1.0.0 — APPROVED, final 2026-10-05.*
+*End of document — TOUGHENING MACHINE Protocol / Message Contract v1.1.0 — APPROVED, final 2026-10-05.*
 
 
 
