@@ -1,9 +1,9 @@
-"""TOUGHENING MACHINE — PC side WebSocket server (Phase 2C Stage 2).
+"""TOUGHENING MACHINE — PC side WebSocket server (Phase 2C Stage 2C-3f).
 
 APPROVED — Phase 2C is authorized as a software-only continuation of
 Phase 2A. Hardware phases (3+) remain NOT AUTHORIZED.
 See docs/PROJECT_SPECIFICATION.md §12, §15 and
-docs/PROTOCOL_CONTRACT.md v1.1.0.
+docs/PROTOCOL_CONTRACT.md v1.1.1.
 
 This module validates the message envelope and payload, persists durable
 records to SQLite (commit-before-ACK), and dispatches by type.
@@ -12,6 +12,10 @@ Phase 2C Stage 1 added payload-level validation and Contract v1.1.0
 support (reset_command / reset_result, alarm_state / warning_state).
 Phase 2C Stage 2 adds minimal SQLite persistence: commit-before-ACK and
 idempotent replay (§12.2).
+Phase 2C Stage 2C-3f adds the PC envelope (Decision Round E): every
+server-emitted ack, nack and error reply carries `pc_id`, `pc_seq`,
+`ts_sent_ms`, `ts_sent_valid` and a `payload` object per Contract
+v1.1.1 §3.1, §3.17, §3.18, §3.19.
 
 Where a decision would eventually be needed, a comment names the
 OPEN item instead of choosing a value.
@@ -19,6 +23,7 @@ OPEN item instead of choosing a value.
 
 import json
 import logging
+import time
 from typing import Optional, Tuple
 
 import uvicorn
@@ -26,7 +31,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from pc import db as pc_db
 
-app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2)")
+app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2C-3f)")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,11 +40,15 @@ logging.basicConfig(
 log = logging.getLogger("pc.server")
 
 SERVER_VERSION = "0.1.0"
-PROTOCOL_VERSION = "1.1.0"
+PROTOCOL_VERSION = "1.1.1"
 
 # SQLite persistence (Phase 2C Stage 2). Lazily initialised by
 # init_persistence(); tests set this directly via a fixture.
 _db_conn = None
+
+# PC envelope state (Decision Round E, Contract v1.1.1 §3.1).
+_pc_seq = 0
+PC_ID = "pc-01"
 
 
 def init_persistence(db_path: Optional[str] = None):
@@ -54,7 +63,67 @@ def init_persistence(db_path: Optional[str] = None):
         _db_conn = conn
     return _db_conn
 
-# PROTOCOL_CONTRACT.md v1.1.0 §3.1 — envelope fields required on every
+
+def build_pc_envelope(msg_type: str, payload: dict) -> dict:
+    """Build a PC-originated envelope per Contract v1.1.1 §3.1.
+
+    Returns a complete message dict with pc_id, pc_seq, ts_sent_ms,
+    ts_sent_valid and payload. pc_seq is monotonic per PC process.
+    """
+    global _pc_seq
+    envelope = {
+        "protocol_version": PROTOCOL_VERSION,
+        "type": msg_type,
+        "pc_id": PC_ID,
+        "pc_seq": _pc_seq,
+        "ts_sent_ms": int(time.time() * 1000),
+        "ts_sent_valid": 1,
+        "payload": payload,
+    }
+    _pc_seq += 1
+    return envelope
+
+
+def validate_pc_envelope(message: dict) -> Tuple[bool, Optional[str]]:
+    """Validate a PC-originated envelope against Contract v1.1.1 §3.1.
+
+    Returns (True, None) when valid, otherwise (False, reason).
+    """
+    if not isinstance(message, dict):
+        return False, "message_is_not_an_object"
+
+    required = (
+        "protocol_version",
+        "type",
+        "pc_id",
+        "pc_seq",
+        "ts_sent_ms",
+        "ts_sent_valid",
+        "payload",
+    )
+    for field in required:
+        if field not in message:
+            return False, f"missing_field:{field}"
+
+    if not isinstance(message["protocol_version"], str):
+        return False, "wrong_type:protocol_version"
+    if not isinstance(message["type"], str):
+        return False, "wrong_type:type"
+    if not isinstance(message["pc_id"], str):
+        return False, "wrong_type:pc_id"
+    if not isinstance(message["pc_seq"], int) or isinstance(message["pc_seq"], bool):
+        return False, "wrong_type:pc_seq"
+    if not isinstance(message["ts_sent_ms"], int) or isinstance(message["ts_sent_ms"], bool):
+        return False, "wrong_type:ts_sent_ms"
+    if message["ts_sent_valid"] not in (0, 1):
+        return False, "wrong_type:ts_sent_valid"
+    if not isinstance(message["payload"], dict):
+        return False, "wrong_type:payload"
+
+    return True, None
+
+
+# PROTOCOL_CONTRACT.md v1.1.1 §3.1 — envelope fields required on every
 # ESP32-originated message. Presence and type are validated; VALUES are
 # not interpreted (see the OPEN-item comments in dispatch()).
 REQUIRED_ENVELOPE_FIELDS = (
@@ -95,7 +164,7 @@ KNOWN_TYPES = DURABLE_TYPES + (
 )
 
 # ---------------------------------------------------------------------------
-# Payload schema registry — PROTOCOL_CONTRACT.md v1.1.0 §3.2
+# Payload schema registry — PROTOCOL_CONTRACT.md v1.1.1 §3.2
 # ---------------------------------------------------------------------------
 # Each entry defines required and optional payload fields and their type
 # specs. Type specs: "str", "int", "bool", "number", "null",
@@ -475,10 +544,9 @@ def validate_envelope(message: dict) -> Tuple[bool, Optional[str]]:
 
     NOTE ON PC-ORIGINATED MESSAGES: `time_sync`, `config_set`, `ack` and
     `nack` travel PC -> device and have a different envelope (§3.1 records
-    this as OPEN). This server only RECEIVES in Phase 2A, so only the
-    ESP32-originated envelope is validated here. Do not reuse this
-    function for a PC-originated message without first resolving the
-    PC-side envelope (contract §8 item 24 — OPEN).
+    this as defined in §3.17, §3.18, §3.19). This server only RECEIVES
+    in Phase 2A, so only the ESP32-originated envelope is validated here.
+    Do not reuse this function for a PC-originated message.
     """
     if not isinstance(message, dict):
         return False, "message_is_not_an_object"
@@ -578,6 +646,24 @@ def _record_id(message: dict) -> Optional[str]:
     return None
 
 
+def _ack_payload(record_id: Optional[str], committed: bool = True) -> dict:
+    """Build the payload of an ack message."""
+    payload: dict = {"committed": committed}
+    if record_id is not None:
+        payload["acked_record_id"] = record_id
+    return payload
+
+
+def _nack_payload(record_id: Optional[str], reason: str, retryable: bool = False) -> dict:
+    """Build the payload of a nack message."""
+    payload: dict = {
+        "nacked_record_id": record_id,
+        "reason": reason,
+        "retryable": retryable,
+    }
+    return payload
+
+
 def dispatch(message: dict) -> Optional[dict]:
     """Route a validated message to its handler and build the reply.
 
@@ -595,9 +681,9 @@ def dispatch(message: dict) -> Optional[dict]:
       Not read here.
     * Retry limit, timeout and backoff values (§8 item 4 — OPEN).
       Not implemented here.
-    * Whether an outgoing ack envelope carries PC-side fields
-      (§8 item 24 — OPEN). Replies below are payload-level only.
-    * Any wire-format decision not written in contract v1.1.0.
+    * PC-originated envelope fields are defined in Contract v1.1.1
+      (§3.1, §3.17, §3.18, §3.19).
+    * Any wire-format decision not written in contract v1.1.1.
     """
     message_type = message.get("type")
     record_id = _record_id(message)
@@ -635,23 +721,16 @@ def dispatch(message: dict) -> Optional[dict]:
                     "storage error for %s record_id=%r",
                     message_type, record_id,
                 )
-                return {
-                    "type": "nack",
-                    "nacked_record_id": record_id,
-                    "reason": "storage_error",
-                    "retryable": True,
-                }
+                return _nack_payload(
+                    record_id, "storage_error", retryable=True
+                )
             log.info(
                 "%s record_id=%r committed (status=%s)",
                 message_type, record_id, status,
             )
         # Commit-before-ACK invariant (§12.2): the ack is only built
         # AFTER commit_record has called conn.commit().
-        return {
-            "type": "ack",
-            "acked_record_id": record_id,
-            "committed": True,
-        }
+        return _ack_payload(record_id, committed=True)
 
     if message_type == "batch":
         records = payload.get("records")
@@ -670,18 +749,14 @@ def dispatch(message: dict) -> Optional[dict]:
                             "storage error for batch record index=%d record_id=%r",
                             index, nested_id,
                         )
-                        return {
-                            "type": "nack",
-                            "nacked_record_id": nested_id,
-                            "reason": "storage_error",
-                            "retryable": True,
-                        }
+                        return _nack_payload(
+                            nested_id, "storage_error", retryable=True
+                        )
                 record_ids.append(nested_id)
-        # v1.1.0 §11.5 (Gap 7): a batch is answered by ONE ack carrying
+        # v1.1.1 §11.5 (Gap 7): a batch is answered by ONE ack carrying
         # acked_record_ids, never by N separate acks, and never together
         # with acked_record_id. Only sent AFTER all records committed.
         return {
-            "type": "ack",
             "acked_record_ids": record_ids,
             "committed": True,
         }
@@ -717,7 +792,6 @@ def dispatch(message: dict) -> Optional[dict]:
         # TODO: replace with real alarm/warning state tracking once the
         # state machine is implemented. Both start at "inactive".
         result = {
-            "type": "reset_result",
             "accepted": True,
             "alarm_state": "inactive",
             "warning_state": "inactive",
@@ -738,12 +812,7 @@ def dispatch(message: dict) -> Optional[dict]:
         return None
 
     log.warning("unknown message type %r — sending nack", message_type)
-    return {
-        "type": "nack",
-        "nacked_record_id": record_id,
-        "reason": "unknown_type",
-        "retryable": False,
-    }
+    return _nack_payload(record_id, "unknown_type", retryable=False)
 
 
 @app.websocket("/ws/device")
@@ -767,24 +836,22 @@ async def ws_device(websocket: WebSocket) -> None:
                 # the server must not crash on it.
                 log.warning("unparseable message: %s", exc)
                 await websocket.send_json(
-                    {
-                        "type": "nack",
+                    build_pc_envelope("nack", {
                         "nacked_record_id": None,
                         "reason": "unparseable",
                         "retryable": False,
-                    }
+                    })
                 )
                 continue
             except ValueError as exc:
                 # NaN / Infinity rejected here per contract §6 (T-P04).
                 log.warning("rejected non-finite constant: %s", exc)
                 await websocket.send_json(
-                    {
-                        "type": "nack",
+                    build_pc_envelope("nack", {
                         "nacked_record_id": None,
                         "reason": "non_finite_value",
                         "retryable": False,
-                    }
+                    })
                 )
                 continue
 
@@ -792,14 +859,13 @@ async def ws_device(websocket: WebSocket) -> None:
             if not ok:
                 log.warning("envelope rejected: %s", reason)
                 await websocket.send_json(
-                    {
-                        "type": "nack",
+                    build_pc_envelope("nack", {
                         "nacked_record_id": (
                             _record_id(message) if isinstance(message, dict) else None
                         ),
                         "reason": reason,
                         "retryable": False,
-                    }
+                    })
                 )
                 continue
 
@@ -807,18 +873,28 @@ async def ws_device(websocket: WebSocket) -> None:
             if not ok:
                 log.warning("payload rejected: %s", reason)
                 await websocket.send_json(
-                    {
-                        "type": "nack",
+                    build_pc_envelope("nack", {
                         "nacked_record_id": _record_id(message),
                         "reason": reason,
                         "retryable": False,
-                    }
+                    })
                 )
                 continue
 
             reply = dispatch(message)
             if reply is not None:
-                await websocket.send_json(reply)
+                if message.get("type") == "reset_command":
+                    await websocket.send_json(
+                        build_pc_envelope("reset_result", reply)
+                    )
+                elif message.get("type") in DURABLE_TYPES or message.get("type") == "batch":
+                    await websocket.send_json(
+                        build_pc_envelope("ack", reply)
+                    )
+                else:
+                    await websocket.send_json(
+                        build_pc_envelope("nack", reply)
+                    )
     except WebSocketDisconnect:
         log.info("device disconnected host=%s", host)
 

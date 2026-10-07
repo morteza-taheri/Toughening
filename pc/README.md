@@ -1,11 +1,11 @@
 # PC side — TOUGHENING MACHINE
 
-Phase 2C Stage 2 PC-side server for the Toughening Machine monitoring
+Phase 2C Stage 2C-3f PC-side server for the Toughening Machine monitoring
 system. It hosts a WebSocket endpoint that receives device messages,
 validates the envelope and payload, persists durable records to SQLite
-(commit-before-ACK), and answers with acknowledgments.
+(commit-before-ACK), and answers with PC-envelope acknowledgments.
 
-**Status: PROPOSED — NOT APPROVED. Phase 2C Stage 2. Phase 2C is
+**Status: PROPOSED — NOT APPROVED. Phase 2C Stage 2C-3f. Phase 2C is
 authorized as a software-only continuation of Phase 2A. Hardware phases
 (3+) remain NOT AUTHORIZED. No firmware.**
 
@@ -13,8 +13,8 @@ The per-type database schema (§14) is still PROPOSED — NOT APPROVED.
 Only the minimal `records` table exists for the commit-before-ACK and
 idempotent-replay invariants.
 
-Contract: [`docs/PROTOCOL_CONTRACT.md`](../docs/PROTOCOL_CONTRACT.md) v1.1.0
-Specification: [`docs/PROJECT_SPECIFICATION.md`](../docs/PROJECT_SPECIFICATION.md) v0.7.5
+Contract: [`docs/PROTOCOL_CONTRACT.md`](../docs/PROTOCOL_CONTRACT.md) v1.1.1
+Specification: [`docs/PROJECT_SPECIFICATION.md`](../docs/PROJECT_SPECIFICATION.md) v0.7.6
 
 ## Run the server
 
@@ -35,21 +35,21 @@ It plays the ESP32 role and skips the 4 PC-originated types.
 
     pc\venv\Scripts\python.exe -m pytest pc/tests/ -v
 
-**Current: 23 passed, 7 skipped (30 tests).**
+**Current: 27 passed, 6 skipped (33 tests).**
 
-The skipped set remains: T-P01 PC-originated (envelope OPEN), T-P05 (full
-process-level scenario), T-P06 (firmware), T-P08 (PC-originated envelope
-OPEN), T-P09 (firmware), T-P10 (firmware), T-P17 (physical reset / firmware).
+The skipped set remains: T-P05 (full process-level scenario),
+T-P06 (firmware), T-P08 (config_set payload schema incomplete),
+T-P09 (firmware), T-P10 (firmware), T-P17 (physical reset / firmware).
 
 ## Files
 
 | File | Purpose |
 |---|---|
 | `requirements.txt` | Pinned direct dependencies. |
-| `server.py` | FastAPI app: `/health`, `/ws/device`, envelope + payload validation, dispatch with `reset_command` / `reset_result` handlers, SQLite commit before ACK. |
+| `server.py` | FastAPI app: `/health`, `/ws/device`, ESP32 envelope + payload validation, PC envelope for replies, dispatch with `reset_command` / `reset_result` handlers, SQLite commit before ACK. |
 | `db.py` | SQLite persistence: `records` table, idempotent commit, WAL mode. |
 | `simulator.py` | ESP32-role WebSocket client sending 12 message types. |
-| `tests/test_protocol.py` | Contract §10 tests T-P01…T-P17 plus Gap-resolution tests. |
+| `tests/test_protocol.py` | Contract §10 tests T-P01…T-P17 plus Gap-resolution tests and PC envelope tests. |
 | `tests/test_db.py` | Focused unit tests for `db.py`. |
 | `tests/__init__.py` | Empty; makes test discovery predictable on Windows. |
 | `venv/` | Virtual environment. Git-ignored, never committed. |
@@ -113,6 +113,28 @@ OPEN), T-P09 (firmware), T-P10 (firmware), T-P17 (physical reset / firmware).
   connection at a time and processes messages sequentially, so concurrent
   writers do not occur. If concurrent writers are added, replace this
   with a per-request connection or a connection pool plus `threading.Lock`.
+
+## PC envelope (Phase 2C-3f)
+
+* **PC envelope** — every server-emitted `ack`, `nack`, and `reset_result`
+  now carries the PC envelope defined in `docs/PROTOCOL_CONTRACT.md`
+  v1.1.1 §3.1:
+  - `protocol_version`: `"1.1.1"`
+  - `type`: message type
+  - `pc_id`: `"pc-01"` (PROPOSED)
+  - `pc_seq`: monotonic per PC process
+  - `ts_sent_ms`: PC clock UTC epoch ms
+  - `ts_sent_valid`: `1` (default per DR-17)
+  - `payload`: message-specific fields
+* **`build_pc_envelope()`** — constructs the envelope; `pc_seq` increments
+  per call.
+* **`validate_pc_envelope()`** — self-consistency check for PC envelopes.
+* **ack/nack fields inside payload** — `acked_record_id`, `committed`,
+  `reason`, `retryable`, etc. live inside `payload`, matching Contract
+  §3.17 / §3.18.
+* **T-P01 PC half unskipped** — asserts PC envelope on server replies.
+* **T-P08 remains skipped** — `config_set` payload schema is incomplete;
+  the server does not emit `config_set` / `config_result` yet.
 
 ## Not decided here
 

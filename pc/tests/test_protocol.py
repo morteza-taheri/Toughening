@@ -1,7 +1,7 @@
-"""Protocol tests for the TOUGHENING MACHINE PC-side server (Phase 2C Stage 2).
+"""Protocol tests for the TOUGHENING MACHINE PC-side server (Phase 2C Stage 2C-3f).
 
-Contract under test: docs/PROTOCOL_CONTRACT.md v1.1.0
-Specification:        docs/PROJECT_SPECIFICATION.md v0.7.5
+Contract under test: docs/PROTOCOL_CONTRACT.md v1.1.1
+Specification:        docs/PROJECT_SPECIFICATION.md v0.7.6
 
 Test IDs T-P01 … T-P17 are the contract §10 test list, used verbatim.
 
@@ -33,7 +33,7 @@ if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
 
 from pc import db as pc_db  # noqa: E402
-from pc.server import app, dispatch, validate_envelope, validate_payload  # noqa: E402
+from pc.server import app, dispatch, validate_envelope, validate_payload, validate_pc_envelope  # noqa: E402
 import pc.server as server  # noqa: E402
 
 CLIENT = TestClient(app)
@@ -276,6 +276,7 @@ def test_tp01_roundtrip_all_esp32_originated_types():
             )
             reply = roundtrip(message)
             assert reply is not None and reply["type"] == "ack"
+            assert reply["payload"]["acked_record_ids"] == [nested["record_id"]]
             continue
 
         if msg_type in DURABLE_TYPES:
@@ -285,7 +286,7 @@ def test_tp01_roundtrip_all_esp32_originated_types():
             reply = roundtrip(message)
             assert reply is not None, f"{msg_type} must be acknowledged"
             assert reply["type"] == "ack"
-            assert reply["committed"] is True
+            assert reply["payload"]["committed"] is True
         else:
             # The server must NOT answer these types; do not read.
             message = envelope(msg_type, index, minimal_payload(msg_type))
@@ -298,17 +299,59 @@ def test_tp01_roundtrip_all_esp32_originated_types():
         assert ok, f"{msg_type} payload invalid: {reason}"
 
 
-def test_tp01_pc_originated_types_skipped():
-    """The 4 PC-originated types cannot be sent to this server.
+def test_tp01_pc_originated_types_envelope():
+    """T-P01 (PC half): PC-originated envelope is defined in Contract v1.1.1.
 
-    Contract §8 item 24 records the PC-side envelope as OPEN.
+    The server now emits ack/nack/reset_result wrapped in the PC envelope
+    (pc_id, pc_seq, ts_sent_ms, ts_sent_valid, payload). This test asserts
+    that every reply from the server conforms to that envelope and that
+    ack/nack fields live inside payload.
     """
-    pytest.skip(
-        "PC-originated envelope is OPEN — contract §8 item 24: "
-        "'Envelope fields applicable to a PC-originated message "
-        "(time_sync, config_set, ack, nack) ... what replaces them for "
-        "correlation is not decided here.' No valid message can be built."
+    # Send a durable record and inspect the ack envelope.
+    message = envelope(
+        "cycle_summary", 1,
+        minimal_payload("cycle_summary"), record_seq=1,
     )
+    reply = roundtrip(message)
+    assert reply is not None
+    assert reply["type"] == "ack"
+    assert reply["pc_id"] == "pc-01"
+    assert isinstance(reply["pc_seq"], int)
+    assert isinstance(reply["ts_sent_ms"], int)
+    assert reply["ts_sent_valid"] in (0, 1)
+    assert "payload" in reply
+    assert reply["payload"]["committed"] is True
+    assert "acked_record_id" in reply["payload"]
+
+    # Send an unknown type and inspect the nack envelope.
+    reply = roundtrip(envelope("not_a_real_type", 2, {}, record_seq=2))
+    assert reply is not None
+    assert reply["type"] == "nack"
+    assert reply["pc_id"] == "pc-01"
+    assert isinstance(reply["pc_seq"], int)
+    assert isinstance(reply["ts_sent_ms"], int)
+    assert reply["ts_sent_valid"] in (0, 1)
+    assert "payload" in reply
+    assert reply["payload"]["reason"] == "unknown_type"
+
+    # Send reset_command and inspect reset_result envelope.
+    message = envelope("reset_command", 3, {
+        "target": "all",
+        "pc_id": "pc-01",
+    })
+    reply = roundtrip(message)
+    assert reply is not None
+    assert reply["type"] == "reset_result"
+    assert reply["pc_id"] == "pc-01"
+    assert isinstance(reply["pc_seq"], int)
+    assert isinstance(reply["ts_sent_ms"], int)
+    assert reply["ts_sent_valid"] in (0, 1)
+    assert "payload" in reply
+    assert reply["payload"]["accepted"] is True
+
+    # Confirm ESP32-style fields are absent from PC replies.
+    for forbidden in ("message_id", "device_id", "boot_id", "seq", "record_id"):
+        assert forbidden not in reply, f"PC envelope must not contain {forbidden}"
 
 
 # ---------------------------------------------------------------------------
@@ -337,7 +380,7 @@ def test_tp02_idempotent_replay_of_batch_100x():
         reply = roundtrip(message)
         assert reply is not None
         assert reply["type"] == "ack"
-        assert reply["committed"] is True
+        assert reply["payload"]["committed"] is True
 
     # Exactly one row per record_id in the database
     count = server._db_conn.execute(
@@ -391,7 +434,7 @@ def test_tp04_nan_infinity_empty_and_wrong_types_rejected():
             ws.send_text(raw)
             reply = json.loads(ws.receive_text())
         assert reply["type"] == "nack"
-        assert reply["reason"] == "non_finite_value"
+        assert reply["payload"]["reason"] == "non_finite_value"
 
     base = envelope("hello", 1)
     for field, value, expected in (
@@ -457,7 +500,7 @@ def test_commit_before_ack_ordering():
     reply = roundtrip(message)
     assert reply is not None
     assert reply["type"] == "ack"
-    assert reply["committed"] is True
+    assert reply["payload"]["committed"] is True
 
     # The record MUST be in the database by the time the ack was received.
     record_id = message["record_id"]
@@ -528,14 +571,15 @@ def test_tp08_config_set_validation():
     or not in ascending order." Expected: "Rejected by config_result;
     the stored settings are unchanged."
 
-    config_set travels PC -> device. Its envelope is OPEN (§8 item 24)
-    and this server only receives ESP32-originated messages, so no
-    valid config_set can be constructed here.
+    config_set is PC-originated and its payload schema is still incomplete
+    in the contract. The PC envelope is now defined (v1.1.1), but the
+    server does not yet emit config_set / config_result messages, so this
+    test remains out of reach.
     """
     pytest.skip(
-        "config_set is PC-originated and its envelope is OPEN — contract "
-        "§8 item 24. This server only receives ESP32-originated messages, "
-        "so contract §10 T-P08 cannot be exercised."
+        "config_set payload schema is incomplete in the contract and the "
+        "server does not emit config_set / config_result yet. The PC "
+        "envelope is resolved (v1.1.1) but the message flow is deferred."
     )
 
 
@@ -593,7 +637,7 @@ def test_tp11_deprecated_aliases_not_accepted():
         reply = roundtrip(message)
         assert reply is not None, f"alias {alias} should produce a reply"
         assert reply["type"] == "nack"
-        assert reply["reason"] == "deprecated_alias"
+        assert reply["payload"]["reason"] == "deprecated_alias"
 
     # Nested alias inside a batch record's payload
     nested = envelope(
@@ -613,7 +657,7 @@ def test_tp11_deprecated_aliases_not_accepted():
     reply = roundtrip(message)
     assert reply is not None
     assert reply["type"] == "nack"
-    assert reply["reason"] == "deprecated_alias"
+    assert reply["payload"]["reason"] == "deprecated_alias"
 
     # Direct unit check: valid payload passes, alias payload fails
     ok, reason = validate_payload(envelope("hello", 1, {
@@ -647,7 +691,7 @@ def test_tp12_duration_basis_value_set():
     reply = roundtrip(message)
     assert reply is not None
     assert reply["type"] == "nack"
-    assert reply["reason"] == "invalid_value"
+    assert reply["payload"]["reason"] == "invalid_value"
 
     # Direct unit check
     ok, reason = validate_payload(message)
@@ -676,7 +720,7 @@ def test_tp13_duration_ms_duration_basis_invariant():
     reply1 = roundtrip(message1)
     assert reply1 is not None
     assert reply1["type"] == "nack"
-    assert reply1["reason"] == "invariant_violated"
+    assert reply1["payload"]["reason"] == "invariant_violated"
 
     ok, reason = validate_payload(message1)
     assert not ok
@@ -690,7 +734,7 @@ def test_tp13_duration_ms_duration_basis_invariant():
     reply2 = roundtrip(message2)
     assert reply2 is not None
     assert reply2["type"] == "nack"
-    assert reply2["reason"] == "invariant_violated"
+    assert reply2["payload"]["reason"] == "invariant_violated"
 
     ok, reason = validate_payload(message2)
     assert not ok
@@ -783,9 +827,9 @@ def test_tp16_reset_command_target_validation():
         reply = roundtrip(message)
         assert reply is not None
         assert reply["type"] == "reset_result"
-        assert reply["accepted"] is True
-        assert reply["alarm_state"] == "inactive"
-        assert reply["warning_state"] == "inactive"
+        assert reply["payload"]["accepted"] is True
+        assert reply["payload"]["alarm_state"] == "inactive"
+        assert reply["payload"]["warning_state"] == "inactive"
 
     # Invalid target — rejected by payload enum
     message = envelope("reset_command", 2, {
@@ -798,7 +842,7 @@ def test_tp16_reset_command_target_validation():
     reply = roundtrip(message)
     assert reply is not None
     assert reply["type"] == "nack"
-    assert reply["reason"] == "invalid_value"
+    assert reply["payload"]["reason"] == "invalid_value"
 
     # Missing target — rejected as invalid payload
     message = envelope("reset_command", 3, {"pc_id": "pc-01"})
@@ -808,7 +852,7 @@ def test_tp16_reset_command_target_validation():
     reply = roundtrip(message)
     assert reply is not None
     assert reply["type"] == "nack"
-    assert reply["reason"] == "invalid_payload"
+    assert reply["payload"]["reason"] == "invalid_payload"
 
 
 # ---------------------------------------------------------------------------
@@ -877,9 +921,9 @@ def test_gap7_batch_ack_is_one_ack_with_array():
     reply = roundtrip(message)
     assert reply is not None
     assert reply["type"] == "ack"
-    assert "acked_record_ids" in reply
-    assert "acked_record_id" not in reply, "the two fields never coexist"
-    assert reply["acked_record_ids"] == [nested_a["record_id"], nested_b["record_id"]]
+    assert "acked_record_ids" in reply["payload"]
+    assert "acked_record_id" not in reply["payload"], "the two fields never coexist"
+    assert reply["payload"]["acked_record_ids"] == [nested_a["record_id"], nested_b["record_id"]]
 
 
 def test_single_record_ack_uses_singular_field_only():
@@ -888,8 +932,8 @@ def test_single_record_ack_uses_singular_field_only():
         envelope("alarm_event", 40, minimal_payload("alarm_event"), record_seq=40)
     )
     assert reply is not None
-    assert "acked_record_id" in reply
-    assert "acked_record_ids" not in reply
+    assert "acked_record_id" in reply["payload"]
+    assert "acked_record_ids" not in reply["payload"]
 
 
 def test_unknown_type_returns_nack_without_crashing():
@@ -897,8 +941,115 @@ def test_unknown_type_returns_nack_without_crashing():
     reply = roundtrip(envelope("not_a_real_type", 50, {}, record_seq=50))
     assert reply is not None
     assert reply["type"] == "nack"
-    assert reply["reason"] == "unknown_type"
-    assert reply["retryable"] is False
+    assert reply["payload"]["reason"] == "unknown_type"
+    assert reply["payload"]["retryable"] is False
+
+
+def test_pc_envelope_on_server_replies():
+    """Every server-emitted ack, nack and reset_result carries the PC envelope.
+
+    Sends each ESP32-originated type that provokes a reply and asserts
+    the PC envelope fields are present and the ESP32 fields are absent.
+    """
+    # Durable ack
+    message = envelope(
+        "cycle_summary", 1,
+        minimal_payload("cycle_summary"), record_seq=1,
+    )
+    reply = roundtrip(message)
+    assert reply is not None and reply["type"] == "ack"
+    assert reply["pc_id"] == "pc-01"
+    assert isinstance(reply["pc_seq"], int)
+    assert isinstance(reply["ts_sent_ms"], int)
+    assert reply["ts_sent_valid"] in (0, 1)
+    assert "payload" in reply
+    for forbidden in ("message_id", "device_id", "boot_id", "seq", "record_id"):
+        assert forbidden not in reply
+
+    # Nack from invalid payload
+    message = envelope("cycle_summary", 2, {
+        "station_id": "not_an_int",
+        "nozzles": [],
+        "cycle_start_ms": None,
+        "start_time_valid": 1,
+        "cycle_end_ms": None,
+        "end_time_valid": 1,
+        "duration_ms": None,
+        "duration_basis": "null",
+        "faulted_channel_count": 0,
+        "fault_transition_count": None,
+        "valid_samples_pressure_both_nozzles": None,
+        "valid_samples_temperature_both_nozzles": None,
+    }, record_seq=2)
+    reply = roundtrip(message)
+    assert reply is not None and reply["type"] == "nack"
+    assert reply["pc_id"] == "pc-01"
+    assert "payload" in reply
+    for forbidden in ("message_id", "device_id", "boot_id", "seq", "record_id"):
+        assert forbidden not in reply
+
+    # Reset result
+    message = envelope("reset_command", 3, {
+        "target": "all",
+        "pc_id": "pc-01",
+    })
+    reply = roundtrip(message)
+    assert reply is not None and reply["type"] == "reset_result"
+    assert reply["pc_id"] == "pc-01"
+    assert "payload" in reply
+    for forbidden in ("message_id", "device_id", "boot_id", "seq", "record_id"):
+        assert forbidden not in reply
+
+
+def test_validate_pc_envelope_accepts_valid():
+    """A well-formed PC envelope passes validation."""
+    msg = {
+        "protocol_version": "1.1.1",
+        "type": "ack",
+        "pc_id": "pc-01",
+        "pc_seq": 0,
+        "ts_sent_ms": 1700000000000,
+        "ts_sent_valid": 1,
+        "payload": {"committed": True},
+    }
+    ok, reason = validate_pc_envelope(msg)
+    assert ok is True, reason
+
+
+def test_validate_pc_envelope_rejects_invalid():
+    """Missing fields, wrong types and invalid values are rejected."""
+    base = {
+        "protocol_version": "1.1.1",
+        "type": "ack",
+        "pc_id": "pc-01",
+        "pc_seq": 0,
+        "ts_sent_ms": 0,
+        "ts_sent_valid": 1,
+        "payload": {"committed": True},
+    }
+    # Missing pc_seq
+    msg = dict(base)
+    del msg["pc_seq"]
+    ok, reason = validate_pc_envelope(msg)
+    assert ok is False and reason == "missing_field:pc_seq"
+
+    # Wrong type for pc_seq
+    msg = dict(base)
+    msg["pc_seq"] = "not_an_int"
+    ok, reason = validate_pc_envelope(msg)
+    assert ok is False and reason == "wrong_type:pc_seq"
+
+    # ts_sent_valid out of range
+    msg = dict(base)
+    msg["ts_sent_valid"] = 2
+    ok, reason = validate_pc_envelope(msg)
+    assert ok is False and reason == "wrong_type:ts_sent_valid"
+
+    # payload is not a dict
+    msg = dict(base)
+    msg["payload"] = []
+    ok, reason = validate_pc_envelope(msg)
+    assert ok is False and reason == "wrong_type:payload"
 
 
 def test_health_endpoint():

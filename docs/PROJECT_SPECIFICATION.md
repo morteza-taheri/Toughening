@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document title | TOUGHENING MACHINE — Project Specification Baseline |
-| Document version | 0.7.5 (amendment propagation pass) |
+| Document version | 0.7.6 (Decision Round E — PC envelope) |
 | Revision status | **BASELINE — FOR REVIEW** |
 | Created | 2026-10-04 |
 | Workspace | `D:\PMC\Documents\PlatformIO\Projects\Toughening` |
@@ -11,7 +11,7 @@
 | Source basis | Requirements, decisions and review findings recorded in the project conversation prior to this document |
 | Implementation status | **No implementation exists. No implementation phase has been started.** Phase 2A-0 (documentation only) is COMPLETE. |
 | Supersedes | **0.5.0 (decision round B approvals)** — archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.5.0.md` (SHA256 `06D71C124E647D5807E7381F617AAAB2A7FAC9A926BF8F27632E13C747DDB426`, 119 532 bytes). |
-| Companion document | `docs/PROTOCOL_CONTRACT.md` — **APPROVED, final 2026-10-05** (v1.1.0) |
+| Companion document | `docs/PROTOCOL_CONTRACT.md` — **APPROVED, final 2026-10-05; revised v1.1.1 on 2026-10-06 (Decision Round E)** |
 
 ---
 
@@ -35,6 +35,7 @@
 | 0.7.3 | 2026-10-05 | **Final approval of PROTOCOL_CONTRACT.md (v1.0.0).** No new decisions. The contract is now an approved companion document. `docs/PROTOCOL_CONTRACT.md` v0.2.4 → **v1.0.0**, status **APPROVED — final, 2026-10-05**; §9 non-inference rewritten; the three stale Phase 2B / implementation-status statements corrected. **§12.1** approval status, **§20** "Protocol / message contract approval" row and the **§21** Phase 2A gate text updated to the final approval. **§23** traceability row added. **§25** V118–V121 added. The contract remains revisable by an explicit decision round. **Phase 3 and all later phases remain NOT AUTHORIZED.** |
 | 0.7.4 | 2026-10-05 | **Decision Round D — hardware architecture closure.** `docs/PROTOCOL_CONTRACT.md` v1.0.0 → **v1.1.0**: `reset_command`, `reset_result`, `live_state` `alarm_state` / `warning_state`, tests T-P16 / T-P17. Spec: **D-A2, D-A3, D-A4 APPROVED** (DR-31 / DR-32 / DR-33); **HW-02 … HW-09, HW-11, HW-12, HW-14 CLOSED**; **HW-10 = user responsibility (DR-38)**; **HW-13 stays OPEN**; voltage domain amended to 0–5 V (**DR-30**, amends DR-27). **DR-30 … DR-40** added. **§0.1, §3.1a, §3.2, §3.3, §5.3, §12.1, §19, §19.1, §20, §21, §23, §24, §25** updated; V122–V135 added. LED GPIO13 and WDT 5 s remain **PROPOSED — NOT DECIDED**. **Phase 3 remains NOT AUTHORIZED.** |
 | 0.7.5 | 2026-10-06 | **Amendment propagation pass (no new decisions).** Amendment notes appended to §19 DR-27 wherever 0–3.3 V is stated as a live fact (four numbers left intact, per DR-30 (0.7.4)). §19 DR-23 corrected: the protocol / message contract is APPROVED (final, 2026-10-05) as v1.1.0, not "remains NOT APPROVED". §4.x and §6.x confirmed via grep to contain no 0–3.3 V voltage statements. Header, footer, §0.1, §24 and §25 updated; V136–V140 added. Only `docs/PROJECT_SPECIFICATION.md` modified; `docs/PROTOCOL_CONTRACT.md`, `docs/archive/`, `docs/hardware/`, `.clinerules/` and all other files untouched. **Phase 3 remains NOT AUTHORIZED.** |
+| 0.7.6 | 2026-10-06 | **Decision Round E — PC envelope defined (no code change).** Contract v1.1.0 → **v1.1.1**: PC envelope defined in §3.1, §3.17, §3.18, §3.19; §8 item 24 RESOLVED. `pc_id` = `"pc-01"` (top-level only), `pc_seq` monotonic per PC process, `ts_sent_valid` = 1 by default per DR-17. ack/nack fields remain inside `payload`. §0.1, §12.1, §24, §25 updated; V141–V145 added. Only `docs/PROTOCOL_CONTRACT.md` and `docs/PROJECT_SPECIFICATION.md` modified; `pc/`, `firmware/`, `docs/archive/`, `docs/hardware/`, `.clinerules/` untouched. **Phase 3 remains NOT AUTHORIZED.** |
 
 ### 0.2 Status label definitions (used throughout this document)
 
@@ -819,9 +820,9 @@ The document previously used several names for the same concepts. The canonical 
 | `reset_command` | PC → ESP32 | **No** — non-durable, no `ack`; `reset_command` targets `"alarm"`, `"warning"` or `"all"` |
 | `reset_result` | ESP32 → PC | **No** — non-durable; carries `accepted` and the post-reset state |
 
-Messages carry a protocol version, a message type and (for durable records) a unique `record_id`.
+Messages carry a protocol version, a message type and (for durable records) a unique `record_id`. PC-originated messages carry the PC envelope defined in `docs/PROTOCOL_CONTRACT.md` v1.1.1 §3.1 (`pc_id`, `pc_seq`, `ts_sent_ms`, `ts_sent_valid`); they carry no `boot_id`, `device_id`, `seq`, `message_id` or `record_id`.
 
-**Approval status (P1 / AUD-13).** The message contract is **APPROVED (final, 2026-10-05)** as `docs/PROTOCOL_CONTRACT.md` **v1.1.0** (revised from v1.0.0 in Decision Round D, **DR-34**). The two reset messages and the `live_state` `alarm_state` / `warning_state` fields are defined in the contract, not in this table; this specification lists them here for traceability only. It remains revisable by an explicit decision round. It was exercised from both sides in Phase 2A (commit `b30e74f`): the PC server implements it, the firmware skeleton defers its contract-driven parts by name, and 21 tests exercise it.
+**Approval status (P1 / AUD-13).** The message contract is **APPROVED (final, 2026-10-05)** as `docs/PROTOCOL_CONTRACT.md` **v1.1.1** (revised from v1.1.0 in Decision Round E, **PC envelope defined**). The two reset messages and the `live_state` `alarm_state` / `warning_state` fields are defined in the contract, not in this table; this specification lists them here for traceability only. It remains revisable by an explicit decision round. It was exercised from both sides in Phase 2A (commit `b30e74f`): the PC server implements it, the firmware skeleton defers its contract-driven parts by name, and 21 tests exercise it.
 
 ### 12.2 Acknowledgement and deduplication (established requirement)
 
@@ -1551,6 +1552,7 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | 0.7.2 | 2026-10-05 | **AC-08 promotion (no new decisions).** AC-08 moved from §17.3 to §17.2 as unconditional, with the approved D-C5 (DR-25.5) semantics inline. §17.2 closing note updated so AC-08 is no longer listed as non-unconditional. §17.3 AC-08 note rewritten as "now unconditional". PCC-22 → APPLIED (0.7.2). §23 "Out-of-range handling" caveat removed. §17.1 "see AC-08" reference left unchanged and reported. No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
 | 0.7.4 | 2026-10-05 | **Decision Round D — hardware architecture closure.** **D-A2, D-A3, D-A4 APPROVED** via DR-31 / DR-32 / DR-33; **HW-02 … HW-09, HW-11, HW-12, HW-14 CLOSED**; **HW-10 = user responsibility (DR-38)**; **HW-13 stays OPEN**. **DR-30** (0–5 V domain, amends DR-27) … **DR-40** (sequential scanning) added. **Contract v1.0.0 → v1.1.0**: `reset_command`, `reset_result`, `live_state` `alarm_state` / `warning_state`, tests T-P16 / T-P17 (DR-34). LED GPIO13 and WDT 5 s remain **PROPOSED — NOT DECIDED** (DR-35). §0.1, §3.1a, §3.2, §3.3, §5.3, §12.1, §19, §19.1, §20, §21, §23, §24, §25 updated; V122–V135 added. **Phase 3 and all later phases still NOT AUTHORIZED.** |
 | 0.7.5 | 2026-10-06 | **Amendment propagation (no new decisions).** §19 DR-27: four 0–3.3 V numbers left intact; amendment note appended. §19 DR-23: "remains NOT APPROVED" → "APPROVED (final, 2026-10-05) as v1.1.0. See §12.1." Header → v0.7.5; footer → v0.7.5. §0.1 and §24 each gained a 0.7.5 row. §25 V136–V140 added. Only `docs/PROJECT_SPECIFICATION.md` modified. **Phase 3 remains NOT AUTHORIZED.** |
+| 0.7.6 | 2026-10-06 | **Decision Round E — PC envelope defined (no code change).** Contract v1.1.0 → **v1.1.1**: PC envelope defined in §3.1, §3.17, §3.18, §3.19; §8 item 24 RESOLVED. `pc_id` = `"pc-01"` (top-level only), `pc_seq` monotonic per PC process, `ts_sent_valid` = 1 by default per DR-17. ack/nack fields remain inside `payload`. §0.1, §12.1, §24, §25 updated; V141–V145 added. Only `docs/PROTOCOL_CONTRACT.md` and `docs/PROJECT_SPECIFICATION.md` modified; `pc/`, `firmware/`, `docs/archive/`, `docs/hardware/`, `.clinerules/` untouched. **Phase 3 remains NOT AUTHORIZED.** |
 | 0.7.3 | 2026-10-05 | **Final approval of PROTOCOL_CONTRACT.md (v1.0.0) — no new decisions.** Contract v0.2.4 → v1.0.0, status **APPROVED — final, 2026-10-05**. §12.1, §20 and §21 gate text updated; §23 traceability row added; V118–V121 added. The contract remains revisable by an explicit decision round. Phase 3 and all later phases still **NOT AUTHORIZED**. |
 | 0.7.1 | 2026-10-05 | **Follow-up: complete D-C5 / D-D10 body alignment (no new decisions).** §7.5 and §8.4 `overflow` corrected; §7.1a (PCC-36), §12.4 / §12.5 (PCC-37), §17.1 PER-02 and §18 AMB-08 / AMB-14 (PCC-38) corrected. §17.3 AC-08 and its companion sentence deliberately left unchanged per PCC-22. §8.4 `journal_pressure` (D-D6 genuinely OPEN) unchanged. PCC-36, PCC-37, PCC-38 added as APPLIED (0.7.1). No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
 
@@ -1698,6 +1700,11 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | V138 | **0.7.5 (§19 DR-27 amendment note)** All four 0–3.3 V numbers left intact in DR-27 text; bracketed note `[Domain amended to 0–5 V by DR-30 (0.7.4).]` appended | Checked |
 | V139 | **0.7.5 (§19 DR-23 correction)** Stale "remains NOT APPROVED" text replaced with "APPROVED (final, 2026-10-05) as v1.1.0. See §12.1." | Checked |
 | V140 | **0.7.5 (scope)** Only `docs/PROJECT_SPECIFICATION.md` modified; header/footer/§0.1/§24/§25 updated; `git status` clean; **no commit, no push**; Phase 3 remains NOT AUTHORIZED | Checked |
+| V141 | **0.7.6 (Decision Round E)** Contract v1.1.0 → **v1.1.1**: PC envelope defined in §3.1, §3.17, §3.18, §3.19; §8 item 24 RESOLVED | Checked |
+| V142 | **0.7.6 (pc_id)** `pc_id` = `"pc-01"` top-level only in PC envelope; removed from reset_command payload | Checked |
+| V143 | **0.7.6 (pc_seq)** `pc_seq` is PC-local monotonic, restarts at 0 on PC restart, scoped by stable `pc_id` | Checked |
+| V144 | **0.7.6 (ts_sent_valid)** `ts_sent_valid` = 1 by default per DR-17; 0 only when PC clock is known to be invalid | Checked |
+| V145 | **0.7.6 (ack/nack fields)** ack/nack fields remain inside `payload` per Contract §3.17/§3.18 | Checked |
 
 ## 26. Section Index
 
@@ -1731,4 +1738,4 @@ The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** author
 | 25 | Verification Record |
 | 26 | Section Index |
 
-*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.5.*
+*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.6.*
