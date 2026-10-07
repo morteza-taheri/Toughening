@@ -20,8 +20,9 @@ Specification: [`docs/PROJECT_SPECIFICATION.md`](../docs/PROJECT_SPECIFICATION.m
 
     pc\venv\Scripts\python.exe -m pc.server
 
-Serves `ws://0.0.0.0:8000/ws/device`, `GET /health`,
-`GET /api/export/csv`, and `GET /api/export/json`.
+Serves `ws://0.0.0.0:8000/ws/device`, `ws://0.0.0.0:8000/ws/gui`,
+`GET /health`, `GET /api/export/csv`, `GET /api/export/json`,
+and `GET /` (operator GUI).
 
 ## Run the simulator
 
@@ -38,10 +39,6 @@ It plays the ESP32 role and skips the 4 PC-originated types.
 
 **Current: 38 passed, 6 skipped (44 tests).**
 
-The skipped set remains: T-P05 (full process-level scenario),
-T-P06 (firmware), T-P08 (config_set payload schema incomplete),
-T-P09 (firmware), T-P10 (firmware), T-P17 (physical reset / firmware).
-
 ## Files
 
 | File | Purpose |
@@ -50,10 +47,11 @@ T-P09 (firmware), T-P10 (firmware), T-P17 (physical reset / firmware).
 | `server.py` | FastAPI app: `/health`, `/ws/device`, `/api/export/csv`, `/api/export/json`, ESP32 envelope + payload validation, PC envelope for replies, dispatch with `reset_command` / `reset_result` handlers, SQLite commit before ACK. |
 | `db.py` | SQLite persistence: `records` table, idempotent commit, WAL mode. |
 | `reports.py` | Export helpers: CSV and JSON from the `records` table. PDF and Excel are deferred. |
-| `simulator.py` | ESP32-role WebSocket client sending 12 message types. |
+| `simulator.py` | ESP32-role WebSocket client sending 12 message types. Supports `--loop` for continuous `live_state`. |
 | `tests/test_protocol.py` | Contract §10 tests T-P01…T-P17 plus Gap-resolution tests and PC envelope tests. |
 | `tests/test_db.py` | Focused unit tests for `db.py`. |
 | `tests/test_reports.py` | Focused tests for `reports.py` export functions. |
+| `tests/test_gui_ws.py` | Focused tests for `/ws/gui` broadcast behavior. |
 | `tests/__init__.py` | Empty; makes test discovery predictable on Windows. |
 | `venv/` | Virtual environment. Git-ignored, never committed. |
 
@@ -149,7 +147,27 @@ T-P09 (firmware), T-P10 (firmware), T-P17 (physical reset / firmware).
   objects with the same fields plus a parsed `payload` object.
 * Empty database → header-only CSV / empty JSON array `[]`.
 * **PDF and Excel export are DEFERRED** — not implemented in this stage.
-* **Report templates and layout are OPEN** (DR-20) — not decided here.
+ * **Report templates and layout are OPEN** (DR-20) — not decided here.
+
+## Operator GUI (Phase 2C-3g-1)
+
+* Served at `GET /` and `/static/...`
+* Language toggle: English / فارسی
+* Calendar toggle: Gregorian / Jalali (presentation only)
+* Three panels: Live, History, Reports
+* Reports buttons are disabled until later stage
+* No CDN, no web fonts, no JS frameworks
+
+## WebSocket GUI (Phase 2C-3g-2)
+
+* **`/ws/gui`** — browser WebSocket endpoint for live data
+  - Server broadcasts ESP32 `live_state` messages to all connected GUI clients
+  - GUI clients are read-only; they never send data
+  - Reconnect with exponential backoff (client-side)
+* **Simulator `--loop` flag** — sends `live_state` once per second continuously after the initial burst
+  ```bash
+  pc\venv\Scripts\python.exe pc\simulator.py --loop
+  ```
 
 ## Not decided here
 

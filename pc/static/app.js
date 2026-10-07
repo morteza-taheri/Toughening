@@ -91,6 +91,136 @@
     applyCalendar();
   }
 
+  function setStatus(key) {
+    const el = document.getElementById("live-status");
+    if (el && i18n[currentLang]) {
+      el.textContent = i18n[currentLang][key] || key;
+    }
+  }
+
+  function formatEventTime(ms) {
+    if (ms === null || ms === undefined) {
+      return "";
+    }
+    const d = new Date(Number(ms));
+    if (currentCalendar === CAL_JALALI) {
+      try {
+        return new Intl.DateTimeFormat(currentLang, {
+          calendar: "persian",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }).format(d);
+      } catch {
+        // fallback to Gregorian if Intl Persian calendar unavailable
+      }
+    }
+    return new Intl.DateTimeFormat(currentLang, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(d);
+  }
+
+  function renderStations(stations) {
+    const grid = document.getElementById("live-stations");
+    if (!grid) {
+      return;
+    }
+    grid.innerHTML = "";
+    if (!Array.isArray(stations)) {
+      return;
+    }
+    stations.forEach(station => {
+      const tile = document.createElement("div");
+      tile.className = "station-tile";
+      const stationId = document.createElement("div");
+      stationId.textContent = `#${station.station_id}`;
+      tile.appendChild(stationId);
+      const nozzles = Array.isArray(station.nozzles) ? station.nozzles : [];
+      nozzles.forEach(nozzle => {
+        const row = document.createElement("div");
+        row.textContent = `N${nozzle.nozzle_id}`;
+        const state = nozzle.channel_state || "unconfigured";
+        if (state === "valid") {
+          tile.classList.add("valid");
+        } else if (state === "out_of_range") {
+          tile.classList.add("out_of_range");
+        } else {
+          tile.classList.add("unconfigured");
+        }
+        const value = document.createElement("div");
+        value.textContent = state;
+        row.appendChild(value);
+        tile.appendChild(row);
+      });
+      grid.appendChild(tile);
+    });
+  }
+
+  function applyLiveState(message) {
+    const payload = message.payload || message;
+    const labels = i18n[currentLang];
+    const setText = (id, key, fallback) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = labels[key] || fallback || "";
+      }
+    };
+    setText("live-event-time", "live.value.none", formatEventTime(payload.event_time));
+    setText("live-station-count", "live.value.none", String(payload.stations ? payload.stations.length : 0));
+    setText("live-invalid-channel-count", "live.value.none", String(payload.invalid_channel_count_now ?? 0));
+    setText("live-alarm-state", "live.value.none", payload.alarm_state || "");
+    setText("live-warning-state", "live.value.none", payload.warning_state || "");
+    const pending = payload.data_loss_pending;
+    const pendingKey = pending ? "live.value.yes" : "live.value.no";
+    setText("live-data-loss-pending", "live.value.none", labels[pendingKey] || String(pending));
+    renderStations(payload.stations);
+  }
+
+  let ws = null;
+  let reconnectDelayMs = 1000;
+
+  function connectWebSocket() {
+    const proto = location.protocol === "https:" ? "wss:" : "ws:";
+    const url = `${proto}//${location.host}/ws/gui`;
+    ws = new WebSocket(url);
+
+    ws.addEventListener("open", () => {
+      reconnectDelayMs = 1000;
+      setStatus("live.status.connected");
+    });
+
+    ws.addEventListener("message", (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === "live_state") {
+          applyLiveState(message);
+        }
+      } catch {
+        // ignore malformed messages
+      }
+    });
+
+    ws.addEventListener("close", () => {
+      setStatus("live.status.disconnected");
+      setTimeout(connectWebSocket, reconnectDelayMs);
+      reconnectDelayMs = Math.min(reconnectDelayMs * 2, 15000);
+    });
+
+    ws.addEventListener("error", () => {
+      setStatus("live.status.disconnected");
+    });
+  }
+
   async function init() {
     await loadI18n();
     currentLang = detectLang();
@@ -102,6 +232,8 @@
     const calBtn = document.getElementById("calendar-toggle");
     if (langBtn) langBtn.addEventListener("click", toggleLang);
     if (calBtn) calBtn.addEventListener("click", toggleCalendar);
+
+    connectWebSocket();
   }
 
   init();

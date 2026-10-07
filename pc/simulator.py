@@ -9,25 +9,26 @@ a contract placeholder. No calibration, sensor or hardware value appears
 in this file.
 
 OPEN ITEMS THIS SCRIPT DELIBERATELY DOES NOT DECIDE
-----------------------------------------------------
-* Gap 8 / DR-27 — whether `valid_samples_pressure` becomes `null` when
-  pressure conversion is unconfigured. OPEN. This script never branches
-  on that value; it sends `null` as the placeholder the contract shows
-  and asserts nothing about its meaning.
-* `nack` reason vocabulary (§8 item 3 — OPEN). The script does not send
-  messages designed to trigger any particular reason code.
-* Retry limit, timeout and backoff values (§8 item 4 — OPEN). The only
-  timing here is the local 1-second pacing between messages, which is a
-  simulator convenience, not a protocol value.
-* PC-side envelope (§8 item 24 — OPEN). The 4 PC-originated messages are
-  NOT simulated, precisely because that envelope is unresolved.
-* `live_state` packing structure (§3.4 — OPEN). One station and one
-  nozzle are sent to exercise the path; no packing scheme is implied.
-* PC -> ESP32 configuration authentication (§8 item 5 — OPEN).
-* Journal-pressure threshold behind `journal_pressure_indicator`
-  (D-D6 — OPEN). The flag is sent; no threshold is asserted.
+ ----------------------------------------------------
+ * Gap 8 / DR-27 — whether `valid_samples_pressure` becomes `null` when
+   pressure conversion is unconfigured. OPEN. This script never branches
+   on that value; it sends `null` as the placeholder the contract shows
+   and asserts nothing about its meaning.
+ * `nack` reason vocabulary (§8 item 3 — OPEN). The script does not send
+   messages designed to trigger any particular reason code.
+ * Retry limit, timeout and backoff values (§8 item 4 — OPEN). The only
+   timing here is the local 1-second pacing between messages, which is a
+   simulator convenience, not a protocol value.
+ * PC-side envelope (§8 item 24 — OPEN). The 4 PC-originated messages are
+   NOT simulated, precisely because that envelope is unresolved.
+ * `live_state` packing structure (§3.4 — OPEN). One station and one
+   nozzle are sent to exercise the path; no packing scheme is implied.
+ * PC -> ESP32 configuration authentication (§8 item 5 — OPEN).
+ * Journal-pressure threshold behind `journal_pressure_indicator`
+   (D-D6 — OPEN). The flag is sent; no threshold is asserted.
 """
 
+import argparse
 import asyncio
 import json
 import sys
@@ -39,6 +40,7 @@ MESSAGE_DELAY_S = 1.0
 REPLY_TIMEOUT_S = 2.0
 CONNECT_ATTEMPTS = 3
 CONNECT_RETRY_DELAY_S = 1.0
+LOOP_DELAY_S = 1.0
 
 DEVICE_ID = "esp32-01"
 BOOT_ID = "<boot_id>"
@@ -81,6 +83,8 @@ def envelope(msg_type: str, seq: int, payload: dict, record_seq=None) -> dict:
         message["record_seq"] = record_seq
         message["record_id"] = f"{DEVICE_ID}:{BOOT_ID}:{record_seq}"
     return message
+
+
 def build_messages() -> list:
     """Return the 12 ESP32-originated messages in §3.2 order.
 
@@ -223,7 +227,7 @@ def build_messages() -> list:
     ]
 
 
-async def connect():
+async def connect() -> "websockets.WebSocketClientProtocol":
     """Connect with bounded retry. Returns the socket or exits(1)."""
     for attempt in range(1, CONNECT_ATTEMPTS + 1):
         try:
@@ -237,15 +241,9 @@ async def connect():
     sys.exit(1)
 
 
-async def main() -> int:
-    print("TOUGHENING MACHINE protocol simulator (Phase 2A) — PROPOSED, NOT APPROVED")
-    print(f"target: {SERVER_URL}")
-    print("Skipping 4 PC-originated messages (time_sync, config_set, "
-          "ack, nack) — this simulator plays the ESP32 role.")
-    print("-" * 60)
-
-    messages = build_messages()
-    socket = await connect()
+async def send_messages(socket, messages, loop=False):
+    """Send messages, optionally looping live_state forever."""
+    seq = 0
     try:
         for message in messages:
             msg_type = message["type"]
@@ -264,11 +262,69 @@ async def main() -> int:
                     print(f"  ← (no reply within {REPLY_TIMEOUT_S}s)")
 
             await asyncio.sleep(MESSAGE_DELAY_S)
+
+        if loop:
+            print("Entering live_state loop mode (Ctrl+C to stop)...")
+            while True:
+                seq += 1
+                message = envelope("live_state", seq, {
+                    "event_time": 0,
+                    "event_time_valid": 1,
+                    "stations": [{
+                        "station_id": 1,
+                        "nozzles": [{
+                            "nozzle_id": 1,
+                            "raw_pressure_voltage": 0,
+                            "raw_temperature_voltage": 0,
+                            "converted_pressure": None,
+                            "converted_temperature": None,
+                            "channel_state": "unconfigured",
+                        }],
+                    }],
+                    "invalid_channel_count_now": 0,
+                    "volatile_loss_counter": 0,
+                    "data_loss_pending": False,
+                    "journal_pressure_indicator": False,
+                })
+                print(f"→ live_state (loop {seq})")
+                await socket.send(json.dumps(message))
+                await asyncio.sleep(LOOP_DELAY_S)
+    except websockets.ConnectionClosed:
+        if loop:
+            print("Connection closed — exiting loop mode.")
+        else:
+            raise
+
+
+async def main() -> int:
+    parser = argparse.ArgumentParser(description="Toughening Machine simulator")
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="Continuously send live_state once per second after the initial burst.",
+    )
+    args = parser.parse_args()
+
+    print("TOUGHENING MACHINE protocol simulator (Phase 2A) — PROPOSED, NOT APPROVED")
+    print(f"target: {SERVER_URL}")
+    if args.loop:
+        print("Mode: --loop enabled (live_state every 1s after initial burst)")
+    else:
+        print("Mode: single burst")
+    print("Skipping 4 PC-originated messages (time_sync, config_set, "
+          "ack, nack) — this simulator plays the ESP32 role.")
+    print("-" * 60)
+
+    messages = build_messages()
+    socket = await connect()
+    try:
+        await send_messages(socket, messages, loop=args.loop)
     finally:
         await socket.close()
 
-    print("-" * 60)
-    print(f"Done. Sent {len(messages)}, skipped {len(PC_ORIGINATED)}.")
+    if not args.loop:
+        print("-" * 60)
+        print(f"Done. Sent {len(messages)}, skipped {len(PC_ORIGINATED)}.")
     return 0
 
 

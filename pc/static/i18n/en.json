@@ -14,5 +14,20 @@
   "button.reports.json": "JSON",
   "footer.version": "Version 0.1.0",
   "footer.contractRef": "Contract v1.1.1",
-  "footer.specRef": "Spec v0.7.6"
+  "footer.specRef": "Spec v0.7.6",
+  "live.status.connected": "Connected",
+  "live.status.disconnected": "Disconnected — retrying",
+  "live.status.waiting": "Waiting for connection...",
+  "live.table.event_time": "Event time",
+  "live.table.station_count": "Station count",
+  "live.table.invalid_channel_count_now": "Invalid channels",
+  "live.table.alarm_state": "Alarm state",
+  "live.table.warning_state": "Warning state",
+  "live.table.data_loss_pending": "Data loss pending",
+  "live.state.inactive": "inactive",
+  "live.state.active": "active",
+  "live.state.acknowledged": "acknowledged",
+  "live.value.none": "—",
+  "live.value.yes": "Yes",
+  "live.value.no": "No"
 }

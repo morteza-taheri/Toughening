@@ -14,5 +14,20 @@
   "button.reports.json": "JSON",
   "footer.version": "نسخه 0.1.0",
   "footer.contractRef": "قرارداد v1.1.1",
-  "footer.specRef": " مشخصات v0.7.6"
+  "footer.specRef": "مشخصات v0.7.6",
+  "live.status.connected": "متصل",
+  "live.status.disconnected": "قطع — در حال تلاش مجدد",
+  "live.status.waiting": "در انتظار اتصال...",
+  "live.table.event_time": "زمان رویداد",
+  "live.table.station_count": "تعداد ایستگاه",
+  "live.table.invalid_channel_count_now": "کانال‌های نامعتبر",
+  "live.table.alarm_state": "وضعیت هشدار",
+  "live.table.warning_state": "وضعیت اخطار",
+  "live.table.data_loss_pending": "از دست دادن داده در انتظار",
+  "live.state.inactive": "غیرفعال",
+  "live.state.active": "فعال",
+  "live.state.acknowledged": "تایید شده",
+  "live.value.none": "—",
+  "live.value.yes": "بله",
+  "live.value.no": "خیر"
 }

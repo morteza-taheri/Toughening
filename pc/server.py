@@ -26,6 +26,7 @@ import logging
 import time
 from pathlib import Path
 from typing import Optional, Tuple
+import asyncio
 
 import uvicorn
 from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect
@@ -35,7 +36,7 @@ from fastapi.staticfiles import StaticFiles
 from pc import db as pc_db
 import pc.reports
 
-app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2C-3f)")
+app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2C-3g-2)")
 
 STATIC_DIR = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -61,6 +62,10 @@ _db_conn = None
 # PC envelope state (Decision Round E, Contract v1.1.1 §3.1).
 _pc_seq = 0
 PC_ID = "pc-01"
+
+# GUI WebSocket broadcast state (Phase 2C Stage 2C-3g-2).
+_gui_clients: set = set()
+_gui_lock = asyncio.Lock()
 
 
 def init_persistence(db_path: Optional[str] = None):
@@ -761,6 +766,7 @@ def dispatch(message: dict) -> Optional[dict]:
         )
         # No persistence and no reply per contract §12.1.
         # Station simultaneity (HW-02/HW-03 — OPEN) is not decided here.
+        asyncio.create_task(_broadcast_to_gui(message))
         return None
 
     if message_type in DURABLE_TYPES:
@@ -865,6 +871,48 @@ def dispatch(message: dict) -> Optional[dict]:
 
     log.warning("unknown message type %r — sending nack", message_type)
     return _nack_payload(record_id, "unknown_type", retryable=False)
+
+
+async def _broadcast_to_gui(message: dict) -> None:
+    """Broadcast a JSON message to all connected GUI clients.
+
+    Clients that fail are removed from the set. This function is
+    safe to call without holding _gui_lock; it acquires the lock
+    internally so the set is not mutated during iteration.
+    """
+    if not _gui_clients:
+        return
+    text = json.dumps(message)
+    async with _gui_lock:
+        dead = []
+        for ws in _gui_clients:
+            try:
+                await ws.send_text(text)
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            _gui_clients.discard(ws)
+
+
+@app.websocket("/ws/gui")
+async def ws_gui(websocket: WebSocket) -> None:
+    """Receive GUI browser connections.
+
+    GUI clients are read-only: the server never expects a message
+    from them. The connection is kept open so the server can push
+    ESP32-originated live_state updates in real time.
+    """
+    await websocket.accept()
+    async with _gui_lock:
+        _gui_clients.add(websocket)
+    log.info("gui connected (%d clients)", len(_gui_clients))
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        async with _gui_lock:
+            _gui_clients.discard(websocket)
+        log.info("gui disconnected (%d clients)", len(_gui_clients))
 
 
 @app.websocket("/ws/device")

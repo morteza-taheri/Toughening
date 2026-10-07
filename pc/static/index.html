@@ -18,7 +18,38 @@
   <main>
     <section class="panel">
       <h2 data-i18n="panel.live.title">Live</h2>
-      <p data-i18n="panel.live.placeholder">Live data will appear here.</p>
+      <div id="live-status" data-i18n="live.status.waiting" class="live-status">Waiting for connection...</div>
+      <div class="live-table-wrap">
+        <table id="live-values">
+          <tbody>
+            <tr>
+              <th data-i18n="live.table.event_time">Event time</th>
+              <td id="live-event-time" data-i18n="live.value.none">—</td>
+            </tr>
+            <tr>
+              <th data-i18n="live.table.station_count">Station count</th>
+              <td id="live-station-count" data-i18n="live.value.none">—</td>
+            </tr>
+            <tr>
+              <th data-i18n="live.table.invalid_channel_count_now">Invalid channels</th>
+              <td id="live-invalid-channel-count" data-i18n="live.value.none">—</td>
+            </tr>
+            <tr>
+              <th data-i18n="live.table.alarm_state">Alarm state</th>
+              <td id="live-alarm-state" data-i18n="live.value.none">—</td>
+            </tr>
+            <tr>
+              <th data-i18n="live.table.warning_state">Warning state</th>
+              <td id="live-warning-state" data-i18n="live.value.none">—</td>
+            </tr>
+            <tr>
+              <th data-i18n="live.table.data_loss_pending">Data loss pending</th>
+              <td id="live-data-loss-pending" data-i18n="live.value.none">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="live-stations" class="station-grid"></div>
     </section>
 
     <section class="panel">
