@@ -24,15 +24,26 @@ OPEN item instead of choosing a value.
 import json
 import logging
 import time
+from pathlib import Path
 from typing import Optional, Tuple
 
 import uvicorn
 from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from pc import db as pc_db
 import pc.reports
 
 app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2C-3f)")
+
+STATIC_DIR = Path(__file__).parent / "static"
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/")
+async def root() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")
 
 logging.basicConfig(
     level=logging.INFO,

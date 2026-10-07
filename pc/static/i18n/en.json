@@ -1,0 +1,18 @@
+{
+  "app.title": "Toughening Machine",
+  "header.languageToggle.whenEn": "فارسی",
+  "header.languageToggle.whenFa": "English",
+  "header.calendarToggle.whenGregorian": "شمسی",
+  "header.calendarToggle.whenJalali": "میلادی",
+  "panel.live.title": "Live",
+  "panel.live.placeholder": "Live data will appear here.",
+  "panel.history.title": "History",
+  "panel.history.placeholder": "Historical data will appear here.",
+  "panel.reports.title": "Reports",
+  "panel.reports.placeholder": "Generate and download reports.",
+  "button.reports.csv": "CSV",
+  "button.reports.json": "JSON",
+  "footer.version": "Version 0.1.0",
+  "footer.contractRef": "Contract v1.1.1",
+  "footer.specRef": "Spec v0.7.6"
+}

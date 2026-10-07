@@ -1,0 +1,18 @@
+{
+  "app.title": "دستگاه سخت‌سازی",
+  "header.languageToggle.whenEn": "فارسی",
+  "header.languageToggle.whenFa": "English",
+  "header.calendarToggle.whenGregorian": "شمسی",
+  "header.calendarToggle.whenJalali": "میلادی",
+  "panel.live.title": "زنده",
+  "panel.live.placeholder": "داده‌های زنده اینجا نمایش داده می‌شود.",
+  "panel.history.title": "تاریخچه",
+  "panel.history.placeholder": "داده‌های تاریخی اینجا نمایش داده می‌شود.",
+  "panel.reports.title": "گزارش‌ها",
+  "panel.reports.placeholder": "تولید و دانلود گزارش‌ها.",
+  "button.reports.csv": "CSV",
+  "button.reports.json": "JSON",
+  "footer.version": "نسخه 0.1.0",
+  "footer.contractRef": "قرارداد v1.1.1",
+  "footer.specRef": " مشخصات v0.7.6"
+}

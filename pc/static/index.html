@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="app.title">Toughening Machine</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1 data-i18n="app.title">Toughening Machine</h1>
+    <nav>
+      <button id="lang-toggle" data-i18n="header.languageToggle.whenEn">فارسی</button>
+      <button id="calendar-toggle" data-i18n="header.calendarToggle.whenGregorian">شمسی</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2 data-i18n="panel.live.title">Live</h2>
+      <p data-i18n="panel.live.placeholder">Live data will appear here.</p>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="panel.history.title">History</h2>
+      <p data-i18n="panel.history.placeholder">Historical data will appear here.</p>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="panel.reports.title">Reports</h2>
+      <p data-i18n="panel.reports.placeholder">Generate and download reports.</p>
+      <div class="button-group">
+        <button disabled data-i18n="button.reports.csv">CSV</button>
+        <button disabled data-i18n="button.reports.json">JSON</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span data-i18n="footer.version">Version 0.1.0</span>
+    <span data-i18n="footer.contractRef">Contract v1.1.1</span>
+    <span data-i18n="footer.specRef">Spec v0.7.6</span>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
