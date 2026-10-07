@@ -65,3 +65,6 @@ pc/venv/
 pc/__pycache__/
 pc/tests/__pycache__/
 pc/.pytest_cache/
+
+# Local build artifacts (do not commit)
+Toughening.zip
