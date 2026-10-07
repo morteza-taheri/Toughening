@@ -20,7 +20,8 @@ Specification: [`docs/PROJECT_SPECIFICATION.md`](../docs/PROJECT_SPECIFICATION.m
 
     pc\venv\Scripts\python.exe -m pc.server
 
-Serves `ws://0.0.0.0:8000/ws/device` and `GET /health`.
+Serves `ws://0.0.0.0:8000/ws/device`, `GET /health`,
+`GET /api/export/csv`, and `GET /api/export/json`.
 
 ## Run the simulator
 
@@ -35,7 +36,7 @@ It plays the ESP32 role and skips the 4 PC-originated types.
 
     pc\venv\Scripts\python.exe -m pytest pc/tests/ -v
 
-**Current: 27 passed, 6 skipped (33 tests).**
+**Current: 38 passed, 6 skipped (44 tests).**
 
 The skipped set remains: T-P05 (full process-level scenario),
 T-P06 (firmware), T-P08 (config_set payload schema incomplete),
@@ -46,11 +47,13 @@ T-P09 (firmware), T-P10 (firmware), T-P17 (physical reset / firmware).
 | File | Purpose |
 |---|---|
 | `requirements.txt` | Pinned direct dependencies. |
-| `server.py` | FastAPI app: `/health`, `/ws/device`, ESP32 envelope + payload validation, PC envelope for replies, dispatch with `reset_command` / `reset_result` handlers, SQLite commit before ACK. |
+| `server.py` | FastAPI app: `/health`, `/ws/device`, `/api/export/csv`, `/api/export/json`, ESP32 envelope + payload validation, PC envelope for replies, dispatch with `reset_command` / `reset_result` handlers, SQLite commit before ACK. |
 | `db.py` | SQLite persistence: `records` table, idempotent commit, WAL mode. |
+| `reports.py` | Export helpers: CSV and JSON from the `records` table. PDF and Excel are deferred. |
 | `simulator.py` | ESP32-role WebSocket client sending 12 message types. |
 | `tests/test_protocol.py` | Contract §10 tests T-P01…T-P17 plus Gap-resolution tests and PC envelope tests. |
 | `tests/test_db.py` | Focused unit tests for `db.py`. |
+| `tests/test_reports.py` | Focused tests for `reports.py` export functions. |
 | `tests/__init__.py` | Empty; makes test discovery predictable on Windows. |
 | `venv/` | Virtual environment. Git-ignored, never committed. |
 
@@ -133,8 +136,20 @@ T-P09 (firmware), T-P10 (firmware), T-P17 (physical reset / firmware).
   `reason`, `retryable`, etc. live inside `payload`, matching Contract
   §3.17 / §3.18.
 * **T-P01 PC half unskipped** — asserts PC envelope on server replies.
-* **T-P08 remains skipped** — `config_set` payload schema is incomplete;
-  the server does not emit `config_set` / `config_result` yet.
+ * **T-P08 remains skipped** — `config_set` payload schema is incomplete;
+   the server does not emit `config_set` / `config_result` yet.
+
+## Reports and exports (Phase 2C-3e)
+
+* **`/api/export/csv`** — returns `text/csv` with columns
+  `record_id, record_type, pc_received_ms, payload_json`.
+  Supports optional `since` and `until` query parameters (inclusive
+  bounds in milliseconds).
+* **`/api/export/json`** — returns `application/json` as an array of
+  objects with the same fields plus a parsed `payload` object.
+* Empty database → header-only CSV / empty JSON array `[]`.
+* **PDF and Excel export are DEFERRED** — not implemented in this stage.
+* **Report templates and layout are OPEN** (DR-20) — not decided here.
 
 ## Not decided here
 

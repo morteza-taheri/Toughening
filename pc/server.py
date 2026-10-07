@@ -27,9 +27,10 @@ import time
 from typing import Optional, Tuple
 
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect
 
 from pc import db as pc_db
+import pc.reports
 
 app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2C-3f)")
 
@@ -436,6 +437,46 @@ PAYLOAD_SCHEMAS = {
 async def health() -> dict:
     """Liveness probe. Returns a fixed skeleton version."""
     return {"status": "ok", "version": SERVER_VERSION}
+
+
+@app.get("/api/export/csv")
+async def export_csv_endpoint(
+    since: Optional[int] = None,
+    until: Optional[int] = None,
+) -> Response:
+    """Export records as CSV.
+
+    Time bounds are inclusive. None means no bound.
+    """
+    conn = pc_db.open_db()
+    pc_db.init_db(conn)
+    try:
+        text = pc.reports.export_csv(conn, since_ms=since, until_ms=until)
+        return Response(
+            content=text,
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": 'attachment; filename="records.csv"'},
+        )
+    finally:
+        pc_db.close_db(conn)
+
+
+@app.get("/api/export/json")
+async def export_json_endpoint(
+    since: Optional[int] = None,
+    until: Optional[int] = None,
+) -> Response:
+    """Export records as JSON.
+
+    Time bounds are inclusive. None means no bound.
+    """
+    conn = pc_db.open_db()
+    pc_db.init_db(conn)
+    try:
+        text = pc.reports.export_json(conn, since_ms=since, until_ms=until)
+        return Response(content=text, media_type="application/json")
+    finally:
+        pc_db.close_db(conn)
 
 
 def _reject_constant(token: str) -> None:
