@@ -29,5 +29,18 @@
   "live.state.acknowledged": "acknowledged",
   "live.value.none": "—",
   "live.value.yes": "Yes",
-  "live.value.no": "No"
+  "live.value.no": "No",
+  "history.toolbar.refresh": "Refresh",
+  "history.toolbar.limit": "Limit",
+  "history.table.record_id": "Record ID",
+  "history.table.record_type": "Record type",
+  "history.table.pc_received_ms": "PC received (ms)",
+  "history.status.loading": "Loading...",
+  "history.status.empty": "No records",
+  "history.status.count": "{n} records",
+  "history.status.error": "Error",
+  "report.csv.label": "CSV",
+  "report.json.label": "JSON",
+  "report.csv.hint": "Download all records as CSV",
+  "report.json.hint": "Download all records as JSON"
 }

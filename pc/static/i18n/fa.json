@@ -29,5 +29,18 @@
   "live.state.acknowledged": "تایید شده",
   "live.value.none": "—",
   "live.value.yes": "بله",
-  "live.value.no": "خیر"
+  "live.value.no": "خیر",
+  "history.toolbar.refresh": "تازه‌سازی",
+  "history.toolbar.limit": "محدودیت",
+  "history.table.record_id": "شناسه رکورد",
+  "history.table.record_type": "نوع رکورد",
+  "history.table.pc_received_ms": "زمان دریافت کامپیوتر",
+  "history.status.loading": "در حال بارگذاری...",
+  "history.status.empty": "رکوردی وجود ندارد",
+  "history.status.count": "{n} رکورد",
+  "history.status.error": "خطا",
+  "report.csv.label": "CSV",
+  "report.json.label": "JSON",
+  "report.csv.hint": "دانلود همه رکورد‌ها به صورت CSV",
+  "report.json.hint": "دانلود همه رکورد‌ها به صورت JSON"
 }

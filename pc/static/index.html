@@ -54,16 +54,42 @@
 
     <section class="panel">
       <h2 data-i18n="panel.history.title">History</h2>
-      <p data-i18n="panel.history.placeholder">Historical data will appear here.</p>
+      <div class="history-toolbar">
+        <button id="history-refresh" data-i18n="history.toolbar.refresh">Refresh</button>
+        <label for="history-limit" data-i18n="history.toolbar.limit">Limit</label>
+        <select id="history-limit">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div class="live-table-wrap">
+        <table id="history-table">
+          <thead>
+            <tr>
+              <th data-i18n="history.table.record_id">Record ID</th>
+              <th data-i18n="history.table.record_type">Record type</th>
+              <th data-i18n="history.table.pc_received_ms">PC received (ms)</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="3" class="history-empty" data-i18n="history.status.loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="history-status" data-i18n="history.status.loading">Loading...</div>
     </section>
 
     <section class="panel">
       <h2 data-i18n="panel.reports.title">Reports</h2>
       <p data-i18n="panel.reports.placeholder">Generate and download reports.</p>
       <div class="button-group">
-        <button disabled data-i18n="button.reports.csv">CSV</button>
-        <button disabled data-i18n="button.reports.json">JSON</button>
+        <button id="report-csv" data-i18n="button.reports.csv">CSV</button>
+        <button id="report-json" data-i18n="button.reports.json">JSON</button>
       </div>
+      <p class="report-hint"><span data-i18n="report.csv.label">CSV</span>: <span data-i18n="report.csv.hint">Download all records as CSV</span></p>
+      <p class="report-hint"><span data-i18n="report.json.label">JSON</span>: <span data-i18n="report.json.hint">Download all records as JSON</span></p>
     </section>
   </main>
 

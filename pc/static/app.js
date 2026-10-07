@@ -10,6 +10,11 @@
   let currentLang = LANG_EN;
   let currentCalendar = CAL_GREGORIAN;
 
+  const HISTORY_LIMITS = [10, 25, 50, 100];
+  const HISTORY_DEFAULT_LIMIT = 25;
+  let historyCache = [];
+  let historyLimit = HISTORY_DEFAULT_LIMIT;
+
   async function loadI18n() {
     const [en, fa] = await Promise.all([
       fetch("/static/i18n/en.json").then(r => r.json()),
@@ -89,6 +94,7 @@
     currentCalendar = currentCalendar === CAL_GREGORIAN ? CAL_JALALI : CAL_GREGORIAN;
     localStorage.setItem(CALENDAR_KEY, currentCalendar);
     applyCalendar();
+    reformatHistory();
   }
 
   function setStatus(key) {
@@ -186,6 +192,163 @@
     renderStations(payload.stations);
   }
 
+  function formatTimestamp(ms) {
+    if (ms === null || ms === undefined) {
+      return "";
+    }
+    const d = new Date(Number(ms));
+    if (currentCalendar === CAL_JALALI) {
+      try {
+        return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+          dateStyle: "short",
+          timeStyle: "medium",
+        }).format(d);
+      } catch {
+        // fall through to Gregorian if Persian calendar unavailable
+      }
+    }
+    return new Intl.DateTimeFormat("en-GB", {
+      dateStyle: "short",
+      timeStyle: "medium",
+    }).format(d);
+  }
+
+  function sortDesc(records) {
+    const arr = Array.isArray(records) ? records.slice() : [];
+    arr.sort((a, b) => Number(b.pc_received_ms) - Number(a.pc_received_ms));
+    return arr;
+  }
+
+  function renderHistory() {
+    const body = document.getElementById("history-body");
+    const status = document.getElementById("history-status");
+    if (!body) {
+      return;
+    }
+    body.innerHTML = "";
+    const labels = i18n[currentLang] || {};
+
+    if (historyCache.length === 0) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = 3;
+      cell.className = "history-empty";
+      cell.textContent = labels["history.status.empty"] || "No records";
+      row.appendChild(cell);
+      body.appendChild(row);
+      if (status) {
+        status.textContent = labels["history.status.empty"] || "No records";
+      }
+      return;
+    }
+
+    const slice = historyCache.slice(0, historyLimit);
+    slice.forEach(record => {
+      const row = document.createElement("tr");
+
+      const c1 = document.createElement("td");
+      c1.textContent = record.record_id === null ? "" : String(record.record_id);
+      row.appendChild(c1);
+
+      const c2 = document.createElement("td");
+      c2.textContent = record.record_type === null ? "" : String(record.record_type);
+      row.appendChild(c2);
+
+      const c3 = document.createElement("td");
+      c3.dataset.historyMs = record.pc_received_ms === null ? "" : String(record.pc_received_ms);
+      c3.textContent = formatTimestamp(record.pc_received_ms);
+      row.appendChild(c3);
+
+      body.appendChild(row);
+    });
+
+    if (status) {
+      const n = slice.length;
+      const template = labels["history.status.count"] || "{n} records";
+      status.textContent = template.replace("{n}", String(n));
+    }
+  }
+
+  function reformatHistory() {
+    const cells = document.querySelectorAll("#history-table td:nth-child(3)");
+    cells.forEach(cell => {
+      const ms = cell.dataset.historyMs;
+      if (ms === undefined || ms === "") {
+        return;
+      }
+      cell.textContent = formatTimestamp(Number(ms));
+    });
+  }
+
+  async function fetchHistory() {
+    const status = document.getElementById("history-status");
+    const labels = i18n[currentLang] || {};
+    const loading = labels["history.status.loading"] || "Loading...";
+    if (status) {
+      status.textContent = loading;
+    }
+    try {
+      const response = await fetch("/api/export/json");
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error("expected array");
+      }
+      historyCache = sortDesc(data);
+      renderHistory();
+    } catch {
+      const labels2 = i18n[currentLang] || {};
+      if (status) {
+        status.textContent = labels2["history.status.error"] || "Error";
+      }
+      const body = document.getElementById("history-body");
+      if (body) {
+        body.innerHTML = "";
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 3;
+        cell.className = "history-empty";
+        cell.textContent = labels2["history.status.error"] || "Error";
+        row.appendChild(cell);
+        body.appendChild(row);
+      }
+    }
+  }
+
+  function bindHistoryControls() {
+    const refresh = document.getElementById("history-refresh");
+    const limit = document.getElementById("history-limit");
+    if (refresh) {
+      refresh.addEventListener("click", () => fetchHistory());
+    }
+    if (limit) {
+      limit.addEventListener("change", () => {
+        const n = parseInt(String(limit.value), 10);
+        if (HISTORY_LIMITS.indexOf(n) !== -1) {
+          historyLimit = n;
+        }
+        renderHistory();
+      });
+    }
+  }
+
+  function bindReportButtons() {
+    const csvBtn = document.getElementById("report-csv");
+    const jsonBtn = document.getElementById("report-json");
+    if (csvBtn) {
+      csvBtn.addEventListener("click", () => {
+        window.location.href = "/api/export/csv";
+      });
+    }
+    if (jsonBtn) {
+      jsonBtn.addEventListener("click", () => {
+        window.location.href = "/api/export/json";
+      });
+    }
+  }
+
   let ws = null;
   let reconnectDelayMs = 1000;
 
@@ -232,6 +395,10 @@
     const calBtn = document.getElementById("calendar-toggle");
     if (langBtn) langBtn.addEventListener("click", toggleLang);
     if (calBtn) calBtn.addEventListener("click", toggleCalendar);
+
+    bindHistoryControls();
+    bindReportButtons();
+    fetchHistory();
 
     connectWebSocket();
   }
