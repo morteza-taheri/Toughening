@@ -3,14 +3,14 @@
 | Field | Value |
 |---|---|
 | Document title | TOUGHENING MACHINE — Project Specification Baseline |
-| Document version | 0.7.7 (Documentation consistency round + Decision Round F) |
+| Document version | 0.7.6 (Decision Round E — PC envelope) |
 | Revision status | **BASELINE — FOR REVIEW** |
 | Created | 2026-10-04 |
 | Workspace | `D:\PMC\Documents\PlatformIO\Projects\Toughening` |
 | Document path | `docs/PROJECT_SPECIFICATION.md` |
 | Source basis | Requirements, decisions and review findings recorded in the project conversation prior to this document |
-| Implementation status | **Phase 2A-0 (documentation only) is COMPLETE. Phase 2A (PC skeleton + simulator + tests) and Phase 2B (firmware skeleton) are also COMPLETE — see §21.** Software continuation work after Phase 2B is recorded in the §21 note on Phase 2C. **Phase 3 and later are NOT AUTHORIZED.** |
-| Supersedes | **0.7.6 (Decision Round E — PC envelope)** — archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.7.6.md` (SHA256 `39CAD29B8EDDE90FB06BEC86D497812FE850C6EF9C38743D2CE2017AB0257E3E`, 199 469 bytes). Earlier archive: **0.5.0 (decision round B approvals)** at `docs/archive/PROJECT_SPECIFICATION_v0.5.0.md` (SHA256 `06D71C124E647D5807E7381F617AAAB2A7FAC9A926BF8F27632E13C747DDB426`, 119 532 bytes). |
+| Implementation status | **No implementation exists. No implementation phase has been started.** Phase 2A-0 (documentation only) is COMPLETE. |
+| Supersedes | **0.5.0 (decision round B approvals)** — archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.5.0.md` (SHA256 `06D71C124E647D5807E7381F617AAAB2A7FAC9A926BF8F27632E13C747DDB426`, 119 532 bytes). |
 | Companion document | `docs/PROTOCOL_CONTRACT.md` — **APPROVED, final 2026-10-05; revised v1.1.1 on 2026-10-06 (Decision Round E)** |
 
 ---
@@ -27,7 +27,7 @@
 | 0.4.0 | 2026-10-04 | **Approved-decision round.** Applies six user-approved decisions: **DR-01** report/export scope = historical / database-derived; **DR-02** canonical `cycle_start_ms` / `start_time_valid`; **DR-03** `duration_basis` value set = `'null'`, `'calendar'`, `'uptime_same_boot'`; **DR-03b** `duration_ms IS NULL ⇔ duration_basis = 'null'` (bidirectional); **DR-06** D-D13 fault vocabulary = `out_of_range` only; **DR-08** temperature-conversion configuration ownership Q1–Q3. **DR-04** and **DR-07** remain OPEN (prerequisites now satisfied, decisions not made). No OPEN decision was resolved beyond those six. Revision status remains **BASELINE — FOR REVIEW**. |
 | 0.5.0 | 2026-10-04 | **Decision Round B approvals.** **DR-04A APPROVED** — raw voltage of an applicable `out_of_range` reading must exist in durable historical storage (category only). **DR-07-C1 APPROVED** — `invalid_channel_count_now` ratified as instantaneous / live-only / channel-counting / `out_of_range`-only. **DR-07-C2 APPROVED** — `faulted_channel_count` is the cumulative count of distinct channels with ≥1 `out_of_range` condition in the cycle, reset at cycle start. **CS-01 APPROVED (Policy B)** — backward clock step falls back to `uptime_same_boot` when a valid same-boot uptime pair exists, otherwise `'null'`. Deferred / not-ready: DR-04A2, DR-04C, DR-04D, DR-04E, DR-04F, DR-04G (rejected), DR-07-C3, DR-12. PER-03, D-D1, D-D9, D-D11, D-D12, DR-01, DR-02, DR-03, DR-03b, DR-06, DR-08 unchanged. Revision status remains **BASELINE — FOR REVIEW**. |
 | 0.6.0 | 2026-10-04 | **Phase 2A-0 (documentation only) + decision round C.** v0.5.0 archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.5.0.md`. **DR-27 APPROVED** — temperature-calibration configuration ownership is **per-channel**, **SUPERSEDING DR-08 Q1–Q3**. **DR-25.1 … DR-25.5 APPROVED** — D-C1…D-C5 defaults (D-C4 = **defaults only**). **DR-25.6 / DR-25.7 / DR-25.8 / DR-25.9 — direction only** (DR-12; D-D2 marker direction; D-D3/D-D10 overwrite-oldest; DR-04A2). **DR-07-C3 reclassified** from `DEFERRED — BLOCKED by D-C4` to **`OPEN — DECISION REQUIRED`** (no longer blocked; **not decided**). **D-B4 MET** — Phase 2A nevertheless remains **NOT AUTHORIZED**. §3.1a added (pinout image — record only). **PCC-19 … PCC-21 recorded, NOT applied.** `docs/PROTOCOL_CONTRACT.md` created as **PROPOSED — NOT APPROVED**. **No implementation, package, SQL, test, configuration, network or hardware work was performed.** |
-| 0.6.1 | 2026-10-05 | **Phase 2A-0 repair revision (no new decisions).** Repairs corruption introduced by the 0.6.0 pass: 8 literal `@@END@@` artifacts removed, 1 mojibake line repaired, 21 blank lines breaking markdown tables removed, and the lost DR-27 edits to §6.2 / §6.3 / §6.6 restored. **Adds DR-13 … DR-29** with normative text (approval date 2026-10-05) and replaces the DR-25.1 … DR-25.9 and DR-27 rows with their full normative text. **Adds PCC-01 … PCC-27** as PROPOSED consequential changes in §18.1, and relocates the open-questions register to §18.2. **Deletes the unauthorized top-level sections 27, 28 and 29**, relocating their content into §19 and §18. Derived status updates: D-A8/HW-01 (DR-13), D-B1/D-B3 (DR-15), D-D7 (DR-17), D-D4 (DR-18), D-D5 (DR-19), AMB-15/§15.5 (DR-22). **0.6.1 is a repair, NOT a new decision round — the decision content of 0.6.0 is unchanged.** |
+| 0.6.1 | 2026-10-05 | **Phase 2A-0 repair revision (no new decisions).** Repairs corruption introduced by the 0.6.0 pass: 8 literal `@@END@@` artifacts removed, 1 mojibake line repaired, 21 blank lines breaking markdown tables removed, and the lost DR-27 edits to §6.2 / §6.3 / §6.6 restored. **Adds DR-13 … DR-29** with normative text (approval date 2026-10-05) and replaces the DR-25.1 … DR-25.9 and DR-27 rows with their full normative text. **Adds PCC-01 … PCC-27** as PROPOSED consequential changes in §18.1, and relocates the open-questions register to §18.2. **Deletes the unauthorized top-level sections 27, 28 and 29**, relocating their content into §19 and §18. Derived status updates: D-A8/HW-01 (DR-13), D-B1/D-B3 (DR-15), D-D7 (DR-17), D-D4 (DR-18), D-D5 (DR-19), AMB-15/§15.5 (DR-22). **0.6.1 is a repair, NOT a new decision round — the decision content of 0.6.0 is unchanged.**
 | 0.6.2 | 2026-10-05 | **Phase 2A-0 consistency patch (no new decisions, no new PCC semantics).** Internal-consistency alignment of 0.6.1 only: **(A)** §19 DR register reordered into numeric order — DR-25 + DR-25.1 … DR-25.9 placed after DR-24, DR-27 placed after DR-26; row text carried byte-for-byte, **no row text changed**. **(B)** §20 stale dependency rows updated — "Unknown-time record handling validation" → D-D7 APPROVED (DR-17); "Fault-counter semantics" → DR-07-C3 OPEN (no longer blocked by D-C4), stabilisation RESOLVED (DR-25.6); "Fault counting during activation stabilisation (DR-12)" → RESOLVED (DR-25.6). **(C)** §23 traceability statuses brought in line with the §19 register. **(D)** §17.1 "Blocked by" column updated for 5 rows (Duration rule, Out-of-range, Fault counters, Transition counting, Alarm policy) — **no test is marked as passed or executed**. **(E)** PCC-28 … PCC-35 recorded for §3.3, §4.2, §10.3, §11.5, §13.3, §14.3, §15.4 and §16.1, all `PROPOSED — NOT APPLIED`. **(F)** PCC-06, PCC-07, PCC-08, PCC-09, PCC-13 relabelled `APPLIED (0.6.1)`; PCC-05, PCC-10, PCC-11, PCC-12, PCC-14 remain `PROPOSED — NOT APPLIED`. **No decision was resolved, added or reversed; no new technical value invented; no hardware, protocol, schema, SQL, code, test or configuration work performed.** Sections §4.3, §4.5, §8.1, §9.2, §10.3, §11.5, §13.3, §14.3, §15.4, §16.1 and §17.3 are **byte-unchanged**. Phase 2A and Phase 2B remain **NOT AUTHORIZED**. |
 | 0.7.0 | 2026-10-05 | **PCC application pass (no new decisions).** Applies the body-section PCCs recorded in 0.6.1/0.6.2 so the body no longer contradicts §19. **§4.5** non-escalation → D-C5 APPROVED (DR-25.5). **§8.1** unconfigured → applies to pressure and temperature (DR-27). **§8.2 / §8.3** → D-C5 APPROVED (DR-25.5). **§8.5** severity policy → APPROVED (DR-25.1…DR-25.5; D-C4 defaults only). **§9.2** stabilisation samples excluded from fault counters (DR-25.6). **§10.2** D-C2 APPROVED (DR-25.2), three-concept distinction retained. **§10.3** D-C1…D-C5 Status cells → APPROVED (DR-25.1–.5); the **"Alternatives (none chosen)" column is retained as rejected-option history and is NOT renamed.** **§11.5** D-D7 APPROVED (DR-17). **§13.3** board identity → APPROVED (DR-13). **§14.3** `fault_transition_count` NULL until DR-07-C3, not D-C4. **§15.4** localisation APPROVED (DR-19). **§16.1** backup APPROVED (DR-18); the specific WAL technique remains a proposal. **§22** glossary "Raw voltage" lifetime clarified. **§5.3** retailer "4-channel ADC" claim replaced with the pinout observation — **6 ADC1-capable GPIOs (32, 33, 34, 35, 36, 39), verified against `docs/hardware/esp32-pinout.jpg`, recorded as observation only, not a decision.** Cross-references: **§3.3** D-A8 APPROVED (DR-13); **§4.2** DR-04A2 APPROVED (DR-25.9); **§19** DR-25.9 split into DR-25.9 (granularity, APPROVED) and **DR-25.9-b** (count finalization / D-D2 persistence, OPEN); **§20** and **§23** updated for DR-04A2 and DR-12. Documentation defects: **§19 DR-13 / DR-29** imperative copy-paste converted to descriptive text. **PCC register:** 15 PCCs relabelled `APPLIED (0.7.0)`; the 5 previously `APPLIED (0.6.1)` were **not** regressed. **No new decision, no new section, no row removed. Phase 2A and Phase 2B remain NOT AUTHORIZED.** **Date discrepancy recorded, not changed:** the 0.6.0 row stays dated **2026-10-04** because not every decision it cites can be shown to have been approved on 2026-10-05, and the §19 DR-25 bundle row carries no approval date. |
 | 0.7.1 | 2026-10-05 | **Follow-up: complete D-C5 / D-D10 body alignment (no new decisions).** Follows the 0.7.0 pass, which left residual references that still contradicted §19. **§7.5** non-escalation now cites D-C5 APPROVED (DR-25.5). **§8.4** `overflow` row now cites the D-D10 direction as APPROVED (DR-25.8); the `journal_pressure` row (D-D6 genuinely OPEN) is unchanged. **§7.1a** (PCC-36): the DR-06 scope-limits sentence split so it no longer claims D-C1…D-C5 are OPEN; open-question item 7 now RESOLVED (DR-25.5); DR-12 stabilisation participation now RESOLVED (DR-25.6). **§12.4 / §12.5** (PCC-37): the §12.5 heading no longer says "D-D10 OPEN — NOT APPROVED"; the L2 progression sentence now says D-D10 must be "fully decided" rather than "approved"; D-C5 is removed from the exhaustion-policy dependency list and recorded as APPROVED and orthogonal. **§17.1** PER-02 no longer lists D-C5 as a dependency. **§18** (PCC-38): AMB-08 now records the alarm/fault policy as CLOSED by DR-25.1…DR-25.5; AMB-14 now records direction APPROVED with sizes/thresholds undefined. **Deliberately NOT changed:** §17.3 **AC-08** and its companion sentence — PCC-22 forbids moving AC-08 before an explicit decision; §7.4 line 511 is a correct cross-reference. **New PCCs PCC-36, PCC-37, PCC-38 recorded as APPLIED (0.7.1).** No new decision, no new section, no row removed. Phase 2A / Phase 2B remain NOT AUTHORIZED. |
@@ -36,7 +36,6 @@
 | 0.7.4 | 2026-10-05 | **Decision Round D — hardware architecture closure.** `docs/PROTOCOL_CONTRACT.md` v1.0.0 → **v1.1.0**: `reset_command`, `reset_result`, `live_state` `alarm_state` / `warning_state`, tests T-P16 / T-P17. Spec: **D-A2, D-A3, D-A4 APPROVED** (DR-31 / DR-32 / DR-33); **HW-02 … HW-09, HW-11, HW-12, HW-14 CLOSED**; **HW-10 = user responsibility (DR-38)**; **HW-13 stays OPEN**; voltage domain amended to 0–5 V (**DR-30**, amends DR-27). **DR-30 … DR-40** added. **§0.1, §3.1a, §3.2, §3.3, §5.3, §12.1, §19, §19.1, §20, §21, §23, §24, §25** updated; V122–V135 added. LED GPIO13 and WDT 5 s remain **PROPOSED — NOT DECIDED**. **Phase 3 remains NOT AUTHORIZED.** |
 | 0.7.5 | 2026-10-06 | **Amendment propagation pass (no new decisions).** Amendment notes appended to §19 DR-27 wherever 0–3.3 V is stated as a live fact (four numbers left intact, per DR-30 (0.7.4)). §19 DR-23 corrected: the protocol / message contract is APPROVED (final, 2026-10-05) as v1.1.0, not "remains NOT APPROVED". §4.x and §6.x confirmed via grep to contain no 0–3.3 V voltage statements. Header, footer, §0.1, §24 and §25 updated; V136–V140 added. Only `docs/PROJECT_SPECIFICATION.md` modified; `docs/PROTOCOL_CONTRACT.md`, `docs/archive/`, `docs/hardware/`, `.clinerules/` and all other files untouched. **Phase 3 remains NOT AUTHORIZED.** |
 | 0.7.6 | 2026-10-06 | **Decision Round E — PC envelope defined (no code change).** Contract v1.1.0 → **v1.1.1**: PC envelope defined in §3.1, §3.17, §3.18, §3.19; §8 item 24 RESOLVED. `pc_id` = `"pc-01"` (top-level only), `pc_seq` monotonic per PC process, `ts_sent_valid` = 1 by default per DR-17. ack/nack fields remain inside `payload`. §0.1, §12.1, §24, §25 updated; V141–V145 added. Only `docs/PROTOCOL_CONTRACT.md` and `docs/PROJECT_SPECIFICATION.md` modified; `pc/`, `firmware/`, `docs/archive/`, `docs/hardware/`, `.clinerules/` untouched. **Phase 3 remains NOT AUTHORIZED.** |
-| 0.7.7 | 2026-10-08 | **Documentation consistency round + Decision Round F.** v0.7.6 archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.7.6.md`. **Consistency repairs (no decision changed):** §0 header and §0.3 items 2—3, §1.2, §18.2 Q15 / Q16 and closing sentence, §19 D-A1 / D-A5, §21 phase status (Phase 2A, Phase 2B and the Phase 2C note), DR-37 (LED pin removed; DR-35 stays PROPOSED), table repairs in §20 / §23 / revision history, identifier-gap note for DR-05 / DR-09 / DR-10 / DR-11 in §19.2. **Decision Round F (user-approved 2026-10-08):** **DR-41** alarm / reset stay on the PCF8574T (risk accepted, mitigations mandatory), **DR-42** polarity, **DR-43** copy calibration, **DR-44** pressure counters are never `NULL`; no pressure flag is added, **DR-45** `fault_transition_count` (**resolves DR-07-C3**), **DR-46** database retention, **DR-47** auto-start; **DR-48** (saturation) and **DR-49** (alarm output on persistent I2C fault) recorded **OPEN**. Body alignment of DR-07-C3 in §7, §14.3, §18.2, §19, §20, §23. **PCC-39 … PCC-43 recorded PROPOSED — NOT APPLIED** (contract / schema changes). Phase 2B authorization recorded as stated by the user (date not recorded). **Phase 3 and later remain NOT AUTHORIZED.** |
 
 ### 0.2 Status label definitions (used throughout this document)
 
@@ -60,8 +59,8 @@
 **Source limitations — read before relying on this document.**
 
 1. **No prior document existed.** The workspace was verified empty immediately before this document was created. There was no earlier specification file to import, diff, or reconcile. This baseline was written from the conversation record only.
-2. **Implementation work exists.** Phase 2A-0 (documentation only), Phase 2A (PC skeleton, protocol simulator, tests) and Phase 2B (firmware skeleton) are complete (see §21). **This specification makes no claim about test results or measured figures**; those belong to the repository and its commit history. All timings, capacities and rates stated in this document remain **estimates pending verification** (Phase 3).
-3. **The hardware architecture is APPROVED (DR-31, DR-32, DR-33, DR-37) and the board is confirmed (DR-13), but this document records no ordering, assembly or bench validation.** Flash size, chip identity and ADC characteristics remain pending explicit read-only verification; the bench phase (Phase 3) is **NOT AUTHORIZED**.
+2. **Nothing here has been built, compiled, executed, or tested.** No test has been run at any point in this project. No performance figure has been measured. All timings, capacities and rates are **estimates pending verification**.
+3. **No hardware has been selected, ordered, or validated.** The board reference in section 3.1 is a **preliminary selection** only.
 4. **No sensor datasheet has been obtained.** Sensor identity rests on user statement. No transfer curve, calibration value, or manufacturer specification has been verified or invented.
 5. **No network, IP, DHCP, firewall or Windows setting has been changed.**
 6. **Where this document is silent, silence is not approval.** Missing information is recorded in section 18 rather than filled by assumption.
@@ -87,7 +86,7 @@ The Toughening Machine system monitors **16 stations**, each fitted with an **up
 | Shared physical alarm output | **1** |
 | Shared reset input | **1** |
 
-**Constraint (established, non-negotiable):** it must **not** be assumed that the preliminary ESP32 selection can directly acquire all 64 analog channels. The acquisition architecture is **APPROVED (DR-31)** — see §19.
+**Constraint (established, non-negotiable):** it must **not** be assumed that the preliminary ESP32 selection can directly acquire all 64 analog channels. The acquisition architecture is **OPEN** (HW-02, HW-03).
 
 ### 1.3 Expected operating envelope
 
@@ -471,7 +470,7 @@ Three distinct meanings are kept separate and must not be merged.
 | Counter | Grain | Definition | Status |
 |---|---|---|---|
 | `faulted_channel_count` | cycle | Number of **distinct channels** (of 64) in the `out_of_range` state **at least once** during the cycle | **APPROVED (DR-07-C2)** — cumulative distinct-channel counter; fault vocabulary **APPROVED (DR-06)**; interrupted/reboot persistence still **OPEN (D-D2)** |
-| `fault_transition_count` | cycle | Number of **entries** into the `out_of_range` state during the cycle | **APPROVED (DR-45, 2026-10-08)** — number of entries of a channel into `out_of_range` during one station cycle; zero at cycle start; stabilisation samples excluded (DR-12); `NULL` when not computable. The aggregation grain (per channel / per station / both) is not stated by DR-45 — **OPEN (Q17)**. The approved contract v1.1.1 still carries `NULL`; computing it requires **PCC-41 (PROPOSED — NOT APPLIED)** |
+| `fault_transition_count` | cycle | Number of **entries** into the `out_of_range` state during the cycle | PROPOSED — NOT APPROVED; **OPEN — DECISION REQUIRED (DR-07-C3, 0.6.0)**; **no longer blocked by D-C4** (D-C4 defaults APPROVED, DR-25.4); stored as `NULL` (section 7.4) |
 | `invalid_channel_count_now` | live state (transient) | **Current** number of channels in the `out_of_range` state at this instant | **APPROVED (DR-07-C1)** — instantaneous, live-only, non-durable, counts **channels** not samples; **not** a cycle-history counter |
 
 ### 7.1a Fault-counter semantics — `D-D13 — OPEN — DECISION REQUIRED` (P1 / AUD-09)
@@ -509,27 +508,27 @@ Counted per channel; a channel is counted **at most once** within a cycle; the c
 * **DR-12 dependency:** whether activation-stabilisation samples participate is **OPEN (DR-12)**. The section 9.2 rule (stabilisation samples excluded from cycle statistics; threshold evaluation suppressed) is **preserved but not extended** into fault-counter semantics.
 * **No transition semantics** are introduced into `faulted_channel_count`.
 
-**`fault_transition_count` — APPROVED (DR-45, 2026-10-08).** Definition as approved by the user: the number of entries of a channel into `out_of_range` during one station cycle; zero at cycle start; stabilisation samples excluded (DR-12); `NULL` when not computable. The earlier status `OPEN — DECISION REQUIRED (DR-07-C3)` is **superseded**. Entering / leaving semantics follow the **D-C4 defaults (DR-25.4)**: no delay and no hysteresis, i.e. immediate evaluation, unless configured. **Still OPEN:** the aggregation grain (per channel / per station / both, Q17), transition persistence and behaviour across restart (**D-D2**). The approved contract v1.1.1 still carries `NULL`; computing the value requires the contract and schema change **PCC-41 (PROPOSED — NOT APPLIED)**.
+**`fault_transition_count` — OPEN — DECISION REQUIRED (DR-07-C3, 0.6.0).** PROPOSED, **NOT APPROVED**, stored as `NULL` (section 7.4). **DR-07-C3 has NOT been decided by the user.** Its earlier status (`DEFERRED — BLOCKED by D-C4`) is **withdrawn**: because **D-C4 defaults are now APPROVED (DR-25.4)**, DR-07-C3 is **no longer blocked by D-C4** and is now an **open question awaiting an explicit decision**. Entering/leaving semantics, hysteresis, debounce, repeated excursions, transition entity scope, transition persistence and stabilisation behaviour all remain **undefined**. `fault_transition_count` stays `NULL` in every draft until the user decides DR-07-C3.
 
 **Already established, and preserved as such:**
 * the three meanings must be kept distinct and must not be merged (section 7 preamble);
 * counters are **aggregate fields**, never one record per sampling interval (section 7.3);
-* `fault_transition_count` is **not implemented** until **PCC-41** is applied (DR-45 approved), and is stored as `NULL` rather than `0` until then (section 7.4);
+* `fault_transition_count` is **not implemented** before D-C4, and is stored as `NULL` rather than `0` (section 7.4);
 * an invalid measurement is **not** an alarm and carries **no** severity; D-C5 governs that (section 7.5).
 
 **Remaining OPEN under D-D13 — none of these is selected:**
 1. ~~What constitutes a **faulted channel**~~ — **RESOLVED by DR-06**: `out_of_range` only (see the approved vocabulary block above).
 2. ~~Whether a count is **instantaneous** or **cumulative**~~ — **RESOLVED by DR-07-C1** (`invalid_channel_count_now` = instantaneous) and **DR-07-C2** (`faulted_channel_count` = cumulative within the cycle).
-3. Whether **transitions** are counted **per channel**, **per station**, or both. — **PARTLY RESOLVED (DR-45):** the count is of **entries** of a channel into `out_of_range` during one station cycle; the **aggregation grain** (per channel / per station / both) is **OPEN (Q17)**
+3. Whether **transitions** are counted **per channel**, **per station**, or both. — **OPEN — DECISION REQUIRED (DR-07-C3)**; **no longer blocked by D-C4**
 
 4. **Reset** behaviour — cycle-start reset **APPROVED for `faulted_channel_count` (DR-07-C2)**; reset at **device restart** remains **OPEN (D-D2)**; reset for `fault_transition_count` remains **OPEN**.
 5. **Reboot** behaviour across a restart — **OPEN (D-D2)**.
 6. **Persistence** behaviour — cycle-summary placement **APPROVED for `faulted_channel_count` (DR-07-C2)**; interrupted-cycle persistence remains **OPEN (D-D2)**; `fault_transition_count` persistence **OPEN**.
 7. Relationship to **D-C5** (what an invalid sensor means for the cycle and for alarms) — **RESOLVED (DR-25.5)**: out-of-range / invalid data is a data-validity condition plus a system event; the cycle completes and invalid samples are excluded from statistics; no physical alarm and no escalation.
-8. Relationship to **D-C4** (hysteresis / debounce, and what constitutes one transition) — **RESOLVED for the defaults (DR-45 with DR-25.4)**: immediate evaluation, no hysteresis or debounce unless configured on the ESP32 settings page.
-9. **DR-12 — whether samples during activation stabilisation participate in fault counting** (all three counters) — **RESOLVED (DR-25.6)**: not counted.
+8. Relationship to **D-C4** (hysteresis / debounce, and what constitutes one transition) — **OPEN**. D-C4 defaults are **APPROVED (DR-25.4)**; whether DR-07-C3 adopts them is a **separate, undecided** question.
+9. **DR-12 — whether samples during activation stabilisation participate in fault counting** (all three counters) — **OPEN**.
 
-**Status: RESOLVED except grain and persistence.** `invalid_channel_count_now` and `faulted_channel_count` models are **APPROVED** (DR-07-C1, DR-07-C2). `fault_transition_count` is **APPROVED (DR-45, 2026-10-08)**; the aggregation grain (Q17) and interrupted-cycle / reboot persistence (**D-D2**) remain **OPEN**; the value stays `NULL` in the approved contract v1.1.1 until **PCC-41** is applied. Stabilisation participation — **RESOLVED (DR-25.6)**: samples during activation stabilisation are **NOT** counted in fault counters.
+**Status: PARTIALLY RESOLVED.** `invalid_channel_count_now` and `faulted_channel_count` models are **APPROVED** (DR-07-C1, DR-07-C2) and are independent of D-C4 and D-C5. `fault_transition_count` remains **OPEN — DECISION REQUIRED (DR-07-C3, 0.6.0)** — **no longer blocked by D-C4** — and stored as `NULL` (section 7.4). Stabilisation participation — **RESOLVED (DR-25.6)**: samples during activation stabilisation are **NOT** counted in fault counters. Interrupted-cycle and reboot persistence remain **OPEN (D-D2)**.
 
 ### 7.2 Legacy names (must not be silently reused)
 
@@ -541,15 +540,15 @@ A cycle of several minutes at approximately 1 Hz produces hundreds of samples pe
 
 Bounded **state-transition** records may be used to retain diagnostic detail: one record when a channel **enters** the invalid state and one when it **leaves**. This preserves the event-based logging requirement without event spam.
 
-### 7.4 Transition counting — APPROVED (DR-45); grain and persistence OPEN
+### 7.4 Transition counting — OPEN — DECISION REQUIRED (DR-07-C3)
 
-`fault_transition_count` and the transition-event records need a definition of when a channel is deemed to have *entered* and *left* the invalid state — a **hysteresis / debounce** question. **DR-45** approves counting **entries** into `out_of_range`; the entering / leaving semantics use the **D-C4 defaults (DR-25.4)**.
+`fault_transition_count` and the transition-event records require a definition of when a channel is deemed to have *entered* and *left* the invalid state — that is a **hysteresis / debounce** question.
 
-**Status change in 0.7.7.** **DR-07-C3 is resolved by DR-45 (2026-10-08).** Counting entries is the approved model; it is not an automatic consequence of D-C4. The aggregation grain (Q17) is **not** stated by DR-45 and remains **OPEN**.
+**Status change in 0.6.0.** D-C4 is **no longer OPEN**: its defaults are **APPROVED (DR-25.4)**. **DR-07-C3 is therefore no longer blocked by D-C4** and is now an **open question awaiting an explicit user decision**. Adopting the D-C4 defaults is *one* possible answer, not an automatic one — DR-07-C3 is **not** thereby decided.
 
-Until the contract and schema change **PCC-41** is applied:
+Until **DR-07-C3** is decided:
 
-* the approved contract v1.1.1 carries `fault_transition_count` as `NULL`, so the value must **not** be computed or sent by any implementation;
+* `fault_transition_count` **must not be implemented**;
 * it is stored as `NULL` (not `0`), because `0` would assert a measurement claim that was never made.
 
 ### 7.5 Non-escalation (established — do not pre-empt policy)
@@ -735,7 +734,7 @@ The system has **one shared physical alarm output** and **one shared reset input
 
 **The alternatives column records options that were considered and rejected; it is retained as history and is not a statement of current policy.**
 
-**D-C4 is approved as defaults only (DR-25.4).** **DR-07-C3 is decided by DR-45** (entries into `out_of_range`, counted with these immediate-evaluation defaults); its aggregation grain remains **OPEN (Q17)**.
+**D-C4 is approved as defaults only.** Adopting the defaults is *one* possible answer, **not** an automatic resolution of the undecided **DR-07-C3** (`fault_transition_count`), which remains **OPEN — DECISION REQUIRED**.
 
 ---
 
@@ -1008,7 +1007,7 @@ Consequences recorded as fact — none is decided here:
 * Interrupted cycles have `status = 'interrupted'`, `cycle_end_ms = NULL`, `end_time_valid = 0`, `duration_ms = NULL`.
 * No fabricated timestamps.
 
-**Proposed added columns:** `faulted_channel_count` (default 0) and `fault_transition_count` (**`NULL` until the contract / schema change PCC-41 is applied**; the counter itself is **APPROVED by DR-45**) — the fault **vocabulary** is APPROVED (DR-06, section 7.1a) and `faulted_channel_count` is APPROVED (DR-07-C2); and the two optional `valid_samples_*_both_nozzles` (**`NULL` until HW-02/HW-03**).
+**Proposed added columns:** `faulted_channel_count` (default 0) and `fault_transition_count` (**`NULL` until DR-07-C3 is decided**) — the fault **vocabulary** is APPROVED (DR-06, section 7.1a) and `faulted_channel_count` is APPROVED (DR-07-C2); `fault_transition_count` remains OPEN because its former blocker **D-C4 is APPROVED (DR-25.4, defaults only)** but **DR-07-C3 itself remains OPEN — DECISION REQUIRED**; and the two optional `valid_samples_*_both_nozzles` (**`NULL` until HW-02/HW-03**).
 
 ### 14.4 `nozzle_stats` — proposed columns
 
@@ -1114,8 +1113,8 @@ The PC must monitor device connectivity, journal health and its own database int
 | Conversion | Parameter change alters output without code change; defaults match `voltage − 0.5` | — |
 | Out-of-range | Raw preserved in the live representation (section 4.2); converted `NULL`; `out_of_range` set; **no silent clamp**; excluded from stats. | **DR-04A APPROVED** — durable raw voltage required for applicable out-of-range readings (section 4.2); granularity **APPROVED (DR-25.9)**; **D-C5 APPROVED (DR-25.5)** — see AC-08 (now unconditional) |
 | Unconfigured temperature | `temp_c = NULL`, `temp_conversion_configured = false`, raw retained; `NULL` excluded from `AVG` | — |
-| Fault counters | Aggregation principle only: one counter value per cycle, never one record per sample (section 7.3). Fault = **`out_of_range` only** (**DR-06**). `invalid_channel_count_now` = instantaneous / live-only / non-durable (**DR-07-C1**). `faulted_channel_count` = cumulative distinct-channel, cycle-summary, reset at cycle start (**DR-07-C2**) | **`fault_transition_count` APPROVED (DR-45); grain OPEN (Q17); value `NULL` until PCC-41**; stabilisation **RESOLVED (DR-25.6)**; interrupted-cycle / reboot persistence **OPEN (D-D2)** |
-| Transition counting | — | **D-C4 APPROVED (defaults only, DR-25.4)**; DR-07-C3 **RESOLVED (DR-45)**, grain **OPEN (Q17)** |
+| Fault counters | Aggregation principle only: one counter value per cycle, never one record per sample (section 7.3). Fault = **`out_of_range` only** (**DR-06**). `invalid_channel_count_now` = instantaneous / live-only / non-durable (**DR-07-C1**). `faulted_channel_count` = cumulative distinct-channel, cycle-summary, reset at cycle start (**DR-07-C2**) | **`fault_transition_count` OPEN — DECISION REQUIRED (DR-07-C3, no longer blocked by D-C4)**; stabilisation **RESOLVED (DR-25.6)**; interrupted-cycle / reboot persistence **OPEN (D-D2)** |
+| Transition counting | — | **D-C4 APPROVED (defaults only, DR-25.4)**; DR-07-C3 still **OPEN — DECISION REQUIRED** (no longer blocked) |
 | Alarm policy | Severity, latching, escalation, abort, sensor-fault behaviour | **D-C1…D-C5 APPROVED (DR-25.1–DR-25.5)** |
 | Station simultaneity | Direct same-pass counts | **HW-02, HW-03** |
 | Power loss T1–T4 | Per section 13.4 | D-D8 (sizing) |
@@ -1235,13 +1234,8 @@ Each entry records a consequential change that this revision deliberately **does
 | PCC-36 | §7.1a | Residual stale D-C5 references in §7.1a: the DR-06 scope-limits sentence, open-question item 7, and DR-12 stabilisation participation. **DR-25.1…DR-25.5 and DR-25.6 approved.** | **APPLIED (0.7.1)** |
 | PCC-37 | §12.4 / §12.5 | Residual stale D-D10 references: the §12.5 heading and the L2 progression sentence said D-D10 "OPEN"; it is **direction approved (DR-25.8)**. §12.4 listed D-C5 as a dependency of the exhaustion policy; D-C5 is **APPROVED (DR-25.5)** and is orthogonal to exhaustion. | **APPLIED (0.7.1)** |
 | PCC-38 | §17.1 / §18 AMB rows | Residual stale references: §17.1 PER-02 listed D-C5 as a dependency (now APPROVED); §18 AMB-08 "Alarm and fault policy unresolved" is **closed by DR-25.1…DR-25.5**; §18 AMB-14 now records direction APPROVED with sizes/thresholds still undefined. | **APPLIED (0.7.1)** |
-| PCC-39 | contract §3 (system events) / §10.2 | **DR-41 mitigation:** `i2c_fault` must be added as a system-event type in `docs/PROTOCOL_CONTRACT.md`, and channels affected by an I2C fault must be reported as invalid, never valid. Contract v1.1.1 does not define `i2c_fault`. | **PROPOSED — NOT APPLIED** |
-| PCC-40 | §6.2 / §14.3 / contract `cycle_summary` | **DR-44:** `valid_samples_pressure` is always a non-negative integer, never `NULL`. No `pressure_conversion_configured` flag is added. Contract v1.1.1 §3.5 wording that left NULL-when-unconfigured OPEN for pressure must be updated to state this explicitly. | **PROPOSED — NOT APPLIED** |
-| PCC-41 | §7.4 / §14.3 / contract `cycle_summary` | **DR-45:** `fault_transition_count` becomes a computed value (`NULL` only when not computable); contract v1.1.1 carries `NULL`. The aggregation grain (Q17) must be decided first. | **PROPOSED — NOT APPLIED** |
-| PCC-42 | §15 / contract `config_set` | **DR-42 / DR-43:** polarity settings (one global setting for the 16 station inputs, plus the alarm output and the reset input) and the "copy calibration to selected channels" operation (validated after copying) in `config_set` and the settings page. | **PROPOSED — NOT APPLIED** |
-| PCC-43 | §16 / §15 / contract system events | **DR-46:** a low-free-disk-space warning (system event and dashboard indicator); threshold value OPEN (Q18). | **PROPOSED — NOT APPLIED** |
 
-**PCC application summary.** PCC-05, PCC-10, PCC-11, PCC-12, PCC-14, PCC-17, PCC-18 and PCC-28…PCC-35 became **APPLIED (0.7.0)**. Residual stale references in §7.1a, §12.4, §12.5, §17.1 and §18 were applied in **0.7.1** as a follow-up — **PCC-36, PCC-37 and PCC-38, recorded as APPLIED (0.7.1)**. **PCC-22 became APPLIED (0.7.2)** when AC-08 was promoted from §17.3 to §17.2 as an unconditional criterion — its original blocker (D-C5 being OPEN) was resolved by DR-25.5 in 0.6.0. **0.7.7:** **PCC-39 … PCC-43 are recorded as PROPOSED — NOT APPLIED** (contract / schema consequences of DR-41 … DR-46); none is applied.
+**PCC application summary.** PCC-05, PCC-10, PCC-11, PCC-12, PCC-14, PCC-17, PCC-18 and PCC-28…PCC-35 became **APPLIED (0.7.0)**. Residual stale references in §7.1a, §12.4, §12.5, §17.1 and §18 were applied in **0.7.1** as a follow-up — **PCC-36, PCC-37 and PCC-38, recorded as APPLIED (0.7.1)**. **PCC-22 became APPLIED (0.7.2)** when AC-08 was promoted from §17.3 to §17.2 as an unconditional criterion — its original blocker (D-C5 being OPEN) was resolved by DR-25.5 in 0.6.0.
 
 ### 18.2 Open Questions Register
 
@@ -1249,7 +1243,7 @@ Each entry records a consequential change that this revision deliberately **does
 
 | # | Question | Identifier |
 |---|---|---|
-| Q1 | **`fault_transition_count` counting model** — per channel, per station, or both? Does it adopt the D-C4 defaults? | **DR-07-C3 — RESOLVED (DR-45, 2026-10-08)**; grain: **Q17** |
+| Q1 | **`fault_transition_count` counting model** — per channel, per station, or both? Does it adopt the D-C4 defaults? | **DR-07-C3 — OPEN — DECISION REQUIRED** |
 | Q2 | **When is the end-of-cycle marker cleared** after a normal completion? | **D-D2 — OPEN** |
 | Q3 | Detailed completion ordering (marker / statistics / summary / recovery) | **D-D2 — OPEN** |
 | Q4 | Occurrence granularity for durable out-of-range raw voltage | **DR-04A2 — APPROVED (granularity, DR-25.9); count-finalization / D-D2 persistence OPEN** |
@@ -1263,15 +1257,10 @@ Each entry records a consequential change that this revision deliberately **does
 | Q12 | Backup destination, schedule, retention | **D-D4 — RESOLVED (DR-18); run-time default still OPEN** |
 | Q13 | GUI language (English / English + Persian) | **D-D5 — RESOLVED (DR-19)** |
 | Q14 | Board / module confirmation | **D-A8 — RESOLVED (DR-13)**; flash/chip/ADC still to verify in Phase 2B |
-| Q15 | **Explicit approval of `docs/PROTOCOL_CONTRACT.md`** — required before Phase 2A | **RESOLVED** — contract approved (final, 2026-10-05; revised v1.1.1 on 2026-10-06) (§12.1, §21) |
-| Q16 | **Explicit statement that Phase 2A is authorized** | **RESOLVED by execution** — Phase 2A was implemented (commit `b30e74f`); the explicit authorization statement is **not recorded in this document** — **to be confirmed by the user** (§21) |
-| Q17 | `fault_transition_count` aggregation grain — per channel, per station, or both? (DR-45 states the count of entries of a channel but not the grain) | **DR-45 — grain OPEN** |
-| Q18 | Free-disk-space threshold for the retention warning | **DR-46 — value OPEN** |
-| Q19 | Does the installer create the Task Scheduler auto-start entry, or does the user do it? | **DR-47 — OPEN until the packaging phase** |
-| Q20 | Definition of saturation near the top of the 0–5 V domain (from bench measurements) | **DR-48 — OPEN — DECISION REQUIRED** |
-| Q21 | Behaviour of the alarm output when the I2C bus has a persistent fault | **DR-49 — OPEN — DECISION REQUIRED** |
+| Q15 | **Explicit approval of `docs/PROTOCOL_CONTRACT.md`** — required before Phase 2A | §12.1, §21 |
+| Q16 | **Explicit statement that Phase 2A is authorized** | §21 |
 
-**Status of this register as of 0.7.7.** Q1 is resolved by DR-45 (Q17 records the open grain); Q15 and Q16 are resolved (see the rows). **Every other question above is unchanged by this revision.**
+**None of these questions is answered by this revision.**
 
 ---
 
@@ -1279,11 +1268,11 @@ Each entry records a consequential change that this revision deliberately **does
 
 | ID | Decision | Status |
 |---|---|---|
-| D-A1 | ESP32 board — 30-pin ESP32-D0WDQ6 (retailer-page evidence) | **DECIDED — confirmed by the user (DR-13, D-A8)**; flash, chip identity and ADC characteristics still pending explicit read-only verification |
+| D-A1 | ESP32 board — 30-pin ESP32-D0WDQ6 (retailer-page evidence) | **DECIDED — preliminary selection only**; exact model, flash, pinout and electricals require confirmation |
 | D-A2 | ADC acquisition architecture | **APPROVED (DR-31, 2026-10-05)** — 4× CD74HC4067 MUX + 1× ADS1115 (VDD 5 V, PGA ±6.144 V) + 3× PCF8574T (5 V bus, level shifter); 16 MUX states × 4 ADS1115 channels = 64 |
 | D-A3 | Analog front end / protection | **APPROVED (DR-32, 2026-10-05)** — optocoupler + 5 V limit; PCB layout is the user's responsibility (DR-38) |
 | D-A4 | Digital input expansion + alarm output driver | **APPROVED (DR-33, 2026-10-05)** — 1 alarm output + 1 reset input; PCF8574T pin map: 0–15 activation, 16–19 S0–S3, 20 alarm, 21 reset, 22–23 spare |
-| D-A5 | TMAP34 sensor, conversion, wiring | **Method DECIDED** — per-channel calibration with a linear (two points) and a non-linear (five points) mode (**DR-27**); sensor-agnostic voltage measurement, **datasheet not required** (**DR-26, DR-39**); power supply, grounding and PCB are the user's responsibility (**DR-38**). **Remainder OPEN:** calibration values (`temp_*` and pressure points), DR-08 Q4–Q8, DR-48 (saturation) |
+| D-A5 | TMAP34 sensor, conversion, wiring | **Method DECIDED** (linear, configurable); **remainder OPEN** (datasheet, pinout, wiring, supply range, `temp_*` values) |
 | D-A8 | Board confirmation gate | **APPROVED (DR-13, 2026-10-05)** — board confirmed; Flash/chip/ADC characteristics pending explicit read-only verification (Phase 2B compiled but did not read the physical chip) |
 | D-B1 | Dedicated network adapter for the control link | **APPROVED (DR-15, 2026-10-05)** — dedicated USB Wi-Fi adapter |
 | D-B2 | Address plan + DHCP pool; re-verify against pinned Arduino-ESP32 version | **OPEN — NOT APPROVED** |
@@ -1325,7 +1314,7 @@ Each entry records a consequential change that this revision deliberately **does
 | DR-07 | D-D13 fault-counter model | **PARTIALLY RESOLVED** — DR-07-C1 and DR-07-C2 APPROVED |
 | DR-07-C1 | `invalid_channel_count_now` semantics | **APPROVED** (section 7.1a) — instantaneous, live-only, non-durable, counts channels |
 | DR-07-C2 | `faulted_channel_count` counting model | **APPROVED** (section 7.1a) — cumulative distinct-channel; interrupted/reboot persistence **OPEN (D-D2)** |
-| DR-07-C3 | `fault_transition_count` | **RESOLVED (DR-45, 2026-10-08)** — number of entries of a channel into `out_of_range` during one station cycle; the value stays `NULL` in contract v1.1.1 until **PCC-41** is applied; grain **OPEN (Q17)** |
+| DR-07-C3 | `fault_transition_count` | **OPEN — DECISION REQUIRED (0.6.0)**; **no longer blocked by D-C4**; stored as `NULL` (section 7.4); **not decided by the user** |
 | DR-08 | Temperature-conversion configuration ownership / grain (Q1–Q3) | **SUPERSEDED (0.6.0) by DR-27** — Q1–Q3 re-decided as per-channel (section 6.6) |
 | DR-12 | Fault counting during activation stabilisation | **RESOLVED (DR-25.6, 2026-10-05)** — samples during activation stabilisation are **not** counted in fault counters; §9.2 rule preserved and not extended |
 | CS-01 | Clock-step duration policy | **APPROVED (Policy B)** (section 9.4) — same-boot uptime fallback; **D-D7 remains OPEN** |
@@ -1356,7 +1345,7 @@ Each entry records a consequential change that this revision deliberately **does
 | DR-25.9-b | The **count finalization** and its relation to **D-D2 persistence** for the DR-25.9 occurrence record are **not** decided. | **OPEN — DECISION REQUIRED** (2026-10-05) |
 | DR-26 | Sensor-agnostic measurement: any sensor with an analog voltage output must be connectable; measurement is voltage-based; no sensor datasheet or sensor type required. NOT assumed: sensor supply voltage, ratiometric behavior, gauge vs absolute pressure. | **APPROVED** (2026-10-05) |
 | **DR-27** | Per-channel calibration. **AMENDS and SUPERSEDES DR-08 Q1–Q3** (device-global temperature configuration ownership). Every one of the 64 channels is configured and calibrated separately in software (32 pressure, 32 temperature). `temp_conversion_configured` is derived from each channel's own calibration. DR-08 Q4–Q8 stay OPEN and are more important now. First version has exactly two conversion modes: **LINEAR** (two points, Arduino `map()` semantics) and **NON-LINEAR** (five points, piecewise-linear interpolation). Polynomial, scale/offset and equation-based (NTC) conversions are **DEFERRED**. Output units fixed to bar and degrees Celsius; user chooses output range of points. Validation: calibration points must be finite and have distinct, ascending voltages. Voltage domain: calibration points and valid-voltage window are **ADC-input volts (0–3.3 V, after any divider; divider ratio absorbed in calibration)**. Inside 0–3.3 V but outside calibrated span: linear extrapolation along the end segment, stays valid. Outside 0–3.3 V: `out_of_range`. Each channel has an **OPTIONAL** valid-voltage window whose default is 0–3.3 V. Nominal pressure points of section 4.3 (0.5–4.5 V = 0–4 bar) are **NOT applicable as defaults**; keep only as "sensor-level reference, applicability under review". Pressure starts unconfigured, like temperature. NOT decided here (**OPEN**): whether the D-D12 NULL-vs-0 rule extends to pressure counters; a "copy calibration to other channels" convenience. [Domain amended to 0–5 V by DR-30 (0.7.4).] | **APPROVED** (2026-10-05) — supersedes DR-08 Q1–Q3 |
-| DR-28 | Polarity: the active level of the station inputs (one global setting for the 16 station inputs **per DR-42**, per-input polarity deferred), the alarm output and the reset input must be configurable on the ESP32 settings web page and persisted in NVS. Default stays LOW = active per section 5.1 until changed. | **APPROVED** (2026-10-05) |
+| DR-28 | Polarity: the active level of the station inputs (per input or global: OPEN), the alarm output and the reset input must be configurable on the ESP32 settings web page and persisted in NVS. Default stays LOW = active per section 5.1 until changed. | **APPROVED** (2026-10-05) |
 | DR-29 | Hardware design is left open to the designer. User-procurable CANDIDATE parts (candidates only, NOT approved; **D-A2, D-A3, D-A4 were CLOSED in Decision Round D (DR-31/32/33)**): CD74HC4067 16-channel analog multiplexer module, ADS1115 16-bit 4-channel I2C ADC module, PCF8574 8-bit I2C I/O expander module. **Observation (not a decision):** these candidates imply sequential scanning; HW-14 is CLOSED by DR-40. The PC-to-ESP32 distance is reported as suitable. | **APPROVED (observation only)** (2026-10-05) |
 | **DR-30** | **Voltage domain — AMENDS and SUPERSEDES the 0–3.3 V window of DR-27.** With DR-31's 5 V analog input domain, the calibration-voltage domain, the valid-voltage window and the `out_of_range` boundary are **ADC-input volts, 0–5 V**. Inside 0–5 V but outside the calibrated span: linear extrapolation along the end segment, stays valid. Outside 0–5 V: `out_of_range`. The default valid-voltage window becomes **0–5 V**. Raw voltage is still never modified and values are still `NULL`, never `0` and never clamped. All other DR-27 rules (per-channel configuration, LINEAR / NON-LINEAR modes, bar and °C output, ascending distinct validation) are unchanged. | **APPROVED** (2026-10-05) — amends DR-27 |
 | **DR-31** | **D-A2 CLOSED — ADC acquisition architecture.** 4× CD74HC4067 16-channel analog multiplexer + 1× ADS1115 16-bit 4-channel I2C ADC (VDD **5 V**, PGA **±6.144 V**) + 3× PCF8574T I2C I/O expanders (5 V bus, ESP32-side level shifting). Addressing: **16 MUX states × 4 ADS1115 channels = 64 channels**, matching the approved 64-channel requirement (section 1.2). Scanning is sequential (DR-40). Closes **HW-02** and **HW-03**. | **APPROVED** (2026-10-05) |
@@ -1365,19 +1354,10 @@ Each entry records a consequential change that this revision deliberately **does
 | **DR-34** | **Contract v1.1.0.** `docs/PROTOCOL_CONTRACT.md` v1.0.0 → **v1.1.0**: adds `reset_command` (PC → ESP32, non-durable, no `ack`) and `reset_result` (ESP32 → PC, non-durable, carries `accepted` and the post-reset state); adds `alarm_state` (one of `inactive` / `active`) and `warning_state` (one of `inactive` / `active` / `acknowledged`) to `live_state`; adds tests **T-P16** and **T-P17**. Message index becomes **18**. | **APPROVED** (2026-10-05) |
 | **DR-35** | **Board-level GPIO and watchdog.** LED on **GPIO13** and watchdog timer **5 s**. Both remain **PROPOSED — NOT DECIDED**: GPIO13 must be verified against the physical board and the pinout image in **Phase 3** before any code drives it, and the 5 s watchdog period is not fixed by this decision. Nothing in this row authorizes Phase 3. | **PROPOSED — NOT APPROVED** (2026-10-05) |
 | **DR-36** | **Two spare PCF8574T pins (22–23) are reserved** and must not be consumed by a later feature without an explicit decision round. | **APPROVED** (2026-10-05) |
-| **DR-37** | **HW-09 CLOSED — GPIO pin map.** I2C **SDA = GPIO21**, **SCL = GPIO22**; all other GPIOs **reserved**, not assignable without a decision round. The LED pin is **not** part of this map (see **DR-35**, PROPOSED — NOT DECIDED). No ADC GPIO is claimed as used by this map. | **APPROVED** (2026-10-05) |
+| **DR-37** | **HW-09 CLOSED — GPIO pin map.** I2C **SDA = GPIO21**, **SCL = GPIO22**; **LED = GPIO13** (PROPOSED — DR-35, verify Phase 3); all other GPIOs **reserved**, not assignable without a decision round. No ADC GPIO is claimed as used by this map. | **APPROVED** (2026-10-05) |
 | **DR-38** | **HW-10 = user responsibility.** Power supply, grounding and PCB layout are designed and verified by the **user**. The specification records no voltage, current, trace width or ground scheme. | **APPROVED** (2026-10-05) |
 | **DR-39** | **HW-11 and HW-12 CLOSED (per DR-26 sensor-agnostic).** The TMAP34 datasheet and TMAP34 wiring/pin/supply details are **not required**: measurement is voltage-based and any sensor with an analog voltage output is connectable. Closes **HW-11** and **HW-12**; it closes **no** other issue and approves no datasheet value. | **APPROVED** (2026-10-05) |
 | **DR-40** | **HW-14 CLOSED — sampling model is sequential scanning.** The 16 MUX states are visited in turn across the 4 ADS1115 channels; simultaneous acquisition of all 64 channels is not used. Sampling rate stays **1 sample per second per channel** (section 1.2); DR-29's observation about sequential scanning is now a decision. | **APPROVED** (2026-10-05) |
-| **DR-41** | **Alarm output and reset input stay on the PCF8574T (pins 20 and 21)**, exactly as in DR-33 and DR-37. This is a user decision confirmed after the single-point-of-failure risk was explained (the I2C bus is shared with the ADC and the 16 station inputs). DR-33 and DR-37 are **not** amended. **The risk is accepted by the user.** Mandatory mitigation requirements: **(a)** every I2C operation has a timeout and bus recovery; **(b)** every I2C fault is reported as a system event named `i2c_fault` and the affected channels are marked invalid, never valid; **(c)** the watchdog stays **PROPOSED** (DR-35). The behaviour of the alarm output on a persistent I2C fault is **DR-49 (OPEN)**. | **APPROVED** (2026-10-08) |
-| **DR-42** | **Polarity settings.** One global polarity setting for the 16 station inputs, plus separate settings for the alarm output and the reset input, all on the ESP32 settings page and persisted in NVS. Per-input polarity is deferred. Refines DR-28. | **APPROVED** (2026-10-08) |
-| **DR-43** | **Copy calibration.** The settings page offers "copy calibration to selected channels"; the copied calibration is validated after copying (ascending, distinct, finite points). | **APPROVED** (2026-10-08) |
-| **DR-44** | **D-D12 does NOT extend to pressure (user decision, 2026-10-08).** No `pressure_conversion_configured` flag is added. `valid_samples_pressure` is always a non-negative integer, never `NULL`, even when pressure conversion is unconfigured. This closes the "NULL-vs-0 for pressure" OPEN item that DR-27 left open. | **APPROVED** (2026-10-08) |
-| **DR-45** | **`fault_transition_count` (resolves DR-07-C3).** The number of entries of a channel into `out_of_range` during one station cycle; zero at cycle start; stabilisation samples excluded (DR-12); `NULL` when not computable. The aggregation grain (per channel / per station / both) is **not stated** and remains **OPEN (Q17)**. | **APPROVED** (2026-10-08) |
-| **DR-46** | **Database retention.** The database is retained indefinitely with no automatic deletion; a warning appears when free disk space falls below a configurable threshold. The threshold value is **OPEN (Q18)**. | **APPROVED** (2026-10-08) |
-| **DR-47** | **Auto-start.** Windows Task Scheduler at system startup, running without a logged-in user and restarting on failure. The user applies it manually (DR-15). Whether the installer creates the task is **OPEN (Q19)** until the packaging phase. | **APPROVED** (2026-10-08) |
-| **DR-48** | **Saturation near the top of the 0–5 V domain.** The ADC cannot observe values far above its supply, so the definition of saturation is to be set from bench measurements in Phase 3. | **OPEN — DECISION REQUIRED** (2026-10-08) |
-| **DR-49** | **Alarm output on a persistent I2C fault.** Behaviour of the alarm output when the I2C bus has a persistent fault; to be decided in Phase 3 together with the final circuit (DR-38). | **OPEN — DECISION REQUIRED** (2026-10-08) |
 
 **DR-25 binding rule (relocated from the removed section 27.1):** revising or superseding any one **DR-25.x** sub-decision has **no effect** on any other. The bundle is an indexing convenience, **not** a single atomic decision.
 
@@ -1399,10 +1379,6 @@ Each entry records a consequential change that this revision deliberately **does
 |---|---|---|
 | **D-A6** | **Reserved / not currently defined** | No definition, description, dependency or status exists anywhere in this document. |
 | **D-A7** | **Reserved / not currently defined** | No definition, description, dependency or status exists anywhere in this document. |
-| **DR-05** | **Reserved / never allocated** | No register row exists and no reference to `DR-05` was found in this document (search on 0.7.6). |
-| **DR-09** | **Reserved / never allocated** | No register row exists and no reference to `DR-09` was found in this document (search on 0.7.6). |
-| **DR-10** | **Reserved / never allocated** | Referenced in §6.6 as "mid-cycle behaviour (DR-10)" but no register row exists. Establishing its intent would require a separate documentation decision. |
-| **DR-11** | **Reserved / never allocated** | No register row exists and no reference to `DR-11` was found in this document (search on 0.7.6). |
 
 **Whole-document search result (P1 / AUD-08):** a search for `D-A6` and `D-A7` across the complete document returns **zero** references. Neither identifier is used by any section, table, requirement, decision or acceptance criterion.
 
@@ -1422,19 +1398,20 @@ Each entry records a consequential change that this revision deliberately **does
 | Phase 2B (firmware skeleton, compile test) | **D-A8 — MET (DR-13)**; still requires **explicit user authorization**. A met gate condition does **not** authorize a phase |
 | Phase 3 (single-channel bench bring-up) | **D-A2, D-A3 — APPROVED (DR-31 / DR-32)**; **hardware still to be built**. Gate condition **partially** satisfied. A met gate condition does **not** authorize a phase — **Phase 3 requires an explicit user statement** (§21) |
 | Journal capacity planning | **D-D8**, **D-D3**, **HW-13**, and board identity via **D-A8** or **D-A1** — `OPEN — TRACEABILITY DECISION REQUIRED` (section 13.3) |
-| Fault-counter semantics (`faulted_channel_count`, `invalid_channel_count_now`, `fault_transition_count`) | **DR-07-C1 / DR-07-C2 APPROVED**; **DR-07-C3 RESOLVED (DR-45)**, grain **OPEN (Q17)**; stabilisation **RESOLVED (DR-25.6)** |
+| Fault-counter semantics (`faulted_channel_count`, `invalid_channel_count_now`, `fault_transition_count`) | **DR-07-C1 / DR-07-C2 APPROVED**; **DR-07-C3 OPEN — DECISION REQUIRED (no longer blocked by D-C4)**; stabilisation **RESOLVED (DR-25.6)** |
 | Alarm engine implementation | **D-C1…D-C5 APPROVED (0.6.0, defaults)** via DR-25.1…DR-25.5 |
-| Fault transition counting | **DR-07-C3 RESOLVED (DR-45)**; D-C4 defaults **APPROVED** (DR-25.4); grain **OPEN (Q17)** |
+| Fault transition counting | **DR-07-C3 OPEN — DECISION REQUIRED** (D-C4 defaults now **APPROVED**, DR-25.4) |
 | Station simultaneous counters | **HW-02, HW-03, HW-14** |
 | Cycle marker, recovery, T5, T6 | **D-D2 PARTIALLY RESOLVED (0.6.0)** — direction only (DR-25.7); **recovery, T5 and T6 remain BLOCKED** |
 | Reserved-area / overflow policy | **direction APPROVED (0.6.0)** — overwrite-oldest (DR-25.8); **D-D6, D-D8, priority classes and counters remain OPEN** |
 | Unknown-time record handling validation | **— (RESOLVED)** — **D-D7 APPROVED (DR-17)** — PC is the sole time reference |
 | Temperature-conversion configuration grain (`TEMP-CONVERSION-CONFIG-GRAIN`) | **Q1–Q3 SUPERSEDED by DR-27 (per-channel)**; **Q4–Q8 `OPEN — DECISION REQUIRED`** (section 6.6) |
 | RAW-VOLTAGE-RETENTION occurrence model (DR-04A2) | **APPROVED (granularity, DR-25.9, 0.6.0)** — one durable raw-voltage record per entry into `out_of_range`, plus a count (section 4.2). **Count finalization and D-D2 persistence remain OPEN.** DR-04A APPROVED |
-| `fault_transition_count` (DR-07-C3) | **APPROVED (DR-45)**; value `NULL` until **PCC-41**; grain **OPEN (Q17)** (section 7.1a) |
+| `fault_transition_count` (DR-07-C3) | **OPEN — DECISION REQUIRED (0.6.0)**; **no longer blocked by D-C4** (section 7.1a) |
 | Fault counting during activation stabilisation (DR-12) | **RESOLVED (DR-25.6)** — samples during activation stabilisation are **not** counted in fault counters |
 | `faulted_channel_count` interrupted-cycle / reboot persistence | **D-D2** |
-| Protocol / message contract approval | **APPROVED (final, 2026-10-05)** — `docs/PROTOCOL_CONTRACT.md` v1.1.1 (revised from v1.1.0 in Decision Round E; v1.1.0 revised from v1.0.0 in Decision Round D, **DR-34**). Implemented from both sides in Phase 2A (commit `b30e74f`, as recorded in this document before 0.7.7); the final approval is recorded in spec v0.7.3 (section 12.1, section 21) |
+| Protocol / message contract approval | **APPROVED (final, 2026-10-05)** — `docs/PROTOCOL_CONTRACT.md` v1.1.0 (revised from v1.0.0 in Decision Round D, **DR-34**) (section 12.1, section 21) |
+| Protocol / message contract — **final approval** | §12.1 | **APPROVED (final, 2026-10-05)** — `docs/PROTOCOL_CONTRACT.md` v1.0.0. Implemented from both sides in Phase 2A (commit `b30e74f`); this final-approval change is recorded in spec v0.7.3 |
 | Any network or Windows change | **D-B1, D-B2, D-B3** |
 
 ## 21. Implementation Phases and Approval Gates
@@ -1442,7 +1419,7 @@ Each entry records a consequential change that this revision deliberately **does
 | Phase | Content | Gate to enter |
 |---|---|---|
 | **1 (this document)** | Specification baseline | **Approval of this document** |
-| **2A** | Protocol simulator, message contract, PC skeleton, hardware-independent tests | Approval of this document **+ D-B4 (MET, 0.6.0)** **+ `PROTOCOL_CONTRACT.md` v1.1.1 APPROVED (final, 2026-10-05)** **+ explicit user statement that Phase 2A is authorized** |
+| **2A** | Protocol simulator, message contract, PC skeleton, hardware-independent tests | Approval of this document **+ D-B4 (MET, 0.6.0)** **+ `PROTOCOL_CONTRACT.md` v1.1.0 APPROVED (final, 2026-10-05)** **+ explicit user statement that Phase 2A is authorized** |
 | **2B** | Firmware skeleton and compile test | **D-A8 — MET (DR-13)** **+ explicit user statement that Phase 2B is authorized** |
 | 3 | Single-channel bench bring-up; voltage and calibration validation | **D-A2, D-A3 — APPROVED (DR-31 / DR-32)** **+ hardware built** **+ explicit user statement that Phase 3 is authorized** |
 | 4 | Full 64-channel acquisition and timing budget | Phase 3 complete |
@@ -1451,30 +1428,16 @@ Each entry records a consequential change that this revision deliberately **does
 | 7 | Reports, exports, backup / retention, localisation, GUI refinement | **D-D4, D-D5** |
 | 8 | Autostart, firewall, packaging, acceptance run | **D-B1, D-B2, D-B3** |
 
-**Phase status as of 0.7.7.** Commit hashes below are **as stated by the user**; this revision did not re-verify them against `git`.
+**None of these phases has been started.**
 
-* **Phase 2A-0 (documentation only): COMPLETE.**
-* **Phase 2A (PC skeleton, protocol simulator, tests): COMPLETE** — implemented against the protocol contract (commit `b30e74f`). The explicit authorization statement is **not recorded in this document** — **to be confirmed by the user**.
-* **Phase 2B (firmware skeleton and compile test): COMPLETE** — compiled; the physical chip was not read (D-A8). The user states that he authorized Phase 2B but does not remember the date; **authorization date not recorded (user statement, 2026-10-08)**.
-* **Phase 3 and later: NOT AUTHORIZED.**
+**Phase 2A: NOT AUTHORIZED.**
+**Phase 2B: NOT AUTHORIZED.**
 
-**Note on Phase 2C.** Between Phase 2B and the (not yet authorized) Phase 3, software continuation work extended the Phase 2A PC skeleton. This work is **not** a separately authorized phase; it was performed under the Phase 2A authorization. Commits:
+**Phase 2A gate status as of 0.6.0.** The **D-B4 condition is now MET** (permission to install missing Python packages was granted for the Phase 2A gate). **A satisfied gate condition is not an authorization.** Phase 2A **still requires BOTH**: (a) the user's **explicit approval of `docs/PROTOCOL_CONTRACT.md`**, which is currently **PROPOSED — NOT APPROVED**; and (b) the user's **explicit statement that Phase 2A is authorized**. Until both exist, Phase 2A remains **NOT AUTHORIZED**.
 
-* `6758895` — SQLite persistence
-* `3c33eeb` — payload validation
-* `1159ad2` — NVS (firmware side)
-* `a2901d0` — Wi-Fi AP + WebSocket (firmware side)
-* `a3c8a1c` — reports + exports
-* `29f17d9` — PC envelope (Contract v1.1.1)
-* `3b97523` — HTML GUI scaffold + i18n
+**Phase 2B** remains **NOT AUTHORIZED**. Its gate condition (**D-A8**, board confirmation) is now **MET** by **DR-13** — but **a met gate condition is not an authorization**. Phase 2B still requires the user's **explicit statement that it is authorized**.
 
-**Phase 3 and later remain NOT AUTHORIZED.**
-
-**[HISTORICAL — superseded in 0.7.7 by the phase status above]** **Phase 2A gate status as of 0.6.0.** The **D-B4 condition is now MET** (permission to install missing Python packages was granted for the Phase 2A gate). **A satisfied gate condition is not an authorization.** Phase 2A **still requires BOTH**: (a) the user's **explicit approval of `docs/PROTOCOL_CONTRACT.md`**, which is currently **PROPOSED — NOT APPROVED**; and (b) the user's **explicit statement that Phase 2A is authorized**. Until both exist, Phase 2A remains **NOT AUTHORIZED**.
-
-**[HISTORICAL — superseded in 0.7.7 by the phase status above]** **Phase 2B** remains **NOT AUTHORIZED**. Its gate condition (**D-A8**, board confirmation) is now **MET** by **DR-13** — but **a met gate condition is not an authorization**. Phase 2B still requires the user's **explicit statement that it is authorized**.
-
-**[HISTORICAL — superseded in 0.7.7 by the phase status above]** The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** authorise any phase and do **not** approve this specification. Revision 0.6.0 likewise does **not** authorise any phase. The document remains **BASELINE — FOR REVIEW**. The Phase 2A gate — approval of this document, **plus D-B4 (MET, DR-16)**, **plus explicit approval of the protocol / message contract (§12.1)** — remains unmet, and the Phase 2B gate **condition D-A8 is MET (DR-13)** but Phase 2B still lacks the **explicit user authorization** that a met condition cannot supply. Repairing documentation is not implementation approval.
+The P0 and P1 documentation repairs (versions 0.2.0 and 0.3.0) do **not** authorise any phase and do **not** approve this specification. Revision 0.6.0 likewise does **not** authorise any phase. The document remains **BASELINE — FOR REVIEW**. The Phase 2A gate — approval of this document, **plus D-B4 (MET, DR-16)**, **plus explicit approval of the protocol / message contract (§12.1)** — remains unmet, and the Phase 2B gate **condition D-A8 is MET (DR-13)** but Phase 2B still lacks the **explicit user authorization** that a met condition cannot supply. Repairing documentation is not implementation approval.
 
 ---
 
@@ -1518,7 +1481,7 @@ Each entry records a consequential change that this revision deliberately **does
 | Per-nozzle counters | §6.2; D-D11 APPROVED | §17.1 |
 | `NULL` vs `0` | §6.3; D-D12 APPROVED | AC-09 |
 | Station simultaneous counters | §6.4; HW-02/HW-03 OPEN | Blocked |
-| Fault counters | §7, §7.1a; **DR-06, DR-07-C1, DR-07-C2 APPROVED**; **DR-07-C3 RESOLVED (DR-45)**, **D-C4 APPROVED (DR-25.4, defaults only)** | **PARTIALLY APPROVED**; transition counting **APPROVED (DR-45)**, grain **OPEN (Q17)**, value `NULL` until **PCC-41**; stabilisation **RESOLVED (DR-25.6)** |
+| Fault counters | §7, §7.1a; **DR-06, DR-07-C1, DR-07-C2 APPROVED**; **DR-07-C3 OPEN**, **D-C4 APPROVED (DR-25.4, defaults only)** | **PARTIALLY APPROVED**; transitions **OPEN — DECISION REQUIRED (no longer blocked by D-C4)**; stabilisation **RESOLVED (DR-25.6)** |
 | Interrupted cycle representation | §9.5a (representation) | **AC-13 — BLOCKED by D-D2** |
 | Interrupted cycle detection | §9.5b, §9.6; **D-D2 OPEN** | **AC-13 BLOCKED — D-D2**; T5, T6 suspended |
 | Duration rule | §9.4; **DR-03 APPROVED**, **DR-03b APPROVED**, **CS-01 APPROVED (Policy B)** | **AC-04 — unconditional** (§17.2); **D-D7 APPROVED (DR-17)** — PC is the sole time reference |
@@ -1550,7 +1513,7 @@ Each entry records a consequential change that this revision deliberately **does
 | D-D9 volatile-loss labelling (P1 / AUD-11) | §12.4 | **AC-20** |
 | D-D10 ↔ L1–L5 interaction (P1 / AUD-12) | §12.6 | Progression beyond **L2** blocked; T4 conditioned additionally on D-D6, D-D8, D-D10 |
 | Phase 2A gate (P1 / AUD-13) | §21, §12.1 | Requires document approval **+ D-B4** **+ approved protocol / message contract** |
-| Board / ADC claims (P1 / AUD-14) | §3.1, §5.3 | `UNVERIFIED — NOT AN APPROVED HARDWARE FACT` (retailer 4-channel ADC figure); **D-A8, HW-01 APPROVED (DR-13)**; **D-A2, D-A3, D-A4 APPROVED and HW-02, HW-03, HW-04 … HW-09, HW-14 CLOSED by DR-31 … DR-40**; **DR-30 amends DR-27 to the 0–5 V domain** ; **architecture decided**; the retailer ADC claim is still not an approved fact, and flash/chip/ADC remain pending read-only verification |
+| Board / ADC claims (P1 / AUD-14) | §3.1, §5.3 | `UNVERIFIED — NOT AN APPROVED HARDWARE FACT` (retailer 4-channel ADC figure); **D-A8, HW-01 APPROVED (DR-13)**; **D-A2, D-A3, D-A4 APPROVED and HW-02, HW-03, HW-04 … HW-09, HW-14 CLOSED by DR-31 … DR-40**; **DR-30 amends DR-27 to the 0–5 V domain** | Architecture decided; the retailer ADC claim is still not an approved fact, and flash/chip/ADC remain pending read-only verification |
 | Journal-capacity dependency (P1 / AUD-15) | §13.3, §20 | `OPEN — TRACEABILITY DECISION REQUIRED` (D-A1 vs D-A8); **no sizing performed** |
 | DR-01 report/export scope (0.4.0) | §4.5(7), §16.3 | **APPROVED** — historical / database-derived in scope |
 | DR-02 cycle-start naming (0.4.0) | §11.6 | **APPROVED** — `cycle_start_ms`, `start_time_valid`; **no invariant introduced** |
@@ -1559,7 +1522,7 @@ Each entry records a consequential change that this revision deliberately **does
 | DR-06 fault vocabulary (0.4.0) | §7.1a | **APPROVED** — `out_of_range` = faulted; `unconfigured` **not** faulted |
 | DR-08 temperature config ownership (0.4.0) | §6.2, §6.6 | **SUPERSEDED by DR-27** (Q1–Q3 re-decided as per-channel); **Q4–Q8 `OPEN — DECISION REQUIRED`** — see §6.6 |
 | DR-04 RAW-VOLTAGE-RETENTION (0.4.0) | §4.2 | **OPEN — DECISION REQUIRED** (DR-01 prerequisite satisfied) |
-| DR-07 D-D13 counting model (0.4.0) | §7.1a | **RESOLVED except grain (0.7.7)** — DR-07-C1 / DR-07-C2 APPROVED; DR-07-C3 resolved by DR-45; grain **OPEN (Q17)** |
+| DR-07 D-D13 counting model (0.4.0) | §7.1a | **PARTIALLY RESOLVED (0.5.0)** — DR-07-C1 / DR-07-C2 APPROVED; DR-07-C3 OPEN |
 | DR-04A core durable raw-voltage scope (0.5.0) | §4.2 | **APPROVED** — out-of-range category only |
 | DR-04A2 out-of-range occurrence granularity (0.5.0) | §4.2, §20 | **APPROVED (granularity) — DR-25.9**; count finalization / D-D2 persistence **OPEN** |
 | DR-04B / DR-04C cycle anchors and tie-breaking (0.5.0) | §4.2 | **REJECTED / NOT READY** — not adopted |
@@ -1567,14 +1530,9 @@ Each entry records a consequential change that this revision deliberately **does
 | DR-04G diagnostic RAM window (0.5.0) | §4.2 | **REJECTED / NOT ADOPTED** |
 | DR-07-C1 `invalid_channel_count_now` (0.5.0) | §7.1, §7.1a | **APPROVED** — instantaneous, live-only, non-durable |
 | DR-07-C2 `faulted_channel_count` (0.5.0) | §7.1, §7.1a | **APPROVED** — cumulative distinct-channel; D-D2 aspects OPEN |
-| DR-07-C3 `fault_transition_count` (0.5.0) | §7.1, §7.1a | **RESOLVED (DR-45, 0.7.7)**; value `NULL` until **PCC-41**; grain **OPEN (Q17)** |
+| DR-07-C3 `fault_transition_count` (0.5.0) | §7.1, §7.1a | **OPEN — DECISION REQUIRED**; **no longer blocked by D-C4** (DR-25.4 defaults approved); stored as `NULL` |
 | DR-12 fault counting during stabilisation (0.5.0) | §7.1a, §9.2 | **RESOLVED (DR-25.6)** — stabilisation samples are not counted in fault counters; §9.2 preserved, not extended |
 | CS-01 clock-step duration policy (0.5.0) | §9.4 | **APPROVED (Policy B)**; D-D7 remains OPEN |
-| Alarm output / reset on the PCF8574T and I2C mitigations (DR-41) | §3, §10.2, §19 | **APPROVED** (2026-10-08); risk accepted by the user; contract change **PCC-39 PROPOSED — NOT APPLIED**; DR-49 **OPEN** |
-| Polarity and copy calibration (DR-42, DR-43) | §15, §19 | **APPROVED** (2026-10-08); contract / settings change **PCC-42 PROPOSED — NOT APPLIED** |
-| Pressure conversion NULL rule (DR-44) | §6.2, §14.3 | **APPROVED** (2026-10-08): `valid_samples_pressure` is always a non-negative integer, never `NULL`; no pressure three-state flag is added; **PCC-40 PROPOSED — NOT APPLIED** |
-| `fault_transition_count` (DR-45) | §7.4, §14.3 | **APPROVED** (2026-10-08); grain **OPEN (Q17)**; **PCC-41 PROPOSED — NOT APPLIED** |
-| Retention and auto-start (DR-46, DR-47) | §16, §21 | **APPROVED** (2026-10-08); threshold **OPEN (Q18)**; installer task **OPEN (Q19)**; **PCC-43 PROPOSED — NOT APPLIED** |
 
 ---
 
@@ -1588,7 +1546,7 @@ Each entry records a consequential change that this revision deliberately **does
 | 0.4.0 | 2026-10-04 | **Approved-decision round.** DR-01 report/export scope = historical / database-derived; DR-02 canonical `cycle_start_ms` / `start_time_valid`; DR-03 `duration_basis` value set = `'null'`, `'calendar'`, `'uptime_same_boot'`; DR-03b `duration_ms IS NULL ⇔ duration_basis = 'null'`; DR-06 fault vocabulary = `out_of_range` only; DR-08 temperature-config ownership Q1–Q3. AC-04 moved from §17.3 to §17.2 (blocker resolved). **DR-04 and DR-07 remain OPEN** — prerequisites satisfied, decisions not made. D-D1 / D-D9 / D-D11 / D-D12 preserved unchanged. |
 | 0.5.0 | 2026-10-04 | **Decision Round B approvals.** **DR-04A APPROVED** — raw voltage of an applicable `out_of_range` reading must exist in durable historical storage (category only; PER-03 unaffected; no per-sample storage). **DR-07-C1 APPROVED** — `invalid_channel_count_now` instantaneous, live-only, non-durable, counts channels. **DR-07-C2 APPROVED** — `faulted_channel_count` cumulative distinct-channel, cycle-summary, reset at cycle start. **CS-01 APPROVED (Policy B)** — backward clock step uses `uptime_same_boot` when a valid same-boot uptime pair exists, otherwise `'null'`; no new `duration_basis` value; DR-03b invariant retained. Deferred / not adopted: DR-04A2 (D-C4), DR-04B (rejected), DR-04C, DR-04D, DR-04E, DR-04F (D-D2), DR-04G (rejected), DR-07-C3 (D-C4), DR-12. D-D7 remains OPEN. |
 | 0.6.0 | 2026-10-04 | **Phase 2A-0 documentation-only round.** Archived v0.5.0 byte-identical; created `docs/PROTOCOL_CONTRACT.md` (**PROPOSED — NOT APPROVED**). **DR-27** supersedes **DR-08 Q1–Q3** (per-channel temperature-calibration ownership). **DR-25** split into **DR-25.1 … DR-25.9** so each sub-decision is independently traceable and supersedable; **DR-25.4 = defaults only**, **DR-25.6/7/8/9 = direction only**. **DR-07-C3** moved from `DEFERRED — BLOCKED by D-C4` to **`OPEN — DECISION REQUIRED`** (`fault_transition_count` stays `NULL`). **D-C1…D-C5, D-D2 (direction), D-D3, D-D10 (direction) and DR-04A2 (direction)** updated in §19, §20 and §21. **D-B4 MET**; Phase 2A still **NOT AUTHORIZED** (needs contract approval + explicit authorization); Phase 2B **NOT AUTHORIZED**. §3.1a added. **PCC-19…PCC-21 recorded and NOT applied.** **No OPEN decision was silently resolved.** |
-| 0.6.1 | 2026-10-05 | **Phase 2A-0 repair revision (no new decisions).** Corruption repair D1–D5; DR-13 … DR-29 added; DR-25.1 … DR-25.9 and DR-27 replaced with full normative text; PCC-01 … PCC-27 recorded in §18.1; open-questions register moved to §18.2; unauthorized sections 27/28/29 deleted with content relocated; derived status updates for D-A8, HW-01, D-B1, D-B3, D-D7, D-D4, D-D5, AMB-15, §15.5. **Not a new decision round.** |
+| 0.6.1 | 2026-10-05 | **Phase 2A-0 repair revision (no new decisions).** Corruption repair D1–D5; DR-13 … DR-29 added; DR-25.1 … DR-25.9 and DR-27 replaced with full normative text; PCC-01 … PCC-27 recorded in §18.1; open-questions register moved to §18.2; unauthorized sections 27/28/29 deleted with content relocated; derived status updates for D-A8, HW-01, D-B1, D-B3, D-D7, D-D4, D-D5, AMB-15, §15.5. **Not a new decision round.**
 | 0.6.2 | 2026-10-05 | **Phase 2A-0 consistency patch (no new decisions, no new PCC semantics).** (A) §19 DR register reordered into numeric order (DR-25 + DR-25.1 … .9 after DR-24; DR-27 after DR-26) with row text byte-for-byte unchanged. (B) §20: 3 stale dependency rows updated (D-D7 via DR-17; DR-07-C3 unblocked; DR-12 RESOLVED via DR-25.6). (C) §23: 9 traceability rows aligned with §19 (DR-08 SUPERSEDED; DR-07-C3 unblocked; D-C1…D-C5, D-C2/D-C3, D-C5, D-D7, D-D10-direction and DR-12 statuses; AC-08 noted as now unconditional but **not moved**). (D) §17.1: 5 "Blocked by" cells updated — **no test executed or marked passed**. (E) PCC-28 … PCC-35 recorded as `PROPOSED — NOT APPLIED`. (F) PCC-06/07/08/09/13 relabelled `APPLIED (0.6.1)`. §4.3, §4.5, §8.1, §9.2, §10.3, §11.5, §13.3, §14.3, §15.4, §16.1, §17.3 byte-unchanged. Phase 2A / Phase 2B still **NOT AUTHORIZED**. **Line endings normalized to CRLF file-wide during the §19 reorder; §16.1 wording unchanged.** |
 | 0.7.0 | 2026-10-05 | **PCC application pass (no new decisions).** Body sections updated to match §19: §4.5, §8.1, §8.2, §8.3, §8.5, §9.2, §10.2, §10.3, §11.5, §13.3, §14.3, §15.4, §16.1, §5.3, §22. Cross-references: §3.3, §4.2, §19 (DR-25.9 split into DR-25.9 / DR-25.9-b), §20, §23. Imperative copy-paste in §19 DR-13 / DR-29 converted to descriptive text. 15 PCCs relabelled `APPLIED (0.7.0)`; the 5 `APPLIED (0.6.1)` not regressed; 15 remain `PROPOSED — NOT APPLIED`. §10.3 "Alternatives (none chosen)" column retained as rejected-option history (not renamed). The 0.6.0 revision-history date is left at 2026-10-04 — discrepancy recorded in V104, not corrected. No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
 | 0.7.2 | 2026-10-05 | **AC-08 promotion (no new decisions).** AC-08 moved from §17.3 to §17.2 as unconditional, with the approved D-C5 (DR-25.5) semantics inline. §17.2 closing note updated so AC-08 is no longer listed as non-unconditional. §17.3 AC-08 note rewritten as "now unconditional". PCC-22 → APPLIED (0.7.2). §23 "Out-of-range handling" caveat removed. §17.1 "see AC-08" reference left unchanged and reported. No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
@@ -1597,7 +1555,6 @@ Each entry records a consequential change that this revision deliberately **does
 | 0.7.6 | 2026-10-06 | **Decision Round E — PC envelope defined (no code change).** Contract v1.1.0 → **v1.1.1**: PC envelope defined in §3.1, §3.17, §3.18, §3.19; §8 item 24 RESOLVED. `pc_id` = `"pc-01"` (top-level only), `pc_seq` monotonic per PC process, `ts_sent_valid` = 1 by default per DR-17. ack/nack fields remain inside `payload`. §0.1, §12.1, §24, §25 updated; V141–V145 added. Only `docs/PROTOCOL_CONTRACT.md` and `docs/PROJECT_SPECIFICATION.md` modified; `pc/`, `firmware/`, `docs/archive/`, `docs/hardware/`, `.clinerules/` untouched. **Phase 3 remains NOT AUTHORIZED.** |
 | 0.7.3 | 2026-10-05 | **Final approval of PROTOCOL_CONTRACT.md (v1.0.0) — no new decisions.** Contract v0.2.4 → v1.0.0, status **APPROVED — final, 2026-10-05**. §12.1, §20 and §21 gate text updated; §23 traceability row added; V118–V121 added. The contract remains revisable by an explicit decision round. Phase 3 and all later phases still **NOT AUTHORIZED**. |
 | 0.7.1 | 2026-10-05 | **Follow-up: complete D-C5 / D-D10 body alignment (no new decisions).** §7.5 and §8.4 `overflow` corrected; §7.1a (PCC-36), §12.4 / §12.5 (PCC-37), §17.1 PER-02 and §18 AMB-08 / AMB-14 (PCC-38) corrected. §17.3 AC-08 and its companion sentence deliberately left unchanged per PCC-22. §8.4 `journal_pressure` (D-D6 genuinely OPEN) unchanged. PCC-36, PCC-37, PCC-38 added as APPLIED (0.7.1). No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
-| 0.7.7 | 2026-10-08 | **Documentation consistency round + Decision Round F.** v0.7.6 archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.7.6.md`. **Consistency repairs (no decision changed):** §0 header and §0.3 items 2—3, §1.2, §18.2 Q15 / Q16 and closing sentence, §19 D-A1 / D-A5, §21 phase status (Phase 2A, Phase 2B and the Phase 2C note), DR-37 (LED pin removed; DR-35 stays PROPOSED), table repairs in §20 / §23 / revision history, identifier-gap note for DR-05 / DR-09 / DR-10 / DR-11 in §19.2. **Decision Round F (user-approved 2026-10-08):** **DR-41** alarm / reset stay on the PCF8574T (risk accepted, mitigations mandatory), **DR-42** polarity, **DR-43** copy calibration, **DR-44** pressure counters are never `NULL`; no pressure flag is added, **DR-45** `fault_transition_count` (**resolves DR-07-C3**), **DR-46** database retention, **DR-47** auto-start; **DR-48** (saturation) and **DR-49** (alarm output on persistent I2C fault) recorded **OPEN**. Body alignment of DR-07-C3 in §7, §14.3, §18.2, §19, §20, §23. **PCC-39 … PCC-43 recorded PROPOSED — NOT APPLIED** (contract / schema changes). Phase 2B authorization recorded as stated by the user (date not recorded). **Phase 3 and later remain NOT AUTHORIZED.** |
 
 ## 25. Verification Record
 
@@ -1748,17 +1705,6 @@ Each entry records a consequential change that this revision deliberately **does
 | V143 | **0.7.6 (pc_seq)** `pc_seq` is PC-local monotonic, restarts at 0 on PC restart, scoped by stable `pc_id` | Checked |
 | V144 | **0.7.6 (ts_sent_valid)** `ts_sent_valid` = 1 by default per DR-17; 0 only when PC clock is known to be invalid | Checked |
 | V145 | **0.7.6 (ack/nack fields)** ack/nack fields remain inside `payload` per Contract §3.17/§3.18 | Checked |
-| V146 | 0.7.7 (archive) `docs/archive/PROJECT_SPECIFICATION_v0.7.6.md` is a byte-identical copy of the 0.7.6 file (SHA256 `39CAD29B8EDDE90FB06BEC86D497812FE850C6EF9C38743D2CE2017AB0257E3E`, 199 469 bytes) before any edit | Checked |
-| V147 | 0.7.7 (A1) header "Implementation status", §0.3 items 2—3, §1.2, §18.2 Q15 / Q16 and §21 no longer state that no implementation exists or that Phase 2A / 2B are NOT AUTHORIZED; unproven authorization statements are marked "to be confirmed by the user" | Checked |
-| V148 | 0.7.7 (A1) commit hashes in §21 (Phase 2A, Phase 2C note) are **as stated by the user**; they were **not** re-verified against `git` in this revision | Not performed |
-| V149 | 0.7.7 (A2/A3) D-A1, D-A5 and DR-37 aligned with DR-13, DR-26, DR-27, DR-39 and DR-35; no decision changed; DR-37 no longer contains an LED pin | Checked |
-| V150 | 0.7.7 (A4) table repairs: duplicate row at the former line 1414 merged into §20 line 1413, extra cell in the Board / ADC traceability row merged, closing pipe added to two revision rows; table column-count check re-run | Checked |
-| V151 | 0.7.7 (A5) §19.2 records DR-05, DR-09, DR-10 and DR-11 as reserved / never allocated; no content was invented | Checked |
-| V152 | 0.7.7 (A8) DR-41 … DR-47 recorded APPROVED (2026-10-08); DR-48 and DR-49 recorded OPEN — DECISION REQUIRED; PCC-39 … PCC-43 recorded PROPOSED — NOT APPLIED | Checked |
-| V153 | 0.7.7 (A8) DR-07-C3 body alignment: no current-status line still states DR-07-C3 as OPEN — DECISION REQUIRED (history rows, change-log rows and earlier V-records are preserved unchanged); the open aggregation grain is recorded as Q17 | Checked |
-| V154 | 0.7.7 Companion line in the header references contract v1.1.1 | Checked |
-| V155 | 0.7.7 No test was executed and no test is marked as passed; the protocol contract, `pc/`, `firmware/` and `.clinerules/` were not read or modified by this revision | Checked |
-| V156 | 0.7.7 authorized corrections: DR-44 direction corrected so D-D12 does not extend to pressure and `valid_samples_pressure` is never `NULL`; PCC-40 wording corrected to match; footer updated to Baseline v0.7.7. No other section changed. Phase 3 remains NOT AUTHORIZED. | Checked |
 
 ## 26. Section Index
 
@@ -1792,4 +1738,4 @@ Each entry records a consequential change that this revision deliberately **does
 | 25 | Verification Record |
 | 26 | Section Index |
 
-*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.7.*
+*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.6.*
