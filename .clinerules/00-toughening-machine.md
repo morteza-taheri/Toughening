@@ -64,3 +64,34 @@
 - "Sensible defaults", "probably fine", "for symmetry", and
   "by analogy" are prohibited as justifications for resolving
   an OPEN item.
+
+## 9. Commit authorization
+- Never run `git commit`, `git push`, `git tag`, or `git reset`
+  without an explicit, current authorization from the user.
+- A commit message proposal is NOT an authorization. The user's
+  reply "yes", "commit this", "go ahead", or an equivalent
+  explicit statement IS the authorization.
+- The authorization is valid only for the files described in
+  the current task. It does not authorize later commits or
+  other files.
+- Even when the work is complete, tests pass, and the scope is
+  clean, the AI must STOP and ASK before committing.
+- A satisfied gate condition, a green test result, or a prior
+  approval in an earlier task is NOT an authorization by
+  itself. Every commit requires a fresh, explicit statement.
+- `git commit --amend` is permitted only BEFORE the commit has
+  been pushed. After `git push`, amendments and force-pushes
+  are prohibited unless the user explicitly requests them.
+
+## 10. Scope discipline outside docs/ and pc/
+- The default writable scope for a task is stated in the task
+  prompt. Do not write outside it.
+- Any change to root-level files — `.gitignore`,
+  `.gitattributes`, `README.md`, `.clinerules/`, or any other
+  file at the repository root — requires an explicit statement
+  of that file in the task prompt.
+- If a task requires touching a root-level file, STOP, list
+  the exact change, and wait for approval before applying it.
+- Report every file created, modified or deleted in the final
+  report, with its path. Do not omit "small" or "incidental"
+  changes.
