@@ -5,7 +5,7 @@ system. It hosts a WebSocket endpoint that receives device messages,
 validates the envelope and payload, persists durable records to SQLite
 (commit-before-ACK), and answers with PC-envelope acknowledgments.
 
-**Status: PROPOSED — NOT APPROVED. Phase 2C Stage 2C-3f. Phase 2C is
+**Status: PROPOSED — NOT APPROVED. Phase 2C Stage 2C-3h. Phase 2C is
 authorized as a software-only continuation of Phase 2A. Hardware phases
 (3+) remain NOT AUTHORIZED. No firmware.**
 
@@ -37,7 +37,7 @@ It plays the ESP32 role and skips the 4 PC-originated types.
 
     pc\venv\Scripts\python.exe -m pytest pc/tests/ -v
 
-**Current: 38 passed, 6 skipped (44 tests).**
+**Current: 56 passed, 6 skipped (62 tests).**
 
 ## Files
 
@@ -46,6 +46,8 @@ It plays the ESP32 role and skips the 4 PC-originated types.
 | `requirements.txt` | Pinned direct dependencies. |
 | `server.py` | FastAPI app: `/health`, `/ws/device`, `/api/export/csv`, `/api/export/json`, ESP32 envelope + payload validation, PC envelope for replies, dispatch with `reset_command` / `reset_result` handlers, SQLite commit before ACK. |
 | `db.py` | SQLite persistence: `records` table, idempotent commit, WAL mode. |
+| `config.py` | Configuration loader (DR-18). Priority: environment > `pc/config.json` > defaults. Keys: `db_path`, `backup_dir`, `backup_hour`, `backup_retention`. |
+| `backup.py` | Daily backup service (DR-18, spec §16.1). WAL-safe snapshot via `sqlite3.Connection.backup()`, filename-sorted retention, interruptible daemon scheduler. |
 | `reports.py` | Export helpers: CSV and JSON from the `records` table. PDF and Excel are deferred. |
 | `simulator.py` | ESP32-role WebSocket client sending 12 message types. Supports `--loop` for continuous `live_state`. |
 | `tests/test_protocol.py` | Contract §10 tests T-P01…T-P17 plus Gap-resolution tests and PC envelope tests. |
@@ -168,6 +170,34 @@ It plays the ESP32 role and skips the 4 PC-originated types.
   ```bash
   pc\venv\Scripts\python.exe pc\simulator.py --loop
   ```
+
+## Backup automation (Phase 2C-3h, DR-18)
+
+* **Daily SQLite backup to a configurable destination.** The destination
+  directory is set via `TOUGHENING_BACKUP_DIR` (env) or `pc/config.json`
+  `backup_dir`. If it is missing or unwritable at startup, a clear warning
+  is logged and the server still starts — the scheduler is simply not
+  started.
+* **WAL-safe method** (spec §16.1): `sqlite3.Connection.backup()` (the
+  online backup API, Python stdlib). Falls back to `VACUUM INTO` if the
+  API is unavailable. The source connection is opened by the backup
+  thread only; the server's `_db_conn` is never touched.
+* **Atomic write**: a temp file in `backup_dir` is renamed to
+  `backup_YYYYMMDD_HHMMSS.sqlite` via `os.replace()`.
+* **Retention**: default 30 (DR-18), configurable via
+  `TOUGHENING_BACKUP_RETENTION` / `backup_retention`. Oldest backups
+  beyond the limit are deleted; ordering is by **filename**, not mtime
+  (`backup_YYYYMMDD_HHMMSS.sqlite` is lexicographically chronological).
+* **Catch-up on startup**: if no backup exists or the newest is older
+  than 24 hours, one backup runs immediately before the daily loop.
+* **Schedule**: `backup_hour` (0-23, local time). **DR-18 leaves the
+  run-time default hour OPEN.** The placeholder value `2` in
+  `pc/config.py` is NOT authoritative — it exists only until the
+  operator sets it. Marked OPEN in code comments.
+* **Interruptible**: the scheduler is a daemon thread that waits on a
+  `threading.Event` at every sleep point; shutdown sets the event and
+  joins with a 2-second timeout.
+* **Restore is DEFERRED** (spec §16.2) — not implemented in this stage.
 
 ## Not decided here
 

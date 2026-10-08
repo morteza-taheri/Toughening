@@ -23,6 +23,7 @@ OPEN item instead of choosing a value.
 
 import json
 import logging
+import threading
 import time
 from pathlib import Path
 from typing import Optional, Tuple
@@ -35,6 +36,8 @@ from fastapi.staticfiles import StaticFiles
 
 from pc import db as pc_db
 import pc.reports
+import pc.config
+import pc.backup
 
 app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2C-3g-2)")
 
@@ -66,6 +69,58 @@ PC_ID = "pc-01"
 # GUI WebSocket broadcast state (Phase 2C Stage 2C-3g-2).
 _gui_clients: set = set()
 _gui_lock = asyncio.Lock()
+
+# Daily backup scheduler state (Phase 2C Stage 2C-3h, DR-18).
+# The scheduler is optional: it only starts when a backup_dir is
+# configured AND available at startup. If the destination is missing
+# or unwritable, a warning is logged and the server still starts.
+# NOTE: @app.on_event("startup"/"shutdown") is deprecated in newer
+# FastAPI; the preferred migration is a `lifespan` context manager.
+# That migration is DEFERRED to a future cleanup — not now.
+_backup_stop_event = None
+_backup_thread = None
+
+
+@app.on_event("startup")
+async def _start_backup_scheduler():
+    """Start the daily backup scheduler if a destination is configured.
+
+    DR-18: a missing or unavailable destination produces a clear warning
+    but does NOT prevent the server from starting.
+    """
+    global _backup_stop_event, _backup_thread
+    cfg = pc.config.load_config()
+    backup_dir = cfg.get("backup_dir")
+    if backup_dir and pc.backup.is_destination_available(backup_dir):
+        _backup_stop_event = threading.Event()
+        _backup_thread = pc.backup.start_scheduler(
+            cfg.get("db_path") or pc_db.DEFAULT_DB_PATH,
+            backup_dir,
+            cfg.get("backup_hour"),
+            cfg.get("backup_retention"),
+            _backup_stop_event,
+        )
+        log.info("backup scheduler started: dir=%s hour=%s retention=%s",
+                 backup_dir, cfg.get("backup_hour"),
+                 cfg.get("backup_retention"))
+    else:
+        log.warning(
+            "backup destination unavailable or not configured; "
+            "daily backup scheduler not started (DR-18). "
+            "Set TOUGHENING_BACKUP_DIR or pc/config.json 'backup_dir'."
+        )
+
+
+@app.on_event("shutdown")
+async def _stop_backup_scheduler():
+    """Signal the backup scheduler to stop and join with a short timeout."""
+    global _backup_stop_event, _backup_thread
+    if _backup_stop_event is not None:
+        _backup_stop_event.set()
+    if _backup_thread is not None:
+        _backup_thread.join(timeout=pc.backup.SCHEDULER_JOIN_TIMEOUT)
+    _backup_stop_event = None
+    _backup_thread = None
 
 
 def init_persistence(db_path: Optional[str] = None):
