@@ -1,104 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="graphite">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="app.title">Toughening Machine</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <meta name="color-scheme" content="dark light">
+  <title>Toughening · کنسول پایش خط</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='6' y='6' width='14' height='20' rx='3' transform='skewY(-18)' fill='%234fd1b5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/console.css?v=3">
+  <script>
+    // Apply saved theme before first paint (no flash of the wrong theme).
+    try {
+      var p = JSON.parse(localStorage.getItem("toughening.console.prefs.v2") || "{}");
+      var r = document.documentElement;
+      if (p.theme) r.dataset.theme = p.theme;
+      if (p.lang === "en") { r.lang = "en"; r.dir = "ltr"; }
+    } catch (e) {}
+  </script>
 </head>
 <body>
-  <header>
-    <h1 data-i18n="app.title">Toughening Machine</h1>
-    <nav>
-      <button id="lang-toggle" data-i18n="header.languageToggle.whenEn">فارسی</button>
-      <button id="calendar-toggle" data-i18n="header.calendarToggle.whenGregorian">شمسی</button>
-    </nav>
-  </header>
-
-  <main>
-    <section class="panel">
-      <h2 data-i18n="panel.live.title">Live</h2>
-      <div id="live-status" data-i18n="live.status.waiting" class="live-status">Waiting for connection...</div>
-      <div class="live-table-wrap">
-        <table id="live-values">
-          <tbody>
-            <tr>
-              <th data-i18n="live.table.event_time">Event time</th>
-              <td id="live-event-time" data-i18n="live.value.none">—</td>
-            </tr>
-            <tr>
-              <th data-i18n="live.table.station_count">Station count</th>
-              <td id="live-station-count" data-i18n="live.value.none">—</td>
-            </tr>
-            <tr>
-              <th data-i18n="live.table.invalid_channel_count_now">Invalid channels</th>
-              <td id="live-invalid-channel-count" data-i18n="live.value.none">—</td>
-            </tr>
-            <tr>
-              <th data-i18n="live.table.alarm_state">Alarm state</th>
-              <td id="live-alarm-state" data-i18n="live.value.none">—</td>
-            </tr>
-            <tr>
-              <th data-i18n="live.table.warning_state">Warning state</th>
-              <td id="live-warning-state" data-i18n="live.value.none">—</td>
-            </tr>
-            <tr>
-              <th data-i18n="live.table.data_loss_pending">Data loss pending</th>
-              <td id="live-data-loss-pending" data-i18n="live.value.none">—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div id="live-stations" class="station-grid"></div>
-    </section>
-
-    <section class="panel">
-      <h2 data-i18n="panel.history.title">History</h2>
-      <div class="history-toolbar">
-        <button id="history-refresh" data-i18n="history.toolbar.refresh">Refresh</button>
-        <label for="history-limit" data-i18n="history.toolbar.limit">Limit</label>
-        <select id="history-limit">
-          <option value="10">10</option>
-          <option value="25" selected>25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
-      </div>
-      <div class="live-table-wrap">
-        <table id="history-table">
-          <thead>
-            <tr>
-              <th data-i18n="history.table.record_id">Record ID</th>
-              <th data-i18n="history.table.record_type">Record type</th>
-              <th data-i18n="history.table.pc_received_ms">PC received (ms)</th>
-            </tr>
-          </thead>
-          <tbody id="history-body">
-            <tr><td colspan="3" class="history-empty" data-i18n="history.status.loading">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div id="history-status" data-i18n="history.status.loading">Loading...</div>
-    </section>
-
-    <section class="panel">
-      <h2 data-i18n="panel.reports.title">Reports</h2>
-      <p data-i18n="panel.reports.placeholder">Generate and download reports.</p>
-      <div class="button-group">
-        <button id="report-csv" data-i18n="button.reports.csv">CSV</button>
-        <button id="report-json" data-i18n="button.reports.json">JSON</button>
-      </div>
-      <p class="report-hint"><span data-i18n="report.csv.label">CSV</span>: <span data-i18n="report.csv.hint">Download all records as CSV</span></p>
-      <p class="report-hint"><span data-i18n="report.json.label">JSON</span>: <span data-i18n="report.json.hint">Download all records as JSON</span></p>
-    </section>
-  </main>
-
-  <footer>
-    <span data-i18n="footer.version">Version 0.1.0</span>
-    <span data-i18n="footer.contractRef">Contract v1.1.1</span>
-    <span data-i18n="footer.specRef">Spec v0.7.6</span>
-  </footer>
-
-  <script src="/static/app.js"></script>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+      <main class="view" id="view"></main>
+    </div>
+  </div>
+  <noscript>JavaScript is required for the operator console.</noscript>
+  <script type="module" src="/static/js/app.js?v=3"></script>
 </body>
 </html>

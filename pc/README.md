@@ -151,7 +151,29 @@ It plays the ESP32 role and skips the 4 PC-originated types.
 * **PDF and Excel export are DEFERRED** — not implemented in this stage.
  * **Report templates and layout are OPEN** (DR-20) — not decided here.
 
-## Operator GUI (Phase 2C-3g-1)
+## Operator console v2 (Phase 2C)
+
+* `GET /` serves `pc/static/index.html` (Cache-Control: no-store).
+* Pages: Dashboard (16 stations + selected-station history, default 12 h),
+  Station, Events, Reports, Settings (themes, accent, font, size, digits,
+  language, calendar, units, station names, system). Local assets only.
+* Read API (pc/history.py): `/api/stations/overview`, `/api/stations/{id}/history`,
+  `/api/events`, `/api/summary`. Window = `since` / `until` UTC ms, default last 12 h.
+* `python -m pc.demo_feed` — DEMO data (prefix `demo:`, `--purge` removes it).
+
+The simulator (`pc/simulator.py`) plays the ESP32 role in the
+protocol: it sends contract-pure ESP32-originated messages
+with placeholder values (0/1/null) and skips PC-originated
+types. This is for testing protocol validation. The demo
+feed (`pc/demo_feed.py`) generates realistic-looking
+synthetic data for operator console training; it writes
+demo cycles to the database and streams live_state via the
+same WebSocket. Because the console expects either device
+data or demo data (not both), do NOT run both
+simultaneously. Use simulator.py to test protocol behavior,
+and demo_feed.py to see realistic console operation.
+
+## Operator GUI (Phase 2C-3g-1, legacy)
 
 * Served at `GET /` and `/static/...`
 * Language toggle: English / فارسی

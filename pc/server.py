@@ -38,6 +38,7 @@ from pc import db as pc_db
 import pc.reports
 import pc.config
 import pc.backup
+import pc.history
 
 app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2C-3g-2)")
 
@@ -47,7 +48,13 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/")
 async def root() -> FileResponse:
-    return FileResponse(STATIC_DIR / "index.html")
+    """Operator console (Phase 2C). no-store so a replaced build is never
+    hidden behind a stale browser cache."""
+    return FileResponse(
+        STATIC_DIR / "index.html",
+        headers={"Cache-Control": "no-store"},
+    )
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -546,6 +553,73 @@ async def export_json_endpoint(
     try:
         text = pc.reports.export_json(conn, since_ms=since, until_ms=until)
         return Response(content=text, media_type="application/json")
+    finally:
+        pc_db.close_db(conn)
+
+
+# ---------------------------------------------------------------------------
+# Operator GUI read API (Phase 2C). Read-only views over `records`.
+# Window bounds are UTC epoch ms, inclusive; default = last 12 hours.
+# ---------------------------------------------------------------------------
+
+def _read_conn():
+    conn = pc_db.open_db()
+    pc_db.init_db(conn)
+    return conn
+
+
+@app.get("/api/stations/overview")
+async def stations_overview_endpoint(
+    since: Optional[int] = None,
+    until: Optional[int] = None,
+) -> dict:
+    conn = _read_conn()
+    try:
+        return pc.history.stations_overview(conn, since, until)
+    finally:
+        pc_db.close_db(conn)
+
+
+@app.get("/api/stations/{station_id}/history")
+async def station_history_endpoint(
+    station_id: int,
+    since: Optional[int] = None,
+    until: Optional[int] = None,
+) -> Response:
+    if not 1 <= station_id <= pc.history.STATION_COUNT:
+        return Response(status_code=404, content='{"error":"unknown_station"}',
+                        media_type="application/json")
+    conn = _read_conn()
+    try:
+        data = pc.history.station_history(conn, station_id, since, until)
+        return Response(content=json.dumps(data), media_type="application/json")
+    finally:
+        pc_db.close_db(conn)
+
+
+@app.get("/api/events")
+async def events_endpoint(
+    since: Optional[int] = None,
+    until: Optional[int] = None,
+    types: Optional[str] = None,
+    limit: int = 500,
+) -> dict:
+    wanted = [t.strip() for t in types.split(",")] if types else None
+    conn = _read_conn()
+    try:
+        return pc.history.events(conn, since, until, wanted, limit)
+    finally:
+        pc_db.close_db(conn)
+
+
+@app.get("/api/summary")
+async def summary_endpoint(
+    since: Optional[int] = None,
+    until: Optional[int] = None,
+) -> dict:
+    conn = _read_conn()
+    try:
+        return pc.history.summary(conn, since, until)
     finally:
         pc_db.close_db(conn)
 
