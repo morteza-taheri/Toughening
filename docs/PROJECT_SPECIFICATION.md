@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document title | TOUGHENING MACHINE — Project Specification Baseline |
-| Document version | 0.7.7 (Documentation consistency round + Decision Round F) |
+| Document version | 0.7.8 (Phase 2C commit-history record, no new decisions) |
 | Revision status | **BASELINE — FOR REVIEW** |
 | Created | 2026-10-04 |
 | Workspace | `D:\PMC\Documents\PlatformIO\Projects\Toughening` |
@@ -37,6 +37,7 @@
 | 0.7.5 | 2026-10-06 | **Amendment propagation pass (no new decisions).** Amendment notes appended to §19 DR-27 wherever 0–3.3 V is stated as a live fact (four numbers left intact, per DR-30 (0.7.4)). §19 DR-23 corrected: the protocol / message contract is APPROVED (final, 2026-10-05) as v1.1.0, not "remains NOT APPROVED". §4.x and §6.x confirmed via grep to contain no 0–3.3 V voltage statements. Header, footer, §0.1, §24 and §25 updated; V136–V140 added. Only `docs/PROJECT_SPECIFICATION.md` modified; `docs/PROTOCOL_CONTRACT.md`, `docs/archive/`, `docs/hardware/`, `.clinerules/` and all other files untouched. **Phase 3 remains NOT AUTHORIZED.** |
 | 0.7.6 | 2026-10-06 | **Decision Round E — PC envelope defined (no code change).** Contract v1.1.0 → **v1.1.1**: PC envelope defined in §3.1, §3.17, §3.18, §3.19; §8 item 24 RESOLVED. `pc_id` = `"pc-01"` (top-level only), `pc_seq` monotonic per PC process, `ts_sent_valid` = 1 by default per DR-17. ack/nack fields remain inside `payload`. §0.1, §12.1, §24, §25 updated; V141–V145 added. Only `docs/PROTOCOL_CONTRACT.md` and `docs/PROJECT_SPECIFICATION.md` modified; `pc/`, `firmware/`, `docs/archive/`, `docs/hardware/`, `.clinerules/` untouched. **Phase 3 remains NOT AUTHORIZED.** |
 | 0.7.7 | 2026-10-08 | **Documentation consistency round + Decision Round F.** v0.7.6 archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.7.6.md`. **Consistency repairs (no decision changed):** §0 header and §0.3 items 2—3, §1.2, §18.2 Q15 / Q16 and closing sentence, §19 D-A1 / D-A5, §21 phase status (Phase 2A, Phase 2B and the Phase 2C note), DR-37 (LED pin removed; DR-35 stays PROPOSED), table repairs in §20 / §23 / revision history, identifier-gap note for DR-05 / DR-09 / DR-10 / DR-11 in §19.2. **Decision Round F (user-approved 2026-10-08):** **DR-41** alarm / reset stay on the PCF8574T (risk accepted, mitigations mandatory), **DR-42** polarity, **DR-43** copy calibration, **DR-44** pressure counters are never `NULL`; no pressure flag is added, **DR-45** `fault_transition_count` (**resolves DR-07-C3**), **DR-46** database retention, **DR-47** auto-start; **DR-48** (saturation) and **DR-49** (alarm output on persistent I2C fault) recorded **OPEN**. Body alignment of DR-07-C3 in §7, §14.3, §18.2, §19, §20, §23. **PCC-39 … PCC-43 recorded PROPOSED — NOT APPLIED** (contract / schema changes). Phase 2B authorization recorded as stated by the user (date not recorded). **Phase 3 and later remain NOT AUTHORIZED.** |
+| 0.7.8 | 2026-10-08 | **Phase 2C commit-history record (no new decisions).** Records the five commits made under the Phase 2C authorization that were not captured in the 0.7.7 revision: e524a72 (WebSocket GUI endpoint, web UI, i18n, fonts), 11df442 (Vazirmatn font integration fix), 86f2b52 (history panel + report buttons), 9de75b4 (backup scheduler, DR-18). Adds Q22 (authentication on /ws/gui — OPEN). Documents the /ws/gui endpoint in §15. Adds V157–V164 to §25. No decision changed. |
 
 ### 0.2 Status label definitions (used throughout this document)
 
@@ -1048,6 +1049,8 @@ The Windows application is intended as a local **FastAPI** HTTP / WebSocket serv
 * Operator GUI (offline, no CDN).
 * Localisation and report / export generation.
 
+The GUI serves over a WebSocket endpoint at `/ws/gui` (server-side, same origin). ESP32-originated messages are broadcast to all connected GUI clients. The endpoint is read-only from the client's side and currently has **NO authentication** — see Q22 in §18.2. The operator GUI is served from `pc/static/` as local assets; no CDN, no external URL (ARC-14).
+
 ### 15.3 Settings (established requirements; values open)
 
 * Settings are persisted on the ESP32 in NVS and survive reboot.
@@ -1270,8 +1273,9 @@ Each entry records a consequential change that this revision deliberately **does
 | Q19 | Does the installer create the Task Scheduler auto-start entry, or does the user do it? | **DR-47 — OPEN until the packaging phase** |
 | Q20 | Definition of saturation near the top of the 0–5 V domain (from bench measurements) | **DR-48 — OPEN — DECISION REQUIRED** |
 | Q21 | Behaviour of the alarm output when the I2C bus has a persistent fault | **DR-49 — OPEN — DECISION REQUIRED** |
+| Q22 | **Authentication on the GUI WebSocket endpoint `/ws/gui`.** The endpoint accepts unauthenticated connections on the local network and broadcasts ESP32-originated messages (currently `live_state`) to all connected clients. Whether to add authentication, and if so how, is **OPEN**. | **OPEN — DECISION REQUIRED** |
 
-**Status of this register as of 0.7.7.** Q1 is resolved by DR-45 (Q17 records the open grain); Q15 and Q16 are resolved (see the rows). **Every other question above is unchanged by this revision.**
+**Status of this register as of 0.7.8.** Q1 is resolved by DR-45 (Q17 records the open grain); Q15 and Q16 are resolved (see the rows). Q22 is new in this revision. **Every other question above is unchanged by this revision.**
 
 ---
 
@@ -1467,6 +1471,10 @@ Each entry records a consequential change that this revision deliberately **does
 * `a3c8a1c` — reports + exports
 * `29f17d9` — PC envelope (Contract v1.1.1)
 * `3b97523` — HTML GUI scaffold + i18n
+* `e524a72` — Stage 2C-3g: WebSocket GUI endpoint, web UI, i18n, fonts
+* `11df442` — Stage 2C-3g-2 fix: Vazirmatn font integration
+* `86f2b52` — Stage 2C-3g-3: history panel + report buttons
+* `9de75b4` — Stage 2C-3h: backup scheduler (DR-18)
 
 **Phase 3 and later remain NOT AUTHORIZED.**
 
@@ -1598,6 +1606,7 @@ Each entry records a consequential change that this revision deliberately **does
 | 0.7.3 | 2026-10-05 | **Final approval of PROTOCOL_CONTRACT.md (v1.0.0) — no new decisions.** Contract v0.2.4 → v1.0.0, status **APPROVED — final, 2026-10-05**. §12.1, §20 and §21 gate text updated; §23 traceability row added; V118–V121 added. The contract remains revisable by an explicit decision round. Phase 3 and all later phases still **NOT AUTHORIZED**. |
 | 0.7.1 | 2026-10-05 | **Follow-up: complete D-C5 / D-D10 body alignment (no new decisions).** §7.5 and §8.4 `overflow` corrected; §7.1a (PCC-36), §12.4 / §12.5 (PCC-37), §17.1 PER-02 and §18 AMB-08 / AMB-14 (PCC-38) corrected. §17.3 AC-08 and its companion sentence deliberately left unchanged per PCC-22. §8.4 `journal_pressure` (D-D6 genuinely OPEN) unchanged. PCC-36, PCC-37, PCC-38 added as APPLIED (0.7.1). No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
 | 0.7.7 | 2026-10-08 | **Documentation consistency round + Decision Round F.** v0.7.6 archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.7.6.md`. **Consistency repairs (no decision changed):** §0 header and §0.3 items 2—3, §1.2, §18.2 Q15 / Q16 and closing sentence, §19 D-A1 / D-A5, §21 phase status (Phase 2A, Phase 2B and the Phase 2C note), DR-37 (LED pin removed; DR-35 stays PROPOSED), table repairs in §20 / §23 / revision history, identifier-gap note for DR-05 / DR-09 / DR-10 / DR-11 in §19.2. **Decision Round F (user-approved 2026-10-08):** **DR-41** alarm / reset stay on the PCF8574T (risk accepted, mitigations mandatory), **DR-42** polarity, **DR-43** copy calibration, **DR-44** pressure counters are never `NULL`; no pressure flag is added, **DR-45** `fault_transition_count` (**resolves DR-07-C3**), **DR-46** database retention, **DR-47** auto-start; **DR-48** (saturation) and **DR-49** (alarm output on persistent I2C fault) recorded **OPEN**. Body alignment of DR-07-C3 in §7, §14.3, §18.2, §19, §20, §23. **PCC-39 … PCC-43 recorded PROPOSED — NOT APPLIED** (contract / schema changes). Phase 2B authorization recorded as stated by the user (date not recorded). **Phase 3 and later remain NOT AUTHORIZED.** |
+| 0.7.8 | 2026-10-08 | **Phase 2C commit-history record (no new decisions).** Records the five commits made under the Phase 2C authorization that were not captured in the 0.7.7 revision: e524a72 (WebSocket GUI endpoint, web UI, i18n, fonts), 11df442 (Vazirmatn font integration fix), 86f2b52 (history panel + report buttons), 9de75b4 (backup scheduler, DR-18). Adds Q22 (authentication on /ws/gui — OPEN). Documents the /ws/gui endpoint in §15. Adds V157–V164 to §25. No decision changed. Phase 3 and later remain NOT AUTHORIZED. |
 
 ## 25. Verification Record
 
@@ -1759,6 +1768,14 @@ Each entry records a consequential change that this revision deliberately **does
 | V154 | 0.7.7 Companion line in the header references contract v1.1.1 | Checked |
 | V155 | 0.7.7 No test was executed and no test is marked as passed; the protocol contract, `pc/`, `firmware/` and `.clinerules/` were not read or modified by this revision | Checked |
 | V156 | 0.7.7 authorized corrections: DR-44 direction corrected so D-D12 does not extend to pressure and `valid_samples_pressure` is never `NULL`; PCC-40 wording corrected to match; footer updated to Baseline v0.7.7. No other section changed. Phase 3 remains NOT AUTHORIZED. | Checked |
+| V157 | 0.7.8 | Three GUI commits (e524a72, 11df442, 86f2b52) were reviewed post-hoc by the user and by the reviewer. Commit messages are accurate; scope is confined to pc/ (with 11df442 additionally touching .gitattributes and .gitignore for binary/artifact handling); no secrets, no external URLs, no protocol change. Accepted as-is. | Reviewed |
+| V158 | 0.7.8 | pytest at HEAD (with all five commits merged): 57 passed / 6 skipped / 0 failed (63 collected). The 6 skipped tests have recorded reasons. | Checked |
+| V159 | 0.7.8 | Stage 2C-3h (9de75b4) adds 11 backup tests in pc/tests/test_backup.py. All pass. The WAL-safe backup technique remains a proposal as recorded in §16.1. | Checked |
+| V160 | 0.7.8 | /ws/gui endpoint documented in §15.2. It has no authentication; this is recorded as Q22 (OPEN — DECISION REQUIRED), not as a defect. | Checked |
+| V161 | 0.7.8 | The four Phase 2C commits recorded in §21 are now traceable to their SHAs. No decision was changed. | Checked |
+| V162 | 0.7.8 | Phase 3 and all later phases remain NOT AUTHORIZED. | Checked |
+| V163 | 0.7.8 | No new decision is added by this revision. The 0.7.8 patch is a record-keeping and traceability update only. | Checked |
+| V164 | 0.7.8 | Scope: only docs/PROJECT_SPECIFICATION.md is modified. No code, firmware, contract, rules file, or other document is touched. | Checked |
 
 ## 26. Section Index
 
@@ -1792,4 +1809,4 @@ Each entry records a consequential change that this revision deliberately **does
 | 25 | Verification Record |
 | 26 | Section Index |
 
-*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.7.*
+*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.8.*
