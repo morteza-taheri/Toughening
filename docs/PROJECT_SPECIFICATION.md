@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document title | TOUGHENING MACHINE — Project Specification Baseline |
-| Document version | 0.7.8 (Phase 2C commit-history record, no new decisions) |
+| Document version | 0.7.9 (Admin panel DR-50 + chip identity verification) |
 | Revision status | **BASELINE — FOR REVIEW** |
 | Created | 2026-10-04 |
 | Workspace | `D:\PMC\Documents\PlatformIO\Projects\Toughening` |
@@ -38,6 +38,7 @@
 | 0.7.6 | 2026-10-06 | **Decision Round E — PC envelope defined (no code change).** Contract v1.1.0 → **v1.1.1**: PC envelope defined in §3.1, §3.17, §3.18, §3.19; §8 item 24 RESOLVED. `pc_id` = `"pc-01"` (top-level only), `pc_seq` monotonic per PC process, `ts_sent_valid` = 1 by default per DR-17. ack/nack fields remain inside `payload`. §0.1, §12.1, §24, §25 updated; V141–V145 added. Only `docs/PROTOCOL_CONTRACT.md` and `docs/PROJECT_SPECIFICATION.md` modified; `pc/`, `firmware/`, `docs/archive/`, `docs/hardware/`, `.clinerules/` untouched. **Phase 3 remains NOT AUTHORIZED.** |
 | 0.7.7 | 2026-10-08 | **Documentation consistency round + Decision Round F.** v0.7.6 archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.7.6.md`. **Consistency repairs (no decision changed):** §0 header and §0.3 items 2—3, §1.2, §18.2 Q15 / Q16 and closing sentence, §19 D-A1 / D-A5, §21 phase status (Phase 2A, Phase 2B and the Phase 2C note), DR-37 (LED pin removed; DR-35 stays PROPOSED), table repairs in §20 / §23 / revision history, identifier-gap note for DR-05 / DR-09 / DR-10 / DR-11 in §19.2. **Decision Round F (user-approved 2026-10-08):** **DR-41** alarm / reset stay on the PCF8574T (risk accepted, mitigations mandatory), **DR-42** polarity, **DR-43** copy calibration, **DR-44** pressure counters are never `NULL`; no pressure flag is added, **DR-45** `fault_transition_count` (**resolves DR-07-C3**), **DR-46** database retention, **DR-47** auto-start; **DR-48** (saturation) and **DR-49** (alarm output on persistent I2C fault) recorded **OPEN**. Body alignment of DR-07-C3 in §7, §14.3, §18.2, §19, §20, §23. **PCC-39 … PCC-43 recorded PROPOSED — NOT APPLIED** (contract / schema changes). Phase 2B authorization recorded as stated by the user (date not recorded). **Phase 3 and later remain NOT AUTHORIZED.** |
 | 0.7.8 | 2026-10-08 | **Phase 2C commit-history record (no new decisions).** Records the five commits made under the Phase 2C authorization that were not captured in the 0.7.7 revision: e524a72 (WebSocket GUI endpoint, web UI, i18n, fonts), 11df442 (Vazirmatn font integration fix), 86f2b52 (history panel + report buttons), 9de75b4 (backup scheduler, DR-18). Adds Q22 (authentication on /ws/gui — OPEN). Documents the /ws/gui endpoint in §15. Adds V157–V164 to §25. No decision changed. |
+| 0.7.9 | 2026-10-09 | **Admin panel DR-50 + chip identity verification (no new decisions beyond DR-50).** DR-13 is updated with the read-only verification result from 2026-10-09: the physical chip identifies as **ESP32-D0WD-V3 (revision v3.1)**, not the D0WDQ6 stated on the retailer page; MAC is `28:05:a5:2f:e0:24`. Flash size confirmed 4 MB; PlatformIO target `esp32dev` works. ADC characteristic verification still pending. **DR-50** added — PC-side admin panel with HTTP Basic Auth, password stored in a git-ignored config file with PBKDF2-HMAC-SHA256, localhost-only endpoints, an audit log, and a minimal MVP (status, backup list, manual backup). Purge-demo, arbitrary record deletion, restore, retention changes, and password change from the UI are recorded as DEFERRED for a future stage. No password value appears in this specification. |
 
 ### 0.2 Status label definitions (used throughout this document)
 
@@ -202,6 +203,8 @@ The candidate prototype board is a **30-pin ESP32 development board** (ECA produ
 
 **Explicitly NOT decided by this selection:** GPIO assignment, ADC architecture, multiplexer topology, voltage divider/attenuation design, input protection, optocoupler input design, alarm output driver, and pinout map.
 
+**[Read-only verification completed 2026-10-09.]** The physical chip was flashed via PlatformIO (esptool 4.5.1) and identified as **ESP32-D0WD-V3 (revision v3.1)**, not the retailer-page claim of D0WDQ6. Flash size confirmed at 4 MB. PlatformIO target `esp32dev` uploads successfully. Chip MAC: `28:05:a5:2f:e0:24`. The USB-UART bridge variant is still not confirmed. ADC characteristics are still pending (DR-48 saturation and DR-13's ADC note). See DR-13 (updated) in §19 for the complete record.
+
 ### 3.1a Board pinout image — visual record only (added 0.6.0)
 
 **Scope of this subsection:** it records **only what the image shows**. It approves no hardware fact.
@@ -225,7 +228,7 @@ The candidate prototype board is a **30-pin ESP32 development board** (ECA produ
 
 | ID | Issue | Status |
 |---|---|---|
-| HW-01 | Target ESP32 board/module confirmation (physical board, real flash size, bridge variant, usable ADC characteristics) | **APPROVED (DR-13)** — board confirmed; flash/chip/ADC characteristics pending explicit read-only verification (Phase 2B compiled but did not read the physical chip) |
+| HW-01 | Target ESP32 board/module confirmation (physical board, real flash size, bridge variant, usable ADC characteristics) | **APPROVED (DR-13)** — board confirmed; chip identity verified read-only as ESP32-D0WD-V3 rev v3.1 on 2026-10-09; ADC characteristics still pending Phase 3. |
 | HW-02 | ADC acquisition architecture (internal ADC + multiplexer vs external precision ADC) | **CLOSED (DR-31)** — 4× CD74HC4067 MUX + 1× ADS1115 (VDD 5 V, PGA ±6.144 V) + 3× PCF8574T (5 V bus, level shifter); 16 MUX states × 4 ADS1115 channels = 64 |
 | HW-03 | Multiplexer architecture and channel count | **CLOSED (DR-31)** — 4× CD74HC4067, 16 MUX states × 4 channels = 64 channels |
 | HW-04 | Analog front end — attenuation/buffering for the 0.5–4.5 V sensor output | **CLOSED (DR-32)** — optocoupler + 5 V limit; PCB design is the user's responsibility (DR-38) |
@@ -1068,6 +1071,35 @@ The GUI serves over a WebSocket endpoint at `/ws/gui` (server-side, same origin)
 * A **username + password** mechanism with a **mandatory change of the default password** on first login is **APPROVED (DR-22)**. The earlier **PIN-based** proposal is **superseded**. **Credential storage mechanism remains OPEN.**
 * Secrets must never appear in logs (ARC-11).
 
+### 15.6 Admin panel (PC side) — APPROVED (DR-50, 2026-10-09)
+
+**APPROVED (DR-50):** a minimal admin panel served at `/admin` on the PC application, intended for a single operator (the admin) on the local machine only. It is separate from the ESP32 settings page (§15.5, DR-22) and from the operator console (`GET /`).
+
+**Capabilities in the MVP (approved):**
+- `GET /admin` — HTML page (Basic Auth)
+- `GET /api/admin/status` — database size, record counts, last backup info
+- `GET /api/admin/backups` — list backup files from the configured `backup_dir`
+- `POST /api/admin/backup` — trigger an immediate backup (WAL-safe, same method as DR-18)
+
+**Explicitly deferred (recorded, not approved for MVP):** purge demo data; arbitrary record deletion; restore; retention changes; password change from the UI; multiple admin users.
+
+**Out of scope (and prohibited in the MVP):**
+- Deleting the entire database (would violate DR-46 indefinite retention)
+- Restore (Spec §16.2 is PROPOSED — NOT APPROVED)
+- Changing the retention policy (fixed by DR-46)
+
+**Authentication:**
+- HTTP Basic Auth over the local link. No TLS in the MVP; acceptable because the PC and the admin UI are on the same machine or a strictly local link.
+- The password is stored as a hash in `pc/admin.config.json`, which is explicitly git-ignored.
+- Hash algorithm: PBKDF2-HMAC-SHA256 with 600,000 iterations (OWASP 2023 recommendation), implemented with `hashlib.pbkdf2_hmac` (Python standard library; no new dependency).
+- No password value appears in this specification, in the repository, or in any log. See §19 DR-50 for the sub-decisions.
+
+**Deployment note:**
+- `/admin` and `/api/admin/*` must answer with `503 Service Unavailable` if `pc/admin.config.json` is missing or unreadable.
+- Admin endpoints are bound to the loopback address (127.0.0.1 / ::1) only; requests from other hosts get `403 Forbidden`. The main application continues to bind to 0.0.0.0 so the ESP32 can reach it.
+- If the admin password has never been set, the first server start reads `TOUGHENING_ADMIN_DEFAULT_PASS` from the environment. If it is also unset, the server generates a random 16-character password, writes it once to `pc/admin_actions.log`, and continues; the operator must read that log and change the password via the config file.
+- Every admin action (login, backup trigger, status read) is appended to `pc/admin_actions.log`. No log rotation in the MVP.
+
 ---
 
 ## 16. Backups, Reports, Exports and PDF
@@ -1335,7 +1367,7 @@ Each entry records a consequential change that this revision deliberately **does
 | CS-01 | Clock-step duration policy | **APPROVED (Policy B)** (section 9.4) — same-boot uptime fallback; **D-D7 remains OPEN** |
 | D-D13 | Fault-counter semantics (`faulted_channel_count`, `fault_transition_count`, `invalid_channel_count_now`) | **OPEN — DECISION REQUIRED** — fault **vocabulary** APPROVED (DR-06); counting model, reset, reboot and persistence remain open (section 7.1a) |
 | TEMP-CONVERSION-CONFIG-GRAIN | Temperature-conversion configuration ownership and grain (symbolic identifier; no D-D number assigned) | **PARTIALLY RESOLVED** — **Q1–Q3 SUPERSEDED by DR-27 (per-channel)**; **Q4–Q8 remain OPEN — DECISION REQUIRED** (section 6.6) |
-| DR-13 | Board confirmed: ESP32-D0WDQ6, 30-pin development board, 4 MB flash (retailer-stated), PlatformIO target esp32dev. Physical board confirmed to match the supplied pinout image. **Flash/chip/ADC characteristics pending explicit read-only verification (Phase 2B compiled but did not read the physical chip).** Closes D-A8 / HW-01 per section 3.3. It approved no GPIO map, ADC architecture, multiplexer, divider, protection or alarm circuit at the time; those were settled later in Decision Round D by **DR-31/DR-32/DR-33/DR-37**. **Observation (not a decision):** the pinout image shows 6 exposed ADC1-capable GPIOs — GPIO 32, 33, 34, 35, 36, 39. ADC2/Wi-Fi interaction and USB-UART chip identity are "general knowledge, to be verified in Phase 2B". | **APPROVED** (2026-10-05) |
+| DR-13 | Board confirmed: ESP32-D0WDQ6, 30-pin development board, 4 MB flash (retailer-stated), PlatformIO target esp32dev. Physical board confirmed to match the supplied pinout image. **Flash/chip verification completed 2026-10-09:** the chip identifies as ESP32-D0WD-V3 (revision v3.1); 4 MB flash confirmed; PlatformIO target `esp32dev` uploads successfully; MAC `28:05:a5:2f:e0:24`. **ADC characteristics still pending Phase 3** (see DR-48 for saturation definition). Closes D-A8 / HW-01 per section 3.3. It approved no GPIO map, ADC architecture, multiplexer, divider, protection or alarm circuit at the time; those were settled later in Decision Round D by **DR-31/DR-32/DR-33/DR-37**. **Observation (not a decision):** the pinout image shows 6 exposed ADC1-capable GPIOs — GPIO 32, 33, 34, 35, 36, 39. ADC2/Wi-Fi interaction and USB-UART chip identity are "general knowledge, to be verified in Phase 2B". | **APPROVED** (2026-10-05) |
 | DR-14 | Environment: the development PC is Windows 10 64-bit with Python 3.13.0 and internet (development only). The final installation target is a different Windows 10 64-bit PC without internet. | **APPROVED** (2026-10-05) |
 | DR-15 | Network (D-B1, D-B3): PC uses a dedicated USB Wi-Fi adapter for the ESP32 access-point link; no internet is required in operation; the user applies Windows IP / firewall settings manually following documentation written by the assistant in a later phase; the assistant never applies them. Closes D-B1 and D-B3. D-B2 (address plan and DHCP pool) stays OPEN. | **APPROVED** (2026-10-05) |
 | DR-16 | D-B4: Python packages may be installed in a virtual environment inside `pc/` in Phase 2A, with pinned versions. Does NOT authorize installation in Phase 2A-0. | **APPROVED** (2026-10-05) |
@@ -1382,6 +1414,13 @@ Each entry records a consequential change that this revision deliberately **does
 | **DR-47** | **Auto-start.** Windows Task Scheduler at system startup, running without a logged-in user and restarting on failure. The user applies it manually (DR-15). Whether the installer creates the task is **OPEN (Q19)** until the packaging phase. | **APPROVED** (2026-10-08) |
 | **DR-48** | **Saturation near the top of the 0–5 V domain.** The ADC cannot observe values far above its supply, so the definition of saturation is to be set from bench measurements in Phase 3. | **OPEN — DECISION REQUIRED** (2026-10-08) |
 | **DR-49** | **Alarm output on a persistent I2C fault.** Behaviour of the alarm output when the I2C bus has a persistent fault; to be decided in Phase 3 together with the final circuit (DR-38). | **OPEN — DECISION REQUIRED** (2026-10-08) |
+| **DR-50** | **Admin panel (PC side).** A minimal admin panel served at `/admin`, protected by HTTP Basic Auth, localhost-only for the admin endpoints. Separate from the ESP32 settings page (DR-22) and from the operator console. MVP scope: status, backup list, manual backup. See §15.6. | **APPROVED** (2026-10-09) |
+| DR-50.1 | **Password storage.** Stored as a hash in `pc/admin.config.json`, which is git-ignored. No password value is committed anywhere. | **APPROVED** (2026-10-09) |
+| DR-50.2 | **Hash algorithm.** PBKDF2-HMAC-SHA256 with 600,000 iterations, implemented with `hashlib.pbkdf2_hmac` (Python standard library; no new dependency). | **APPROVED** (2026-10-09) |
+| DR-50.3 | **Network binding.** Admin endpoints bound to loopback only (127.0.0.1 / ::1); non-loopback requests answer `403 Forbidden`. The main application keeps binding to 0.0.0.0. | **APPROVED** (2026-10-09) |
+| DR-50.4 | **Audit log.** Every admin action appended to `pc/admin_actions.log`. No log rotation in the MVP. | **APPROVED** (2026-10-09) |
+
+**DR-50 binding rule.** Revising any one of DR-50.1 … DR-50.4 has no effect on the others. The bundle is an indexing convenience, not a single atomic decision.
 
 **DR-25 binding rule (relocated from the removed section 27.1):** revising or superseding any one **DR-25.x** sub-decision has **no effect** on any other. The bundle is an indexing convenience, **not** a single atomic decision.
 
@@ -1475,6 +1514,8 @@ Each entry records a consequential change that this revision deliberately **does
 * `11df442` — Stage 2C-3g-2 fix: Vazirmatn font integration
 * `86f2b52` — Stage 2C-3g-3: history panel + report buttons
 * `9de75b4` — Stage 2C-3h: backup scheduler (DR-18)
+
+**2026-10-09:** the physical ESP32-D0WD-V3 board was flashed successfully via PlatformIO (esptool 4.5.1) and **booted cleanly**: NVS loaded (7 keys), Wi-Fi AP started, WebSocket client connected to the PC, `hello` message sent, watchdog enabled. This satisfies the read-only verification part of DR-13 and demonstrates end-to-end connectivity for the first time. ADC characteristics are still pending Phase 3. Phase 3 remains NOT AUTHORIZED.
 
 **Phase 3 and later remain NOT AUTHORIZED.**
 
@@ -1607,6 +1648,7 @@ Each entry records a consequential change that this revision deliberately **does
 | 0.7.1 | 2026-10-05 | **Follow-up: complete D-C5 / D-D10 body alignment (no new decisions).** §7.5 and §8.4 `overflow` corrected; §7.1a (PCC-36), §12.4 / §12.5 (PCC-37), §17.1 PER-02 and §18 AMB-08 / AMB-14 (PCC-38) corrected. §17.3 AC-08 and its companion sentence deliberately left unchanged per PCC-22. §8.4 `journal_pressure` (D-D6 genuinely OPEN) unchanged. PCC-36, PCC-37, PCC-38 added as APPLIED (0.7.1). No new decision, no new section, no row removed. Phase 2A / 2B still **NOT AUTHORIZED**. |
 | 0.7.7 | 2026-10-08 | **Documentation consistency round + Decision Round F.** v0.7.6 archived byte-identical at `docs/archive/PROJECT_SPECIFICATION_v0.7.6.md`. **Consistency repairs (no decision changed):** §0 header and §0.3 items 2—3, §1.2, §18.2 Q15 / Q16 and closing sentence, §19 D-A1 / D-A5, §21 phase status (Phase 2A, Phase 2B and the Phase 2C note), DR-37 (LED pin removed; DR-35 stays PROPOSED), table repairs in §20 / §23 / revision history, identifier-gap note for DR-05 / DR-09 / DR-10 / DR-11 in §19.2. **Decision Round F (user-approved 2026-10-08):** **DR-41** alarm / reset stay on the PCF8574T (risk accepted, mitigations mandatory), **DR-42** polarity, **DR-43** copy calibration, **DR-44** pressure counters are never `NULL`; no pressure flag is added, **DR-45** `fault_transition_count` (**resolves DR-07-C3**), **DR-46** database retention, **DR-47** auto-start; **DR-48** (saturation) and **DR-49** (alarm output on persistent I2C fault) recorded **OPEN**. Body alignment of DR-07-C3 in §7, §14.3, §18.2, §19, §20, §23. **PCC-39 … PCC-43 recorded PROPOSED — NOT APPLIED** (contract / schema changes). Phase 2B authorization recorded as stated by the user (date not recorded). **Phase 3 and later remain NOT AUTHORIZED.** |
 | 0.7.8 | 2026-10-08 | **Phase 2C commit-history record (no new decisions).** Records the five commits made under the Phase 2C authorization that were not captured in the 0.7.7 revision: e524a72 (WebSocket GUI endpoint, web UI, i18n, fonts), 11df442 (Vazirmatn font integration fix), 86f2b52 (history panel + report buttons), 9de75b4 (backup scheduler, DR-18). Adds Q22 (authentication on /ws/gui — OPEN). Documents the /ws/gui endpoint in §15. Adds V157–V164 to §25. No decision changed. Phase 3 and later remain NOT AUTHORIZED. |
+| 0.7.9 | 2026-10-09 | **Admin panel DR-50 + chip identity verification.** Physical ESP32 flashed read-only on 2026-10-09 via PlatformIO (esptool 4.5.1); chip identified as **ESP32-D0WD-V3 (revision v3.1)**, MAC `28:05:a5:2f:e0:24`, 4 MB flash confirmed, `esp32dev` target uploads successfully. DR-13 status text updated with the verification result; ADC characteristics still pending Phase 3. **DR-50** added (PC-side admin panel, HTTP Basic Auth, PBKDF2-HMAC-SHA256 hash in git-ignored `pc/admin.config.json`, localhost-only endpoints, audit log, MVP: status / backup list / manual backup). Purge-demo, arbitrary record deletion, restore, retention changes and UI password change recorded as DEFERRED. §15.6 added. DR-50.1 … DR-50.4 added to §19. V165–V172 added to §25. No other decision changed. Phase 3 remains NOT AUTHORIZED. |
 
 ## 25. Verification Record
 
@@ -1776,6 +1818,14 @@ Each entry records a consequential change that this revision deliberately **does
 | V162 | 0.7.8 | Phase 3 and all later phases remain NOT AUTHORIZED. | Checked |
 | V163 | 0.7.8 | No new decision is added by this revision. The 0.7.8 patch is a record-keeping and traceability update only. | Checked |
 | V164 | 0.7.8 | Scope: only docs/PROJECT_SPECIFICATION.md is modified. No code, firmware, contract, rules file, or other document is touched. | Checked |
+| V165 | 0.7.9 | Firmware flashed read-only on 2026-10-09: chip identity verified (`ESP32-D0WD-V3` rev v3.1, MAC `28:05:a5:2f:e0:24`, 4 MB flash, esptool 4.5.1); firmware booted cleanly with NVS loaded (7 keys), Wi-Fi AP started, WebSocket client connected to the PC, `hello` sent, WDT enabled. | Checked |
+| V166 | 0.7.9 | DR-13 updated with the verification result. Only the "pending" clause was replaced; the rest of the row is byte-unchanged. | Checked |
+| V167 | 0.7.9 | DR-50 added with DR-50.1, DR-50.2, DR-50.3, DR-50.4. No existing DR row renumbered or altered. | Checked |
+| V168 | 0.7.9 | §15.6 added. The existing §15.5 (ESP32 settings page auth, DR-22) is unchanged. | Checked |
+| V169 | 0.7.9 | §3.1 verification note added. §3.1a pinout image subsection unchanged. | Checked |
+| V170 | 0.7.9 | No password value appears anywhere in this specification or in any tracked file. The placeholder `TOUGHENING_ADMIN_DEFAULT_PASS` is the only reference. | Checked |
+| V171 | 0.7.9 | §19 and §20 otherwise byte-unchanged except for the DR-13 update and the DR-50 rows. | Checked |
+| V172 | 0.7.9 | Scope: only `docs/PROJECT_SPECIFICATION.md` modified. No code, firmware, contract, rules file, or other document touched. Phase 3 remains NOT AUTHORIZED. | Checked |
 
 ## 26. Section Index
 
@@ -1809,4 +1859,4 @@ Each entry records a consequential change that this revision deliberately **does
 | 25 | Verification Record |
 | 26 | Section Index |
 
-*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.8.*
+*End of document — TOUGHENING MACHINE Project Specification Baseline v0.7.9.*
