@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toughening Machine — Admin</title>
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+  <header>
+    <h1>Toughening Machine Admin</h1>
+    <button id="btn-logout" class="btn">Logout</button>
+  </header>
+
+  <main>
+    <section class="card" id="status-card">
+      <h2>Status</h2>
+      <table id="tbl-status">
+        <tr><th>Database path</th><td id="st-db-path">Loading…</td></tr>
+        <tr><th>Database size</th><td id="st-db-size">Loading…</td></tr>
+        <tr><th>Record count</th><td id="st-record-count">Loading…</td></tr>
+        <tr><th>Record types</th><td id="st-record-types">Loading…</td></tr>
+        <tr><th>Backup dir</th><td id="st-backup-dir">Loading…</td></tr>
+        <tr><th>Backup dir available</th><td id="st-backup-available">Loading…</td></tr>
+        <tr><th>Last backup</th><td id="st-last-backup">Loading…</td></tr>
+        <tr><th>Log path</th><td id="st-log-path">Loading…</td></tr>
+        <tr><th>Config path</th><td id="st-config-path">Loading…</td></tr>
+      </table>
+    </section>
+
+    <section class="card" id="backups-card">
+      <h2>Backups</h2>
+      <p id="backup-hint" class="hint">Loading…</p>
+      <table id="tbl-backups">
+        <thead>
+          <tr><th>Name</th><th>Size</th><th>Modified</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="btn-backup" class="btn">Trigger Backup</button>
+    </section>
+  </main>
+
+  <footer>
+    Toughening Machine — Admin panel (DR-50, Phase 2C-3i)
+  </footer>
+
+  <script src="/static/admin.js"></script>
+</body>
+</html>

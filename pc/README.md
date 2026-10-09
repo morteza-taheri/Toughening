@@ -5,9 +5,9 @@ system. It hosts a WebSocket endpoint that receives device messages,
 validates the envelope and payload, persists durable records to SQLite
 (commit-before-ACK), and answers with PC-envelope acknowledgments.
 
-**Status: PROPOSED — NOT APPROVED. Phase 2C Stage 2C-3h. Phase 2C is
+**Status: APPROVED. Phase 2C Stage 2C-3i. Phase 2C is
 authorized as a software-only continuation of Phase 2A. Hardware phases
-(3+) remain NOT AUTHORIZED. No firmware.**
+(3+) remain NOT AUTHORIZED.**
 
 The per-type database schema (§14) is still PROPOSED — NOT APPROVED.
 Only the minimal `records` table exists for the commit-before-ACK and
@@ -37,7 +37,7 @@ It plays the ESP32 role and skips the 4 PC-originated types.
 
     pc\venv\Scripts\python.exe -m pytest pc/tests/ -v
 
-**Current: 56 passed, 6 skipped (62 tests).**
+**Current: 56 passed, 14 skipped (70 tests).**
 
 ## Files
 
@@ -192,6 +192,70 @@ and demo_feed.py to see realistic console operation.
   ```bash
   pc\venv\Scripts\python.exe pc\simulator.py --loop
   ```
+
+## Admin panel (DR-50, Phase 2C-3i, PC-side only)
+
+* Served at `GET /admin` and `GET /api/admin/*` (loopback only, HTTP Basic Auth).
+* First run creates `pc/admin.config.json` (PBKDF2-HMAC-SHA256, 600 000 iterations,
+  16-byte salt, 32-byte dklen) and an audit log `pc/admin_actions.log`; both are
+  git-ignored and must not be committed. The default password is set once via the
+  environment variable `TOUGHENING_ADMIN_DEFAULT_PASS` at first startup, then
+  stored hashed in `pc/admin.config.json` — the plain password never appears in
+  code or tracked files. If the env var is unset, a random 16-character password
+  is generated and written ONCE to `pc/admin_actions.log`.
+
+### Endpoints
+
+| Route | Method | Behavior |
+|---|---|---|
+| `/admin` | GET | require_admin → is_loopback or 403 → FileResponse(pc/static/admin.html) + Cache-Control: no-store |
+| `/api/admin/status` | GET | require_admin → is_loopback → admin_log("status", username) → get_status() |
+| `/api/admin/backups` | GET | require_admin → is_loopback → admin_log("backups_list", username) → get_backups() |
+| `/api/admin/backup` | POST | require_admin → is_loopback → admin_log("backup_trigger") → trigger_backup() → admin_log("backup_done", path) → result |
+| `/api/admin/logout` | POST | 401 + WWW-Authenticate (forces browser to clear cached credentials) |
+
+### Status endpoint
+
+Returns `{db_path, db_size_bytes, record_count, record_types, backup_dir,
+backup_dir_available, last_backup, log_path, config_path}`.
+
+### enable
+
+Set `TOUGHENING_ADMIN_DEFAULT_PASS` in the environment before the first server
+start. If unset, a random 16-character password is generated and written ONCE to
+`pc/admin_actions.log` — visible only to local admin.
+
+### Change password
+
+Edit `pc/admin.config.json` directly. The format is:
+```json
+{
+  "username_hash": "<base64>salt:hash",
+  "created": "2026-01-01T00:00:00Z"
+}
+```
+The hash uses PBKDF2-HMAC-SHA256 with 600 000 iterations, 16-byte salt, and
+32-byte dklen. Generate a new hash with:
+```bash
+python -c "from pc.admin import make_password_hash, password_hash_to_base64; s,h = make_password_hash('newpass'); print(password_hash_to_base64(s,h))"
+```
+
+### Security warnings
+
+* HTTP Basic Auth — no TLS in the MVP.
+* Loopback-only: only 127.0.0.1, ::1, and localhost may access the admin panel.
+* Non-loopback requests receive 403 Forbidden.
+* No password change from UI — edit `pc/admin.config.json` directly.
+* Audit log: `pc/admin_actions.log` records every action (login, status, backups,
+  backup trigger, logout) with a UTC timestamp and username.
+
+### NOT implemented
+
+* Purge demo data
+* Delete record
+* Restore backup
+* Change retention
+* Multiple users
 
 ## Backup automation (Phase 2C-3h, DR-18)
 

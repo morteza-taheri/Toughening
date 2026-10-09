@@ -60,6 +60,10 @@ tmp/
 
 docs/hardware/esp32-pinout.jpg
 
+# Admin panel (DR-50, Phase 2C-3i) — config + audit log stay local
+pc/admin.config.json
+pc/admin_actions.log
+
 # PC virtual environment and Python build artifacts (Phase 2A)
 pc/venv/
 pc/__pycache__/

@@ -30,7 +30,8 @@ from typing import Optional, Tuple
 import asyncio
 
 import uvicorn
-from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect, Depends, HTTPException, status
+from fastapi.requests import Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -39,8 +40,9 @@ import pc.reports
 import pc.config
 import pc.backup
 import pc.history
+import pc.admin as pc_admin
 
-app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2C-3g-2)")
+app = FastAPI(title="Toughening Machine PC side (Phase 2C Stage 2C-3i)")
 
 STATIC_DIR = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -52,6 +54,94 @@ async def root() -> FileResponse:
     hidden behind a stale browser cache."""
     return FileResponse(
         STATIC_DIR / "index.html",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Admin panel (DR-50, Phase 2C-3i, PC-side only, HTTP Basic Auth, loopback)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/admin/status")
+async def admin_status_endpoint(
+    request: Request,
+    admin: dict = Depends(pc_admin.require_admin),
+) -> dict:
+    """Return admin status (loopback-only)."""
+    if not pc_admin.is_loopback(request):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access restricted to loopback",
+        )
+    pc_admin.admin_log("status", detail=admin["username"])
+    return pc_admin.get_status()
+
+
+@app.get("/api/admin/backups")
+async def admin_backups_endpoint(
+    request: Request,
+    admin: dict = Depends(pc_admin.require_admin),
+) -> dict:
+    """List backups (loopback-only)."""
+    if not pc_admin.is_loopback(request):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access restricted to loopback",
+        )
+    pc_admin.admin_log("backups_list", detail=admin["username"])
+    return pc_admin.get_backups()
+
+
+@app.post("/api/admin/backup")
+async def admin_trigger_backup_endpoint(
+    request: Request,
+    admin: dict = Depends(pc_admin.require_admin),
+) -> dict:
+    """Trigger a backup (loopback-only)."""
+    if not pc_admin.is_loopback(request):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access restricted to loopback",
+        )
+    pc_admin.admin_log("backup_trigger", detail=admin["username"])
+    try:
+        result = pc_admin.trigger_backup()
+        pc_admin.admin_log("backup_done", detail=f"path={result.get('path', '')}", user=admin["username"])
+        return result
+    except ValueError as e:
+        pc_admin.admin_log("backup_error", detail=str(e), user=admin["username"])
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@app.post("/api/admin/logout")
+async def admin_logout_endpoint(
+    request: Request,
+    admin: dict = Depends(pc_admin.require_admin),
+) -> dict:
+    """Logout (loopback-only, clears session)."""
+    if not pc_admin.is_loopback(request):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access restricted to loopback",
+        )
+    pc_admin.admin_log("logout", detail=admin["username"])
+    # Return 401 to force browser to clear cached credentials
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        headers={"WWW-Authenticate": 'Basic realm="toughening-admin"'},
+    )
+
+
+@app.get("/admin", include_in_schema=False)
+async def admin_page(request: Request, admin: dict = Depends(pc_admin.require_admin)):
+    """Serve admin HTML page (loopback-only)."""
+    if not pc_admin.is_loopback(request):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access restricted to loopback",
+        )
+    return FileResponse(
+        STATIC_DIR / "admin.html",
         headers={"Cache-Control": "no-store"},
     )
 
