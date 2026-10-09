@@ -4,10 +4,11 @@ __pycache__/
 *$py.class
 .venv/
 venv/
+pc/venv/
 env/
 *.egg-info/
-.pytest_cache/
 .mypy_cache/
+.pytest_cache/
 
 # PlatformIO
 .pio/
@@ -42,9 +43,11 @@ dist/
 *.db-shm
 *.sqlite
 *.sqlite3
+pc/toughening.db
 
 # Logs
 *.log
+*.tmp
 logs/
 
 # Backups
@@ -57,6 +60,9 @@ scratch/
 tmp/
 .claude/
 .clinerules.local/
+.kombai/
+.kilo/
+.idea/
 
 docs/hardware/esp32-pinout.jpg
 

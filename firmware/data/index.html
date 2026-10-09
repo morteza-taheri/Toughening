@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="graphite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>تافنینگ · پنل محلی دستگاه</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='1' y='1' width='46' height='46' rx='12' fill='%231a2328' stroke='%233a4952' stroke-width='1.5'/%3E%3Cpath d='M8 13h32M8 35h32' stroke='%236a7b81' stroke-width='2' stroke-linecap='round' stroke-dasharray='1 5'/%3E%3Cpath d='M14 18h24l-4 12H10z' fill='%234fd1b5' fill-opacity='.16' stroke='%234fd1b5' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M18 21.5h12' stroke='%23e2ebe8' stroke-opacity='.55' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preload" href="assets/Vazirmatn-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script>try{var t=localStorage.getItem('tf-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<!-- Single-page app. Hash routes: #/login · #/dashboard · #/settings/<tab> · #/calibration[/<channel>]
+     dashboard.js, settings.js and calibration.js are loaded on first visit to their view. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="logo" viewBox="0 0 48 48"><rect x="1" y="1" width="46" height="46" rx="12" fill="#1a2328" stroke="#3a4952" stroke-width="1.5"/><path d="M8 13h32M8 35h32" stroke="#6a7b81" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 5"/><path d="M14 18h24l-4 12H10z" fill="#4fd1b5" fill-opacity=".16" stroke="#4fd1b5" stroke-width="2.4" stroke-linejoin="round"/><path d="M18 21.5h12" stroke="#e2ebe8" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/></symbol>
+</svg>
+
+<!-- boot: shown until the session check answers -->
+<main class="login-wrap" id="v-boot"><div class="card" style="text-align:center"><div class="spin"></div><p class="muted">در حال بررسی ورود…</p></div></main>
+
+<!-- login: covers everything; the shell stays hidden until authenticated -->
+<main class="login-wrap" id="v-login" hidden>
+  <div class="login">
+    <div class="card">
+      <div class="login-brand">
+        <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><use href="#logo"/></svg>
+        <div><b>تافنینگ</b><span>پنل محلی دستگاه سکوریت</span></div>
+      </div>
+
+      <form id="f-login" novalidate>
+        <h1>ورود مدیر</h1>
+        <label class="field"><span>نام کاربری</span>
+          <input class="input ltr" id="u" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required maxlength="32">
+        </label>
+        <label class="field"><span>رمز عبور</span>
+          <div class="pw">
+            <input class="input ltr" id="p" name="password" type="password" autocomplete="current-password" required maxlength="64">
+            <button type="button" class="pw-t" aria-label="نمایش رمز عبور"></button>
+          </div>
+        </label>
+        <p class="err" id="e-login" role="alert"></p>
+        <button class="btn primary" type="submit" id="b-login">ورود</button>
+      </form>
+
+      <form id="f-change" novalidate hidden>
+        <h1>تغییر رمز پیش‌فرض</h1>
+        <p class="muted small">برای امنیت دستگاه، پیش از ادامه باید رمز عبور پیش‌فرض را تغییر دهید.</p>
+        <label class="field" id="w-cur"><span>رمز عبور فعلی</span>
+          <div class="pw">
+            <input class="input ltr" id="c0" type="password" autocomplete="current-password" maxlength="64">
+            <button type="button" class="pw-t" aria-label="نمایش رمز عبور"></button>
+          </div>
+        </label>
+        <label class="field"><span>رمز عبور جدید</span>
+          <div class="pw">
+            <input class="input ltr" id="c1" type="password" autocomplete="new-password" required maxlength="64">
+            <button type="button" class="pw-t" aria-label="نمایش رمز عبور"></button>
+          </div>
+        </label>
+        <label class="field"><span>تکرار رمز عبور جدید</span>
+          <input class="input ltr" id="c2" type="password" autocomplete="new-password" required maxlength="64">
+        </label>
+        <ul class="rule">
+          <li>دست‌کم ۸ نویسه</li>
+          <li>متفاوت با رمز فعلی و نام کاربری</li>
+        </ul>
+        <p class="err" id="e-change" role="alert"></p>
+        <button class="btn primary" type="submit" id="b-change">ذخیره و ادامه</button>
+      </form>
+
+      <p class="login-note" id="note"></p>
+    </div>
+  </div>
+</main>
+
+<!-- shell: header + one visible page at a time -->
+<div id="shell" hidden>
+  <header class="top" id="top"></header>
+
+  <main class="page" id="p-dashboard" hidden>
+    <div class="statusbar" id="sbar" aria-label="وضعیت دستگاه"></div>
+    <div class="banner danger" id="stale" hidden role="alert"></div>
+    <div class="page-head">
+      <div>
+        <h1>وضعیت ایستگاه‌ها</h1>
+        <p>بروزرسانی خودکار هر ثانیه · ۱۶ ایستگاه، هر ایستگاه دو نازل</p>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <section class="stations" id="grid" aria-live="off"></section>
+  </main>
+
+  <main class="page narrow" id="p-settings" hidden>
+    <div class="page-head"><div><h1>تنظیمات دستگاه</h1><p>تغییرات در حافظهٔ ماندگار دستگاه ذخیره می‌شوند.</p></div></div>
+    <nav class="subnav" id="subnav-set" aria-label="بخش‌های تنظیمات"></nav>
+    <div class="banner" id="reboot-banner" hidden></div>
+    <div id="panel"><div class="card"><div class="spin"></div></div></div>
+  </main>
+
+  <main class="page" id="p-calibration" hidden>
+    <div class="page-head"><div><h1>کالیبراسیون کانال‌ها</h1><p>۶۴ کانال: ۳۲ فشار و ۳۲ دما · نگاشت ولتاژ ورودی (۰ تا ۵ ولت) به مقدار</p></div></div>
+    <nav class="subnav" id="subnav-cal" aria-label="بخش‌های تنظیمات"></nav>
+    <div class="sumrow" id="sum"></div>
+    <div class="toolbar" id="toolbar"></div>
+    <div class="cal">
+      <div class="tbl-wrap" id="tblwrap"></div>
+      <aside class="card editor" id="editor" aria-label="ویرایشگر کانال"></aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>
