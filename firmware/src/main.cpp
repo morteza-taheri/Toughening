@@ -95,6 +95,13 @@ static const char *BUILD_DATE = __DATE__ " " __TIME__;
 // Wi-Fi and WebSocket defaults from DR-24 and ARC-01.
 // The AP password is a known bench default; change it from the web panel.
 static const char *DEFAULT_WIFI_SSID = "TougheningMachine-AP";
+// DEFAULT AP PASSWORD — DEVELOPMENT ONLY.
+// This is the default Access Point password on first boot.
+// The operator MUST change it from the device web UI before
+// the device is deployed anywhere third parties can reach the
+// AP. See PROJECT_SPECIFICATION.md §15.5.
+// A future revision may generate this randomly (like the web
+// login password) and print it once on Serial at first boot.
 static const char *DEFAULT_WIFI_PASSWORD = "test12345";
 static const char *DEFAULT_WS_HOST = "192.168.4.2";
 static const uint16_t DEFAULT_WS_PORT = 8000;

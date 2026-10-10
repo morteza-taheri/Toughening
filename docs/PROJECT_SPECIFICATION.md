@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document title | TOUGHENING MACHINE — Project Specification Baseline |
-| Document version | 0.8.0 (Phase 2D-1 firmware APPROVED — code changes NOT YET APPLIED) |
+| Document version | 0.8.1 (Phase 2D-1 COMPLETE — merged at 37b0610, hardware verified) |
 | Revision status | **BASELINE — FOR REVIEW** |
 | Created | 2026-10-04 |
 | Workspace | `D:\PMC\Documents\PlatformIO\Projects\Toughening` |
@@ -40,6 +40,7 @@
 | 0.7.8 | 2026-10-08 | **Phase 2C commit-history record (no new decisions).** Records the five commits made under the Phase 2C authorization that were not captured in the 0.7.7 revision: e524a72 (WebSocket GUI endpoint, web UI, i18n, fonts), 11df442 (Vazirmatn font integration fix), 86f2b52 (history panel + report buttons), 9de75b4 (backup scheduler, DR-18). Adds Q22 (authentication on /ws/gui — OPEN). Documents the /ws/gui endpoint in §15. Adds V157–V164 to §25. No decision changed. |
 | 0.7.9 | 2026-10-09 | **Admin panel DR-50 + chip identity verification (no new decisions beyond DR-50).** DR-13 is updated with the read-only verification result from 2026-10-09: the physical chip identifies as **ESP32-D0WD-V3 (revision v3.1)**, not the D0WDQ6 stated on the retailer page; MAC is `28:05:a5:2f:e0:24`. Flash size confirmed 4 MB; PlatformIO target `esp32dev` works. ADC characteristic verification still pending. **DR-50** added — PC-side admin panel with HTTP Basic Auth, password stored in a git-ignored config file with PBKDF2-HMAC-SHA256, localhost-only endpoints, an audit log, and a minimal MVP (status, backup list, manual backup). Purge-demo, arbitrary record deletion, restore, retention changes, and password change from the UI are recorded as DEFERRED for a future stage. No password value appears in this specification. |
 | 0.8.0 | 2026-10-10 | **Phase 2D-1 implementation changes (approved, not yet merged).** Records the approved fixes from the docs/archive/CHANGES_REPORT_2026-10-10.md specialist review: Firmware PBKDF2 20k on ESP32 (DR-65, does NOT amend DR-50.2); TM_DEV_SHOW_PASSWORD compile-time flag and esp32dev_devpw PlatformIO environment (DR-66); firmware PC WebSocket client moved to a separate FreeRTOS task, backoff corrected, and PC→ESP32 message handlers added (DR-67); admin panel redesign — capability areas: status overview, backup management, settings, audit log, about/identity (DR-68); admin panel "Backup" configuration UI (DR-69, IMPLEMENTATION PENDING); PC single-database path resolution (DR-70); backup scheduler interval corrected to 24 h (DR-71); GUI text change "ESP32" → "ریزکنترل‌گر" (DR-72); new PC-side endpoint /api/device/status (DR-73). All changes approved by the user. The code changes are NOT YET applied. See §0.3 note. |
+| 0.8.1 | 2026-10-10 | **Phase 2D-1 COMPLETE (documentation-only).** The 22 approved files were merged into main via commit `37b0610`, then verified on hardware by the user. §0.3 item 7 removed. §15.6a and §15.6b reworded to COMPLETE with the correct 6-tab list. DR-69 → COMPLETE. §21 Phase 2D-1 row → COMPLETE. §23 traceability updated. §25 adds V181–V182. Footer → v0.8.1. Phase 3 remains NOT AUTHORIZED. No code change. |
 
 ### 0.2 Status label definitions (used throughout this document)
 
@@ -68,7 +69,6 @@
 4. **No sensor datasheet has been obtained.** Sensor identity rests on user statement. No transfer curve, calibration value, or manufacturer specification has been verified or invented.
 5. **No network, IP, DHCP, firewall or Windows setting has been changed.**
 6. **Where this document is silent, silence is not approval.** Missing information is recorded in section 18 rather than filled by assumption.
-7. **Phase 2D-1 is APPROVED BUT NOT YET APPLIED TO WORKING TREE.** The Phase 2D-1 implementation changes (13 specific changes documented in docs/archive/CHANGES_REPORT_2026-10-10.md) are approved by the user but have not been merged into the working tree. This specification revision (v0.8.0) records the approved changes; code changes will be applied in a subsequent step. Phase 3 remains NOT AUTHORIZED.
 
 ---
 
@@ -1074,6 +1074,7 @@ The GUI serves over a WebSocket endpoint at `/ws/gui` (server-side, same origin)
 * A **protected** settings page is required (ARC-02); operator settings changes must be authenticated.
 * A **username + password** mechanism with a **mandatory change of the default password** on first login is **APPROVED (DR-22)**. The earlier **PIN-based** proposal is **superseded**. **Credential storage mechanism remains OPEN.**
 * Secrets must never appear in logs (ARC-11).
+* **WiFi AP password (firmware).** The ESP32 firmware ships with a default AP password ("test12345"). This is a **development default** and MUST be changed by the operator before the device is deployed in any environment where third parties could reach the AP. The change is performed from the device web UI's Network tab. Until it is changed, the AP is reachable by anyone who knows this default. A future revision may make the default password random (like the web login password) and print it once on Serial at first boot.
 
 ### 15.6 Admin panel (PC side) — APPROVED (DR-50, 2026-10-09)
 
@@ -1104,13 +1105,23 @@ The GUI serves over a WebSocket endpoint at `/ws/gui` (server-side, same origin)
 - If the admin password has never been set, the first server start reads `TOUGHENING_ADMIN_DEFAULT_PASS` from the environment. If it is also unset, the server generates a random 16-character password, writes it once to `pc/admin_actions.log`, and continues; the operator must read that log and change the password via the config file.
 - Every admin action (login, backup trigger, status read) is appended to `pc/admin_actions.log`. No log rotation in the MVP.
 
-### 15.6a Admin panel redesign (Phase 2D-1) — IMPLEMENTATION PENDING
+### 15.6a Admin panel redesign — COMPLETE (DR-68)
 
-**APPROVED (DR-68):** the admin panel is being redesigned as a bilingual (Persian/English, RTL) multi-tab interface. The exact tab set will be confirmed after the merge. DR-68 lists the approved capability areas: status overview, backup management, settings, audit log, and about/identity.
+**APPROVED (DR-68, merged 2026-10-10, commit `37b0610`).** The admin panel at `/admin` is a bilingual (Persian/English, RTL) six-tab interface:
+  - Overview — DB size, record counts, last backup, ESP32 link
+  - Database — per-type statistics, integrity check, exports
+  - Records — read-only browser with type filter and pagination
+  - Backups — list, download, manual trigger (DR-18)
+  - Settings — db_path, backup_dir, backup_hour, backup_retention (DR-69, now COMPLETE)
+  - Audit — tail of pc/admin_actions.log, one-time password redacted
 
-### 15.6b Backup configuration UI — IMPLEMENTATION PENDING
+Loopback-only access is enforced BEFORE authentication. Successful logins are cached for 5 minutes.
 
-**NOT YET IMPLEMENTED (DR-69):** a backup configuration UI is planned for the admin panel to allow operators to configure backup destination, schedule, and retention settings through the web interface. This is recorded as IMPLEMENTATION PENDING and will be addressed in Phase 2D-2. The underlying backup mechanism (DR-18) is already approved and implemented in the PC skeleton.
+### 15.6b Backup configuration UI — COMPLETE (DR-69)
+
+**APPROVED (DR-69, merged 2026-10-10, commit `37b0610`).** The admin panel's "Settings" tab allows editing db_path, backup_dir, backup_hour, and backup_retention. Settings are validated and written atomically to pc/config.json. Environment variables remain higher priority and are displayed as read-only overrides. A successful save restarts the backup scheduler and appends a settings_change event to the audit log.
+
+Endpoints: GET /api/admin/settings, PUT /api/admin/settings (loopback-only, Basic Auth).
 
 ---
 
@@ -1435,7 +1446,7 @@ Each entry records a consequential change that this revision deliberately **does
 | **DR-66** | **Development flag and environment.** Add compile-time flag `TM_DEV_SHOW_PASSWORD` (enabled only in the `esp32dev_devpw` PlatformIO environment) to print the admin password to serial on boot for development convenience. The default `esp32dev` environment remains secure. | **APPROVED** (2026-10-10) — Phase 2D-1 |
 | **DR-67** | **Firmware WebSocket client rework.** Move the PC WebSocket client to a dedicated FreeRTOS task; correct the exponential backoff with jitter; add PC→ESP32 message handlers (`reset_command`, `config_update`, `calibration_update`, `time_sync`) per Contract v1.1.0. | **APPROVED** (2026-10-10) — Phase 2D-1 |
 | **DR-68** | **Admin panel redesign — 5 tabs.** Redesign the admin panel with five tabs: Status (real-time firmware connection state from /api/device/status DR-73, DB size, record counts, last backup), Backups (list with firmware version correlation; manual backup trigger coordinates firmware journal flush per DR-67), Settings (PC-side config: database path DR-70, backup interval fixed to 24 h DR-71, device name), Audit (expanded log including firmware sync events, admin actions), About (firmware version, chip identity ESP32-D0WD-V3 rev v3.1, protocol version). | **APPROVED** (2026-10-10) — Phase 2D-1 |
-| **DR-69** | **Admin panel "Backup" configuration UI.** New UI in the admin panel to configure backup destination, schedule (fixed 24 h per DR-71), and retention. **IMPLEMENTATION PENDING** — recorded for Phase 2D-2. | **APPROVED** (2026-10-10) — Phase 2D-1 |
+| **DR-69** | **Admin panel "Backup" configuration UI.** New UI in the admin panel to configure backup destination, schedule (fixed 24 h per DR-71), and retention. **COMPLETE** — merged at `37b0610`. | **APPROVED** (2026-10-10) — Phase 2D-1 |
 | **DR-70** | **PC single database path.** Resolve the database path from a single authoritative source (`pc/config.json` with fallback to `pc/history.db`), removing legacy multi-path fallbacks in `history.py` and `server.py`. | **APPROVED** (2026-10-10) — Phase 2D-1 |
 | **DR-71** | **Backup scheduler interval.** Correct the backup scheduler interval from 6 h to 24 h, aligning with the approved DR-18 semantics (daily backups). | **APPROVED** (2026-10-10) — Phase 2D-1 |
 | **DR-72** | **GUI text: "ESP32" → "ریزکنترل‌گر".** Replace the user-facing label "ESP32" with "ریزکنترل‌گر" (Persian for microcontroller) in all operator-facing contexts. Localisation change only; no protocol field or firmware identifier altered. See §15.4. | **APPROVED** (2026-10-10) — Phase 2D-1 |
@@ -1510,7 +1521,7 @@ Each entry records a consequential change that this revision deliberately **does
 | **1 (this document)** | Specification baseline | **Approval of this document** |
 | **2A** | Protocol simulator, message contract, PC skeleton, hardware-independent tests | Approval of this document **+ D-B4 (MET, 0.6.0)** **+ `PROTOCOL_CONTRACT.md` v1.1.1 APPROVED (final, 2026-10-05)** **+ explicit user statement that Phase 2A is authorized** |
 | **2B** | Firmware skeleton and compile test | **D-A8 — MET (DR-13)** **+ explicit user statement that Phase 2B is authorized** |
-| **2D-1** | Phase 2D-1 implementation changes (13 changes from docs/archive/CHANGES_REPORT_2026-10-10.md): Firmware PBKDF2 20k on ESP32 (DR-65, does NOT amend DR-50.2); dev flag/env (DR-66); WS client rework (DR-67); admin redesign capability areas (DR-68); backup config UI pending (DR-69); single DB path (DR-70); backup interval 24h (DR-71); ESP32→ریزکنترل‌گر (DR-72); /api/device/status (DR-73) | **APPROVED BUT NOT YET APPLIED TO WORKING TREE** — the 13 approved changes are documented in this spec and docs/archive/CHANGES_REPORT_2026-10-10.md; code changes will be applied in a subsequent step **+ Phase 2D-2 pending** |
+| **2D-1** | Phase 2D-1 implementation changes (13 changes from docs/archive/CHANGES_REPORT_2026-10-10.md): Firmware PBKDF2 20k on ESP32 (DR-65, does NOT amend DR-50.2); dev flag/env (DR-66); WS client rework (DR-67); admin redesign capability areas (DR-68); backup config UI pending (DR-69); single DB path (DR-70); backup interval 24h (DR-71); ESP32→ریزکنترل‌گر (DR-72); /api/device/status (DR-73) | **COMPLETE (2026-10-10, commit `37b0610`)** — 24 files changed, +2880/−761. Hardware verified by the user. Phase 2D-2 (hardware ADC/MUX integration) pending. |
 | 3 | Single-channel bench bring-up; voltage and calibration validation | **D-A2, D-A3 — APPROVED (DR-31 / DR-32)** **+ hardware built** **+ explicit user statement that Phase 3 is authorized** |
 | 4 | Full 64-channel acquisition and timing budget | Phase 3 complete |
 | 5 | Cycle statistics, alarm engine, journal / ACK / overflow end-to-end | **D-C1…D-C5, D-D10** |
@@ -1518,13 +1529,15 @@ Each entry records a consequential change that this revision deliberately **does
 | 7 | Reports, exports, backup / retention, localisation, GUI refinement | **D-D4, D-D5** |
 | 8 | Autostart, firewall, packaging, acceptance run | **D-B1, D-B2, D-B3** |
 
-**Phase status as of 0.8.0.** Commit hashes below are **as stated by the user**; this revision did not re-verify them against `git`.
+**Phase status as of 0.8.1.** Commit hashes below are **as stated by the user**; this revision did not re-verify them against `git`.
 
 * **Phase 2A-0 (documentation only): COMPLETE.**
 * **Phase 2A (PC skeleton, protocol simulator, tests): COMPLETE** — implemented against the protocol contract (commit `b30e74f`). The explicit authorization statement is **not recorded in this document** — **to be confirmed by the user**.
 * **Phase 2B (firmware skeleton and compile test): COMPLETE** — compiled; the physical chip was not read (D-A8). The user states that he authorized Phase 2B but does not remember the date; **authorization date not recorded (user statement, 2026-10-08)**.
-* **Phase 2D-1 (firmware implementation): APPROVED BUT NOT YET APPLIED TO WORKING TREE; Phase 2D-2 pending** — the Phase 2D-1 implementation changes (13 specific changes documented in docs/archive/CHANGES_REPORT_2026-10-10.md) are approved by the user but have not been merged into the working tree. This specification revision (v0.8.0) records the approved changes; code changes will be applied in a subsequent step. Phase 2D-2 (admin panel redesign completion, backup configuration UI) is pending.
+* **Phase 2D-1 (firmware + admin panel): COMPLETE** — merged into main at `37b0610` and verified on hardware. Phase 2D-2 (hardware ADC/MUX integration) is pending and NOT AUTHORIZED.
 * **Phase 3 and later: NOT AUTHORIZED.**
+
+**Flash headroom (Phase 2D-1).** The merged firmware uses 1,069,337 bytes of the 1,310,720-byte application partition (81.6%). Roughly 240 KB remains. Phase 3 must add ADS1115, CD74HC4067, PCF8574T, and sensor-acquisition code; the available headroom is sufficient but not generous. Library or code optimisation may be required before Phase 3 completes. This is a recorded constraint, not a decision.
 
 **Note on Phase 2C.** Between Phase 2B and the (not yet authorized) Phase 3, software continuation work extended the Phase 2A PC skeleton. This work is **not** a separately authorized phase; it was performed under the Phase 2A authorization. Commits:
 
@@ -1653,7 +1666,7 @@ Each entry records a consequential change that this revision deliberately **does
 | Development flag TM_DEV_SHOW_PASSWORD and esp32dev_devpw env (DR-66) | §19, firmware | **APPROVED** (2026-10-10) — docs/archive/CHANGES_REPORT_2026-10-10.md, spec v0.8.0 |
 | Firmware WebSocket client rework: FreeRTOS task, backoff, PC→ESP32 handlers (DR-67) | §12, §19, firmware | **APPROVED** (2026-10-10) — docs/archive/CHANGES_REPORT_2026-10-10.md, spec v0.8.0 |
 | Admin panel redesign — 5 tabs (DR-68) | §15, §19 | **APPROVED** (2026-10-10) — docs/archive/CHANGES_REPORT_2026-10-10.md, spec v0.8.0 |
-| Admin panel "Backup" configuration UI (DR-69) | §15, §19 | **APPROVED** (2026-10-10) — IMPLEMENTATION PENDING — docs/archive/CHANGES_REPORT_2026-10-10.md, spec v0.8.0 |
+| Admin panel "Backup" configuration UI (DR-69) | §15, §19 | **APPROVED** (2026-10-10) — **COMPLETE (37b0610)** — docs/archive/CHANGES_REPORT_2026-10-10.md, spec v0.8.0 |
 | PC single database path resolution (DR-70) | §13, §14, §19 | **APPROVED** (2026-10-10) — docs/archive/CHANGES_REPORT_2026-10-10.md, spec v0.8.0 |
 | Backup scheduler interval corrected to 24 h (DR-71) | §16, §19 | **APPROVED** (2026-10-10) — docs/archive/CHANGES_REPORT_2026-10-10.md, spec v0.8.0 |
 | GUI text "ESP32" → "ریزکنترل‌گر" (DR-72) | §15, §19 | **APPROVED** (2026-10-10) — docs/archive/CHANGES_REPORT_2026-10-10.md, spec v0.8.0 |
@@ -1684,6 +1697,7 @@ Each entry records a consequential change that this revision deliberately **does
 | 0.7.8 | 2026-10-08 | **Phase 2C commit-history record (no new decisions).** Records the five commits made under the Phase 2C authorization that were not captured in the 0.7.7 revision: e524a72 (WebSocket GUI endpoint, web UI, i18n, fonts), 11df442 (Vazirmatn font integration fix), 86f2b52 (history panel + report buttons), 9de75b4 (backup scheduler, DR-18). Adds Q22 (authentication on /ws/gui — OPEN). Documents the /ws/gui endpoint in §15. Adds V157–V164 to §25. No decision changed. Phase 3 and later remain NOT AUTHORIZED. |
 | 0.7.9 | 2026-10-09 | **Admin panel DR-50 + chip identity verification.** Physical ESP32 flashed read-only on 2026-10-09 via PlatformIO (esptool 4.5.1); chip identified as **ESP32-D0WD-V3 (revision v3.1)**, MAC `28:05:a5:2f:e0:24`, 4 MB flash confirmed, `esp32dev` target uploads successfully. DR-13 status text updated with the verification result; ADC characteristics still pending Phase 3. **DR-50** added (PC-side admin panel, HTTP Basic Auth, PBKDF2-HMAC-SHA256 hash in git-ignored `pc/admin.config.json`, localhost-only endpoints, audit log, MVP: status / backup list / manual backup). Purge-demo, arbitrary record deletion, restore, retention changes and UI password change recorded as DEFERRED. §15.6 added. DR-50.1 … DR-50.4 added to §19. V165–V172 added to §25. No other decision changed. Phase 3 remains NOT AUTHORIZED. |
 | 0.8.0 | 2026-10-10 | **Phase 2D-1 implementation changes (approved, not yet merged).** Records the 13 approved fixes from docs/archive/CHANGES_REPORT_2026-10-10.md: Firmware PBKDF2 20k on ESP32 (DR-65, does NOT amend DR-50.2); dev flag/env (DR-66); WS client rework (DR-67); admin redesign capability areas (DR-68); backup config UI pending (DR-69); single DB path (DR-70); backup interval 24h (DR-71); ESP32→ریزکنترل‌گر (DR-72); /api/device/status (DR-73). §0.3 item 7 updated: Phase 2D-1 is APPROVED BUT NOT YET APPLIED TO WORKING TREE. §15.4 appended with DR-72 user-facing-text paragraph. §15.6a (DR-68) set to IMPLEMENTATION PENDING; §15.6b (DR-69) set to IMPLEMENTATION PENDING. §19 DR-50.2 restored to 600k iterations; DR-65 rewritten as firmware-only. §19.1 DR-65/DR-50.2 bullet corrected. §21 Phase 2D-1 row updated. §23 traceability row for DR-65 corrected. §24 change log updated. §25 V173–V180 set to this revision. Footer updated to Baseline v0.8.0. Phase 3 remains NOT AUTHORIZED. |
+| 0.8.1 | 2026-10-10 | **Phase 2D-1 COMPLETE + minor doc/comment fixes.** Records merged state at 37b0610. Adds §15.5 WiFi-AP default-password warning. Records flash headroom constraint in §21. Updates §15.6a, §15.6b, DR-69, §21, §23 to COMPLETE. Adds §25 V181–V182. No code logic change. Phase 3 remains NOT AUTHORIZED. |
 
 ## 25. Verification Record
 
@@ -1869,6 +1883,8 @@ Each entry records a consequential change that this revision deliberately **does
 | V178 | 0.8.0 | §19 DR-50.2 restored to 600k iterations; DR-65 rewritten as firmware-only (does NOT amend DR-50.2) | Checked |
 | V179 | 0.8.0 | §19.1 non-inference notes: DR-65 is firmware-only; does NOT amend DR-50.2; PC admin stays at 600k iterations | Checked |
 | V180 | 0.8.0 | §21 Phase 2D-1 row updated; Phase 2D-2 pending; Phase 3 NOT AUTHORIZED. §23 traceability row for DR-65 corrected to firmware/src/main.cpp. §24 change log updated. Footer updated to Baseline v0.8.0. Phase 3 remains NOT AUTHORIZED. | Checked |
+| V181 | 0.8.1 | Phase 2D-1 merged to main at `37b0610` (24 files, +2880/−761). Verified by git log. | Checked |
+| V182 | 0.8.1 | Hardware verification by user: firmware boot, LED, AP start, web UI load, admin Settings tab, i18n labels. | Verified by user |
 
 ## 26. Section Index
 
@@ -1902,4 +1918,4 @@ Each entry records a consequential change that this revision deliberately **does
 | 25 | Verification Record |
 | 26 | Section Index |
 
-*End of document — TOUGHENING MACHINE Project Specification Baseline v0.8.0.*
+*End of document — TOUGHENING MACHINE Project Specification Baseline v0.8.1.*

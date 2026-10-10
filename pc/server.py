@@ -1229,8 +1229,11 @@ def dispatch(message: dict) -> Optional[dict]:
             pc_id,
             request_id,
         )
-        # TODO: replace with real alarm/warning state tracking once the
-        # state machine is implemented. Both start at "inactive".
+        # TODO (Phase 3, DR-49): alarm/warning state machine.
+        # The current implementation always reports alarm_state="inactive"
+        # and warning_state="inactive". DR-49 (alarm output on persistent
+        # I2C fault) remains OPEN and will be resolved in Phase 3.
+        # No alarm evaluation logic is present until Phase 3.
         result = {
             "accepted": True,
             "alarm_state": "inactive",
