@@ -184,3 +184,22 @@ pc/static/js/pages-monitor.js      pc/static/js/pages-settings.js
 4. خروجی CSV برای Excel فارسی بهتر است BOM داشته باشد (تست فعلی متن دقیق را بررسی می‌کند و تغییرش ندادم).
 5. رمزنگاری NVS و فلش (Flash Encryption) همچنان به مرحلهٔ بعد موکول است. رمز وای‌فای در NVS به‌صورت متن ساده ذخیره می‌شود.
 6. ماشین حالت هشدار و reset هنوز وجود ندارد (DR-48 و DR-49 در وضعیت OPEN). پاسخ `reset_result` فعلاً همیشه `inactive` است.
+
+---
+
+## Follow-up review � admin settings tab + localization
+
+- Added authenticated, loopback-only GET /api/admin/settings and PUT /api/admin/settings.
+- Added an Admin Settings tab for db_path, backup_dir, backup_hour, and backup_retention.
+- Settings are validated and written atomically to pc/config.json.
+- Environment variables remain higher priority and are displayed as read-only overrides.
+- The backup scheduler is restarted after a successful settings update.
+- Settings changes are audit logged.
+- Replaced user-facing ESP32 connection labels with ?????????? / Microcontroller; wire identifiers remain unchanged.
+
+## Verification
+
+- python -m compileall -q pc and configuration smoke tests passed.
+- Full pytest execution was unavailable because pytest is not installed.
+- Server runtime integration was unavailable because uvicorn is not installed.
+- PlatformIO was unavailable, so no ESP32 compiler build could be run.

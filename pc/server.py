@@ -166,6 +166,34 @@ async def admin_device_endpoint(
     return device_status_snapshot()
 
 
+@app.get("/api/admin/settings")
+async def admin_settings_get_endpoint(
+    admin: dict = Depends(pc_admin.require_local_admin),
+) -> dict:
+    pc_admin.admin_log("settings_read", detail="ok", user=admin["username"])
+    return pc_admin.get_config_settings()
+
+
+@app.put("/api/admin/settings")
+async def admin_settings_put_endpoint(
+    request: Request,
+    admin: dict = Depends(pc_admin.require_local_admin),
+) -> dict:
+    try:
+        body = await request.json()
+        updates = body.get("settings") if isinstance(body, dict) else None
+        if not isinstance(updates, dict) or not updates:
+            raise ValueError("settings must be a non-empty object")
+        result = pc_admin.update_config_settings(updates)
+        _restart_backup_scheduler_from_config()
+        pc_admin.admin_log("settings_updated",
+                           detail="keys=" + ",".join(sorted(updates)),
+                           user=admin["username"])
+        return result
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @app.post("/api/admin/logout")
 async def admin_logout_endpoint(
     admin: dict = Depends(pc_admin.require_local_admin),
@@ -320,6 +348,24 @@ async def _stop_backup_scheduler():
         _backup_thread.join(timeout=pc.backup.SCHEDULER_JOIN_TIMEOUT)
     _backup_stop_event = None
     _backup_thread = None
+
+
+def _restart_backup_scheduler_from_config():
+    """Apply backup settings without requiring a server restart."""
+    global _backup_stop_event, _backup_thread
+    if _backup_stop_event is not None:
+        _backup_stop_event.set()
+    if _backup_thread is not None:
+        _backup_thread.join(timeout=pc.backup.SCHEDULER_JOIN_TIMEOUT)
+    _backup_stop_event = None
+    _backup_thread = None
+    cfg = pc.config.load_config()
+    backup_dir = cfg.get("backup_dir")
+    if backup_dir and pc.backup.is_destination_available(backup_dir):
+        _backup_stop_event = threading.Event()
+        _backup_thread = pc.backup.start_scheduler(
+            pc_db.get_db_path(), backup_dir, cfg.get("backup_hour"),
+            cfg.get("backup_retention"), _backup_stop_event)
 
 
 def init_persistence(db_path: Optional[str] = None):

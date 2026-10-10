@@ -17,8 +17,8 @@
     fa: {
       title: 'مدیریت پایگاه داده', subtitle: 'پنل محلی رایانهٔ کنسول · فقط از همین رایانه',
       console: 'کنسول پایش', logout: 'خروج',
-      'tab.overview': 'نمای کلی', 'tab.database': 'پایگاه داده', 'tab.records': 'رکوردها', 'tab.backups': 'پشتیبان‌ها', 'tab.audit': 'گزارش رویدادها',
-      status: 'وضعیت', 'device.title': 'اتصال دستگاه ESP32', 'device.unknown': 'دستگاه: نامشخص',
+      'tab.overview': 'نمای کلی', 'tab.database': 'پایگاه داده', 'tab.records': 'رکوردها', 'tab.backups': 'پشتیبان‌ها', 'tab.settings': 'تنظیمات', 'tab.audit': 'گزارش رویدادها',
+      status: 'وضعیت', 'device.title': 'اتصال دستگاه ریزکنترلگر', 'device.unknown': 'دستگاه: نامشخص',
       'device.on': 'دستگاه متصل', 'device.off': 'دستگاه قطع',
       'db.types': 'رکوردها به تفکیک نوع', 'db.check': 'بررسی سلامت پایگاه داده', 'db.csv': 'خروجی CSV', 'db.json': 'خروجی JSON',
       'db.file': 'فایل پایگاه داده',
@@ -41,14 +41,16 @@
       'err.config': 'پیکربندی مدیریت در دسترس نیست (سرور را یک بار راه‌اندازی کنید).',
       'backup.none': 'هنوز پشتیبانی وجود ندارد.', 'backup.nodir': 'پوشهٔ پشتیبان تنظیم نشده است (TOUGHENING_BACKUP_DIR یا backup_dir در pc/config.json).',
       'backup.count': '{n} فایل · نگهداشت: {r} · ساعت پشتیبان‌گیری روزانه: {h}', 'backup.done': 'پشتیبان ساخته شد: {p}', 'backup.fail': 'پشتیبان‌گیری ناموفق: {e}',
+      'settings.title': 'تنظیمات پشتیبان و پایگاه داده', 'settings.save': 'ذخیره', 'settings.hint': 'متغیرهای محیطی بر مقدار ذخیره‌شده اولویت دارند.',
+      'settings.db_path': 'مسیر پایگاه داده', 'settings.backup_dir': 'پوشه پشتیبان', 'settings.backup_hour': 'ساعت پشتیبان‌گیری', 'settings.retention': 'تعداد نگهداری', 'settings.saved': 'تنظیمات ذخیره شد', 'settings.env': 'با متغیر محیطی کنترل می‌شود: {v}',
       'check.ok': 'سالم ✓ ({ms} میلی‌ثانیه)', 'check.bad': 'مشکل در پایگاه داده: {m}', 'check.run': 'در حال بررسی…',
       'rec.info': '{t} رکورد · نمایش {a} تا {b}', 'rec.empty': 'رکوردی یافت نشد.', 'ago': 'پیش',
     },
     en: {
       title: 'Database administration', subtitle: 'Local console PC panel · this computer only',
       console: 'Operator console', logout: 'Log out',
-      'tab.overview': 'Overview', 'tab.database': 'Database', 'tab.records': 'Records', 'tab.backups': 'Backups', 'tab.audit': 'Audit log',
-      status: 'Status', 'device.title': 'ESP32 link', 'device.unknown': 'Device: unknown',
+      'tab.overview': 'Overview', 'tab.database': 'Database', 'tab.records': 'Records', 'tab.backups': 'Backups', 'tab.settings': 'Settings', 'tab.audit': 'Audit log',
+      status: 'Status', 'device.title': 'Microcontroller link', 'device.unknown': 'Device: unknown',
       'device.on': 'Device online', 'device.off': 'Device offline',
       'db.types': 'Records by type', 'db.check': 'Check database integrity', 'db.csv': 'Export CSV', 'db.json': 'Export JSON',
       'db.file': 'Database file',
@@ -71,6 +73,8 @@
       'err.config': 'Admin config unavailable (start the server once).',
       'backup.none': 'No backups yet.', 'backup.nodir': 'Backup directory not configured (TOUGHENING_BACKUP_DIR or backup_dir in pc/config.json).',
       'backup.count': '{n} file(s) · retention: {r} · daily backup hour: {h}', 'backup.done': 'Backup created: {p}', 'backup.fail': 'Backup failed: {e}',
+      'settings.title': 'Backup and database settings', 'settings.save': 'Save', 'settings.hint': 'Environment variables override saved values.',
+      'settings.db_path': 'Database path', 'settings.backup_dir': 'Backup directory', 'settings.backup_hour': 'Backup hour', 'settings.retention': 'Retention count', 'settings.saved': 'Settings saved', 'settings.env': 'Controlled by environment variable: {v}',
       'check.ok': 'Healthy ✓ ({ms} ms)', 'check.bad': 'Database problem: {m}', 'check.run': 'Checking…',
       'rec.info': '{t} record(s) · showing {a}-{b}', 'rec.empty': 'No records found.', 'ago': 'ago',
     },
@@ -270,6 +274,48 @@
       });
     } catch (e) { hint.textContent = e.message; }
   }
+
+  async function loadSettings() {
+    try {
+      const d = await api('/api/admin/settings');
+      const set = d.settings || {};
+      [['db_path', 'cfg-db-path'], ['backup_dir', 'cfg-backup-dir'],
+       ['backup_hour', 'cfg-backup-hour'], ['backup_retention', 'cfg-backup-retention']]
+        .forEach(([key, id]) => {
+          const item = set[key] || {};
+          const input = $('#' + id);
+          input.value = item.value == null ? '' : item.value;
+          input.disabled = !item.editable;
+          input.title = item.environment ? t('settings.env', { v: item.environment }) : '';
+        });
+    } catch (e) { toast(e.message, true); }
+  }
+
+  async function saveSettings() {
+    const values = {
+      db_path: $('#cfg-db-path').value.trim(),
+      backup_dir: $('#cfg-backup-dir').value.trim(),
+      backup_hour: Number($('#cfg-backup-hour').value),
+      backup_retention: Number($('#cfg-backup-retention').value),
+    };
+    Object.keys(values).forEach((key) => {
+      const input = document.querySelector('[name="' + key + '"]');
+      if (input && input.disabled) delete values[key];
+    });
+    try {
+      await api('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: values }),
+      });
+      $('#settings-result').className = 'hint ok';
+      $('#settings-result').textContent = t('settings.saved');
+      loadStatus(); loadBackups();
+    } catch (e) {
+      $('#settings-result').className = 'hint bad';
+      $('#settings-result').textContent = e.message;
+    }
+  }
   async function triggerBackup() {
     const btn = $('#btn-backup');
     btn.disabled = true;
@@ -306,7 +352,7 @@
   }
 
   /* ---------- tabs ---------- */
-  const LOADERS = { overview: () => { loadStatus(); loadDevice(); }, database: loadDb, records: () => { loadDb(); loadRecords(); }, backups: loadBackups, audit: loadAudit };
+  const LOADERS = { overview: () => { loadStatus(); loadDevice(); }, database: loadDb, records: () => { loadDb(); loadRecords(); }, backups: loadBackups, settings: loadSettings, audit: loadAudit };
   let current = 'overview';
   function show(tab) {
     current = LOADERS[tab] ? tab : 'overview';
@@ -323,6 +369,7 @@
     $('#btn-logout').addEventListener('click', logout);
     $('#btn-check').addEventListener('click', runCheck);
     $('#btn-audit').addEventListener('click', loadAudit);
+    $('#btn-settings-save').addEventListener('click', saveSettings);
     $('#btn-lang').addEventListener('click', () => {
       lang = lang === 'fa' ? 'en' : 'fa';
       try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* storage off */ }

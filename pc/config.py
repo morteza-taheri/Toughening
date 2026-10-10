@@ -23,6 +23,7 @@ something to read until the operator sets it. Marked OPEN in comments.
 
 import json
 import os
+import tempfile
 from pathlib import Path
 from typing import Any, Optional
 
@@ -94,3 +95,60 @@ def load_config() -> dict:
 def get(key: str, default: Optional[Any] = None) -> Any:
     """Return one config value, falling back to `default`."""
     return load_config().get(key, default)
+
+
+def update_file_config(updates: dict) -> dict:
+    """Persist editable runtime settings atomically.
+
+    Environment variables intentionally remain higher priority.  The caller
+    can use ``environment_overrides`` from ``describe_config`` to explain
+    why a saved value is not currently effective.
+    """
+    allowed = set(_DEFAULTS)
+    unknown = set(updates) - allowed
+    if unknown:
+        raise ValueError("unsupported setting: " + sorted(unknown)[0])
+    current = _load_file_config()
+    for key, value in updates.items():
+        if value is None or value == "":
+            current.pop(key, None)
+        else:
+            coerced = _coerce(key, value)
+            if key == "backup_hour" and not 0 <= coerced <= 23:
+                raise ValueError("backup_hour must be between 0 and 23")
+            if key == "backup_retention" and not 1 <= coerced <= 10000:
+                raise ValueError("backup_retention must be between 1 and 10000")
+            if key in ("db_path", "backup_dir") and not isinstance(coerced, str):
+                raise ValueError(f"{key} must be a string")
+            current[key] = coerced
+    _CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_path = tempfile.mkstemp(prefix=".config.", suffix=".tmp",
+                                      dir=str(_CONFIG_FILE.parent))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(current, fh, indent=2, ensure_ascii=False)
+            fh.write("\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(temp_path, _CONFIG_FILE)
+    finally:
+        try:
+            os.unlink(temp_path)
+        except FileNotFoundError:
+            pass
+    return load_config()
+
+
+def describe_config() -> dict:
+    """Return effective values plus which values are controlled by env vars."""
+    effective = load_config()
+    file_cfg = _load_file_config()
+    items = {}
+    for key, env_name in _ENV_KEYS.items():
+        items[key] = {
+            "value": effective.get(key),
+            "file_value": file_cfg.get(key),
+            "environment": env_name if os.environ.get(env_name) not in (None, "") else None,
+            "editable": os.environ.get(env_name) in (None, ""),
+        }
+    return {"settings": items, "config_file": str(_CONFIG_FILE)}

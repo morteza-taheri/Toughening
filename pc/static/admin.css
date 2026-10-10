@@ -67,6 +67,10 @@ main { padding: 1.25rem 1.5rem; display: grid; gap: 1rem; max-width: 1100px; mar
 .grid2 { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
 
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 1.25rem; min-width: 0; }
+.settings-form { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.settings-form label { display: grid; gap: .35rem; color: var(--muted); font-weight: 700; }
+.settings-form input { width: 100%; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface-2); color: var(--text); padding: .65rem .75rem; font: inherit; }
+.settings-form input:disabled { opacity: .55; cursor: not-allowed; }
 .card h2 { margin: 0 0 .75rem; font-size: 1.05rem; font-weight: 800; }
 .card-h { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; margin-bottom: .5rem; }
 .card-h h2 { margin: 0; }

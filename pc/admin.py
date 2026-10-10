@@ -329,6 +329,18 @@ def audit_tail(lines: int = 200) -> dict:
     return {"log_path": str(LOG_PATH), "entries": entries}
 
 
+def get_config_settings() -> dict:
+    from pc import config as pc_config
+    return pc_config.describe_config()
+
+
+def update_config_settings(updates: dict) -> dict:
+    from pc import config as pc_config
+    result = pc_config.update_file_config(updates)
+    admin_log("settings_update", detail="keys=" + ",".join(sorted(updates)))
+    return {"config": pc_config.describe_config(), "effective": result}
+
+
 # ---------------------------------------------------------------------------
 # Database helpers (read-only)
 # ---------------------------------------------------------------------------

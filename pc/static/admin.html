@@ -26,6 +26,7 @@
     <button role="tab" data-tab="database" data-i18n="tab.database">پایگاه داده</button>
     <button role="tab" data-tab="records" data-i18n="tab.records">رکوردها</button>
     <button role="tab" data-tab="backups" data-i18n="tab.backups">پشتیبان‌ها</button>
+    <button role="tab" data-tab="settings" data-i18n="tab.settings">تنظیمات</button>
     <button role="tab" data-tab="audit" data-i18n="tab.audit">گزارش رویدادها</button>
   </nav>
 
@@ -39,9 +40,27 @@
           <table class="kv" id="tbl-status"><tbody></tbody></table>
         </div>
         <div class="card">
-          <h2 data-i18n="device.title">اتصال دستگاه ESP32</h2>
+          <h2 data-i18n="device.title">اتصال دستگاه ریزکنترلگر</h2>
           <table class="kv" id="tbl-device"><tbody></tbody></table>
         </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="pane" data-pane="settings" hidden>
+      <div class="card">
+        <div class="card-h">
+          <h2 data-i18n="settings.title">تنظیمات پشتیبان و پایگاه داده</h2>
+          <button id="btn-settings-save" class="btn primary" type="button" data-i18n="settings.save">ذخیره</button>
+        </div>
+        <p class="hint" data-i18n="settings.hint">متغیرهای محیطی بر مقدار ذخیره‌شده اولویت دارند.</p>
+        <form id="settings-form" class="settings-form">
+          <label><span data-i18n="settings.db_path">مسیر پایگاه داده</span><input id="cfg-db-path" name="db_path" dir="ltr"></label>
+          <label><span data-i18n="settings.backup_dir">پوشه پشتیبان</span><input id="cfg-backup-dir" name="backup_dir" dir="ltr"></label>
+          <label><span data-i18n="settings.backup_hour">ساعت پشتیبان‌گیری</span><input id="cfg-backup-hour" name="backup_hour" type="number" min="0" max="23"></label>
+          <label><span data-i18n="settings.retention">تعداد نگهداری</span><input id="cfg-backup-retention" name="backup_retention" type="number" min="1" max="10000"></label>
+        </form>
+        <p id="settings-result" class="hint"></p>
       </div>
     </section>
 

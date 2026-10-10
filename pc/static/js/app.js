@@ -53,7 +53,7 @@ function drawLink() {
 function deviceLine() {
   const d = live.device;
   const fw = d?.firmware_version ? ` · fw ${d.firmware_version}` : "";
-  return `${(d?.device_id || "ESP32-01").toUpperCase()} · PC-01 · v1.1.1${fw}`;
+  return `${(d?.device_id || "MICROCONTROLLER-01").toUpperCase()} · PC-01 · v1.1.1${fw}`;
 }
 
 function drawTopbar() {
