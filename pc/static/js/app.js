@@ -1,7 +1,7 @@
 // Toughening console — shell + hash router.
 import { prefs, setPref, onPrefs, applyPrefs, t, esc, fmtTime, fmtDate, pad2 } from "./core.js";
 import { icon } from "./icons.js";
-import { connectLive, onLive, live, isStale } from "./store.js";
+import { connectLive, onLive, live, linkState as combinedLinkState } from "./store.js";
 import { dashboardPage, stationPage } from "./pages-monitor.js";
 import { eventsPage, reportsPage } from "./pages-data.js";
 import { settingsPage } from "./pages-settings.js";
@@ -24,8 +24,7 @@ function parseHash() {
 }
 
 function linkState() {
-  if (live.ws !== "connected") return live.ws;
-  return isStale() ? "stale" : "connected";
+  return combinedLinkState();
 }
 
 function drawSidebar() {
@@ -46,9 +45,15 @@ function drawLink() {
   const el = document.getElementById("sb-link"); if (!el) return;
   const st = linkState();
   el.className = `sb-foot link-${st}`;
-  el.innerHTML = `<span class="pulse"></span><div><b>${esc(t(`conn.${st}`))}</b><small>ESP32-01 · PC-01 · v1.1.1</small></div>`;
+  el.innerHTML = `<span class="pulse"></span><div><b>${esc(t(`conn.${st}`))}</b><small>${esc(deviceLine())}</small></div>`;
   const tl = document.getElementById("top-link");
   if (tl) { tl.className = `top-link link-${st}`; tl.innerHTML = `<span class="pulse"></span>${esc(t(`conn.${st}`))}`; }
+}
+
+function deviceLine() {
+  const d = live.device;
+  const fw = d?.firmware_version ? ` · fw ${d.firmware_version}` : "";
+  return `${(d?.device_id || "ESP32-01").toUpperCase()} · PC-01 · v1.1.1${fw}`;
 }
 
 function drawTopbar() {

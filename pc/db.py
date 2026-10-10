@@ -14,13 +14,41 @@ import sqlite3
 import time
 from typing import Optional
 
+from pathlib import Path
+
 DEFAULT_DB_PATH = "pc/toughening.db"
 DEFAULT_SCHEMA_VERSION = 1
 
+# Repository root (parent of pc/). Relative DB paths are resolved against it,
+# so the server finds the same database whatever the working directory is
+# (before this fix, starting the server from inside pc/ created/used
+# pc/pc/toughening.db or failed with "unable to open database file").
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+def resolve_path(path: str) -> str:
+    """Return `path` as an absolute path (relative = relative to repo root)."""
+    p = Path(path).expanduser()
+    if not p.is_absolute():
+        p = _REPO_ROOT / p
+    return str(p)
+
 
 def get_db_path() -> str:
-    """Return the database path from TOUGHENING_DB_PATH env var or default."""
-    return os.environ.get("TOUGHENING_DB_PATH", DEFAULT_DB_PATH)
+    """Return the database path.
+
+    Priority: TOUGHENING_DB_PATH env var > pc/config.json "db_path" > default.
+    The previous version ignored pc/config.json, so the server, the admin
+    panel and the backup scheduler could each use a different database.
+    """
+    path = os.environ.get("TOUGHENING_DB_PATH")
+    if not path:
+        try:
+            from pc import config as pc_config
+            path = pc_config.load_config().get("db_path") or DEFAULT_DB_PATH
+        except Exception:
+            path = DEFAULT_DB_PATH
+    return resolve_path(path)
 
 
 def open_db(path: Optional[str] = None) -> sqlite3.Connection:
@@ -34,13 +62,19 @@ def open_db(path: Optional[str] = None) -> sqlite3.Connection:
     """
     if path is None:
         path = get_db_path()
+    if path != ":memory:" and not str(path).startswith("file:"):
+        path = resolve_path(path)
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
     # WARNING: check_same_thread=False is safe ONLY because
     # this phase uses a single ESP32 connection processed
     # sequentially. If concurrent writers are added, replace
     # with a per-request connection or a connection pool +
     # threading.Lock. See pc/README.md "Known limitations".
-    conn = sqlite3.connect(path, check_same_thread=False)
+    conn = sqlite3.connect(path, check_same_thread=False, timeout=10)
     conn.execute("PRAGMA journal_mode=WAL")
+    # Readers (GUI / admin / export) use their own connections; wait for a
+    # writer instead of failing with "database is locked".
+    conn.execute("PRAGMA busy_timeout=10000")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
 

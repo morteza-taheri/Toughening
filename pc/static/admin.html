@@ -1,50 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Toughening Machine — Admin</title>
-  <link rel="stylesheet" href="/static/admin.css">
+  <meta name="color-scheme" content="dark">
+  <title>Toughening · پنل مدیریت پایگاه داده</title>
+  <link rel="stylesheet" href="/static/admin.css?v=2">
 </head>
 <body>
-  <header>
-    <h1>Toughening Machine Admin</h1>
-    <button id="btn-logout" class="btn">Logout</button>
+  <header class="top">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div><b data-i18n="title">مدیریت پایگاه داده</b><small data-i18n="subtitle">پنل محلی رایانهٔ کنسول · فقط از همین رایانه</small></div>
+    </div>
+    <div class="top-actions">
+      <span class="pill" id="device-pill"><i></i><span data-i18n="device.unknown">دستگاه: نامشخص</span></span>
+      <a class="btn ghost" href="/" data-i18n="console">کنسول پایش</a>
+      <button id="btn-lang" class="btn ghost" type="button">EN</button>
+      <button id="btn-logout" class="btn" type="button" data-i18n="logout">خروج</button>
+    </div>
   </header>
 
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="overview" class="on" data-i18n="tab.overview">نمای کلی</button>
+    <button role="tab" data-tab="database" data-i18n="tab.database">پایگاه داده</button>
+    <button role="tab" data-tab="records" data-i18n="tab.records">رکوردها</button>
+    <button role="tab" data-tab="backups" data-i18n="tab.backups">پشتیبان‌ها</button>
+    <button role="tab" data-tab="audit" data-i18n="tab.audit">گزارش رویدادها</button>
+  </nav>
+
   <main>
-    <section class="card" id="status-card">
-      <h2>Status</h2>
-      <table id="tbl-status">
-        <tr><th>Database path</th><td id="st-db-path">Loading…</td></tr>
-        <tr><th>Database size</th><td id="st-db-size">Loading…</td></tr>
-        <tr><th>Record count</th><td id="st-record-count">Loading…</td></tr>
-        <tr><th>Record types</th><td id="st-record-types">Loading…</td></tr>
-        <tr><th>Backup dir</th><td id="st-backup-dir">Loading…</td></tr>
-        <tr><th>Backup dir available</th><td id="st-backup-available">Loading…</td></tr>
-        <tr><th>Last backup</th><td id="st-last-backup">Loading…</td></tr>
-        <tr><th>Log path</th><td id="st-log-path">Loading…</td></tr>
-        <tr><th>Config path</th><td id="st-config-path">Loading…</td></tr>
-      </table>
+    <!-- OVERVIEW -->
+    <section class="pane" data-pane="overview">
+      <div class="stats" id="ov-stats"></div>
+      <div class="grid2">
+        <div class="card">
+          <h2 data-i18n="status">وضعیت</h2>
+          <table class="kv" id="tbl-status"><tbody></tbody></table>
+        </div>
+        <div class="card">
+          <h2 data-i18n="device.title">اتصال دستگاه ESP32</h2>
+          <table class="kv" id="tbl-device"><tbody></tbody></table>
+        </div>
+      </div>
     </section>
 
-    <section class="card" id="backups-card">
-      <h2>Backups</h2>
-      <p id="backup-hint" class="hint">Loading…</p>
-      <table id="tbl-backups">
-        <thead>
-          <tr><th>Name</th><th>Size</th><th>Modified</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <button id="btn-backup" class="btn">Trigger Backup</button>
+    <!-- DATABASE -->
+    <section class="pane" data-pane="database" hidden>
+      <div class="card">
+        <div class="card-h">
+          <h2 data-i18n="db.types">رکوردها به تفکیک نوع</h2>
+          <div class="actions">
+            <button id="btn-check" class="btn" type="button" data-i18n="db.check">بررسی سلامت پایگاه داده</button>
+            <a class="btn ghost" href="/api/export/csv" data-i18n="db.csv">خروجی CSV</a>
+            <a class="btn ghost" href="/api/export/json" download="records.json" data-i18n="db.json">خروجی JSON</a>
+          </div>
+        </div>
+        <p class="hint" id="check-result"></p>
+        <table class="grid" id="tbl-types">
+          <thead><tr><th data-i18n="col.type">نوع</th><th data-i18n="col.count">تعداد</th><th data-i18n="col.first">نخستین</th><th data-i18n="col.last">آخرین</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h2 data-i18n="db.file">فایل پایگاه داده</h2>
+        <table class="kv" id="tbl-dbfile"><tbody></tbody></table>
+        <p class="hint" data-i18n="db.deferred">حذف رکورد، پاک‌سازی دادهٔ نمایشی، بازیابی پشتیبان و تغییر نگهداشت طبق DR-50 به مرحلهٔ بعد موکول شده‌اند و در این پنل وجود ندارند.</p>
+      </div>
+    </section>
+
+    <!-- RECORDS -->
+    <section class="pane" data-pane="records" hidden>
+      <div class="card">
+        <form class="filters" id="rec-form">
+          <label><span data-i18n="col.type">نوع</span><select id="rec-type"><option value="" data-i18n="all">همه</option></select></label>
+          <label class="grow"><span data-i18n="search">جستجو</span><input id="rec-q" type="search" dir="auto" autocomplete="off"></label>
+          <button class="btn" type="submit" data-i18n="apply">اعمال</button>
+        </form>
+        <p class="hint" id="rec-info"></p>
+        <table class="grid" id="tbl-records">
+          <thead><tr><th data-i18n="col.received">دریافت</th><th data-i18n="col.type">نوع</th><th data-i18n="col.id">شناسه</th><th data-i18n="col.summary">خلاصه</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="pager">
+          <button class="btn ghost" id="rec-prev" type="button" data-i18n="prev">قبلی</button>
+          <span id="rec-page"></span>
+          <button class="btn ghost" id="rec-next" type="button" data-i18n="next">بعدی</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BACKUPS -->
+    <section class="pane" data-pane="backups" hidden>
+      <div class="card">
+        <div class="card-h">
+          <h2 data-i18n="tab.backups">پشتیبان‌ها</h2>
+          <button id="btn-backup" class="btn primary" type="button" data-i18n="backup.now">تهیهٔ پشتیبان اکنون</button>
+        </div>
+        <p id="backup-hint" class="hint"></p>
+        <table class="grid" id="tbl-backups">
+          <thead><tr><th data-i18n="col.name">نام</th><th data-i18n="col.size">حجم</th><th data-i18n="col.modified">زمان</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- AUDIT -->
+    <section class="pane" data-pane="audit" hidden>
+      <div class="card">
+        <div class="card-h"><h2 data-i18n="tab.audit">گزارش رویدادها</h2><button id="btn-audit" class="btn ghost" type="button" data-i18n="refresh">تازه‌سازی</button></div>
+        <table class="grid" id="tbl-audit">
+          <thead><tr><th data-i18n="col.time">زمان</th><th data-i18n="col.user">کاربر</th><th data-i18n="col.action">عملیات</th><th data-i18n="col.detail">جزئیات</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </section>
   </main>
 
-  <footer>
-    Toughening Machine — Admin panel (DR-50, Phase 2C-3i)
-  </footer>
+  <dialog id="dlg-record"><form method="dialog"><h2 id="dlg-title"></h2><pre id="dlg-body" dir="ltr"></pre><button class="btn" data-i18n="close">بستن</button></form></dialog>
 
-  <script src="/static/admin.js"></script>
+  <footer data-i18n="footer">Toughening Machine · پنل مدیریت (DR-50) · دسترسی فقط از همین رایانه (loopback)</footer>
+
+  <script src="/static/admin.js?v=2"></script>
 </body>
 </html>

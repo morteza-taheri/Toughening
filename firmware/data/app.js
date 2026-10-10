@@ -317,10 +317,14 @@
   }
 
   T.api = {
-    login: (username, password) => req('POST', '/api/login', { username, password }, { noRedirect: true }),
+    // Password hashing (PBKDF2) runs on the ESP32; a legacy 600 000-round hash
+    // can take ~20 s to verify once, so these two calls get a long timeout.
+    login: (username, password) => req('POST', '/api/login', { username, password }, { noRedirect: true, timeout: 45000 }),
     logout: () => req('POST', '/api/logout', {}, { noRedirect: true }),
     changePassword: (current_password, new_password) =>
-      req('POST', '/api/password', { current_password, new_password }, { noRedirect: true }),
+      req('POST', '/api/password', { current_password, new_password }, { noRedirect: true, timeout: 45000 }),
+    // Exists only in development firmware (TM_DEV_SHOW_PASSWORD=1); 404 otherwise.
+    devCredentials: () => req('GET', '/api/dev/credentials', undefined, { noRedirect: true, timeout: 3000 }),
     state: () => req('GET', '/api/state', undefined, { timeout: 4000 }),
     status: () => req('GET', '/api/status'),
     ping: () => req('GET', '/api/status', undefined, { timeout: 3000, noRedirect: true }),
@@ -794,8 +798,32 @@
       }
     });
   }
+  /* DEV builds only: always show the current random password on the login page. */
+  async function showDevCredentials() {
+    const box = T.$('#dev-banner');
+    if (!box) return;
+    let d = null;
+    try { d = await T.api.devCredentials(); } catch (e) { box.hidden = true; return; }
+    if (!d || !d.dev_mode) { box.hidden = true; return; }
+    const kv = (k, v) => T.h('div', { class: 'dev-kv' }, T.h('span', { text: k }), T.h('code', { class: 'ltr', text: v || '—' }));
+    T.clear(box).append(
+      T.icon('warn'),
+      T.h('div', { class: 'dev-body' },
+        T.h('b', { text: 'نسخهٔ توسعه (TM_DEV_SHOW_PASSWORD) — هرگز روی دستگاه نهایی نصب نکنید' }),
+        kv('نام کاربری', d.username),
+        kv('رمز عبور', d.password),
+        kv('شبکهٔ وای‌فای', d.ap_ssid),
+        kv('رمز وای‌فای', d.ap_password),
+        T.h('button', {
+          class: 'btn sm', type: 'button', text: 'پر کردن فرم',
+          onclick: () => { T.$('#u').value = d.username || ''; T.$('#p').value = d.password || ''; T.$('#c0').value = d.password || ''; },
+        })));
+    box.hidden = false;
+  }
+
   function showLogin(change) {
     initLogin();
+    showDevCredentials();
     showOnly('v-login');
     document.title = 'ورود · تافنینگ';
     ['#e-login', '#e-change'].forEach((s) => { T.$(s).textContent = ''; });

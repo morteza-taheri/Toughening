@@ -115,6 +115,9 @@ const PANES = {
         cell("server", t("set.server"), health ? esc(health.status) : "—", health ? "ok" : "bad"),
         cell("info", t("set.version"), esc(health?.version || "—")),
         cell("link", t("set.ws"), esc(t(`conn.${live.ws}`)), live.ws === "connected" ? "ok" : "bad"),
+        cell("link", t("set.deviceLink"), esc(live.device ? t(live.device.connected ? "conn.connected" : "conn.nodevice") : "—"), live.device?.connected ? "ok" : "bad"),
+        cell("info", t("set.deviceFw"), esc(live.device?.firmware_version || "—")),
+        cell("server", t("set.deviceHost"), esc(live.device?.host || "—")),
         cell("activity", t("set.messages"), int(live.messages)),
         cell("layers", t("set.protocol"), "1.1.1"),
         cell("database", "SQLite", "WAL"),
@@ -126,6 +129,8 @@ const PANES = {
     } });
     return [
       group(null, box),
+      group(null, h("div", { class: "btn-row" },
+        h("a", { class: "btn btn-ghost", href: "/admin", target: "_blank", rel: "noopener", html: `${icon("database", 16)} ${esc(t("set.adminPanel"))}` }))),
       group(null, h("div", { class: "btn-row" },
         h("button", { class: "btn btn-ghost", html: `${icon("download", 16)} ${esc(t("set.export"))}`, onclick: () => download("toughening-console-settings.json", JSON.stringify(prefs, null, 2), "application/json") }),
         h("button", { class: "btn btn-ghost", html: `${icon("upload", 16)} ${esc(t("set.import"))}`, onclick: () => fileIn.click() }), fileIn,

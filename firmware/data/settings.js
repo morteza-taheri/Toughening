@@ -135,9 +135,11 @@
   }
 
   /* ---------- System ---------- */
-  // Output-capable GPIOs excluding: 0/2/5/12/15 (strapping), 1/3 (UART0),
+  // Output-capable GPIOs excluding: 0/5/12/15 (strapping), 1/3 (UART0),
   // 6–11 (flash), 21/22 (I2C, DR-37), 34–39 (input only).
-  const LED_PINS = [4, 13, 14, 16, 17, 18, 19, 23, 25, 26, 27, 32, 33];
+  // GPIO2 is the DevKit on-board LED and the firmware default (must match
+  // ALLOWED_LED_PINS in main.cpp, otherwise the System tab could never be saved).
+  const LED_PINS = [2, 4, 13, 14, 16, 17, 18, 19, 23, 25, 26, 27, 32, 33];
   function system(root) {
     const wdt = inp({ class: 'input', value: T.numT(S.wdt_sec), inputmode: 'numeric', maxlength: 3 });
     const gpio = h('select', { class: 'input' }, LED_PINS.map((p) => h('option', { value: String(p), text: 'پایهٔ ' + num(p), selected: p === S.led.gpio })));
@@ -149,7 +151,7 @@
       h('div', { class: 'card-h' }, h('div', null, h('h2', { text: 'پایش داخلی دستگاه' }),
         h('p', { text: 'پس از ذخیره، با راه‌اندازی مجدد اعمال می‌شود.' }))),
       h('div', { class: 'grid2' },
-        field('زمان زمان‌سنج نگهبان (ثانیه)', wdt, 'اگر میان‌افزار در این مدت پاسخ ندهد، تراشه بازنشانی می‌شود. ۱ تا ۶۰.', prop()),
+        field('زمان زمان‌سنج نگهبان (ثانیه)', wdt, 'اگر میان‌افزار در این مدت پاسخ ندهد، تراشه بازنشانی می‌شود. ۵ تا ۶۰.', prop()),
         field('پایهٔ چراغ ضربان', gpio, 'پایه‌های راه‌اندازی، حافظهٔ فلش، گذرگاه آی‌تو‌سی و ورودی‌محض حذف شده‌اند.', prop()),
         field('دورهٔ چشمک (میلی‌ثانیه)', per, '۲۰ تا ۵۰۰۰.')),
       bar.el);
@@ -158,7 +160,7 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const w = T.parseInt(wdt.value), p = T.parseInt(per.value);
-      let ok = setErr(wdt, !(w >= 1 && w <= 60) ? 'عددی صحیح بین ۱ تا ۶۰ وارد کنید.' : '');
+      let ok = setErr(wdt, !(w >= 5 && w <= 60) ? 'عددی صحیح بین ۵ تا ۶۰ وارد کنید.' : '');
       ok = setErr(per, !(p >= 20 && p <= 5000) ? 'عددی صحیح بین ۲۰ تا ۵۰۰۰ وارد کنید.' : '') && ok;
       if (!ok) return;
       if (await save({ wdt_sec: w, led: { gpio: +gpio.value, period_ms: p } }, bar.save, { wdt_sec: wdt, 'led.gpio': gpio, 'led.period_ms': per })) {

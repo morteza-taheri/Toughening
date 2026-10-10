@@ -291,3 +291,21 @@ Retry/timeout/backoff, `nack` reason vocabulary, transport encryption,
 credential storage, config authentication and the journal-pressure
 threshold remain OPEN. Final contract approval is a separate task after
 Phase 2A completes.
+
+## Review fixes 2026-10-10
+
+* Start the server from the repository root: `python -m pc.server`
+  (`python pc/server.py` now works too). Relative paths such as the default
+  `pc/toughening.db` are resolved against the repository root.
+* Database path priority (server, exports, admin panel and backups all use
+  the same one now): `TOUGHENING_DB_PATH` > `pc/config.json` `db_path` > default.
+* Admin panel: `http://127.0.0.1:8000/admin` (this PC only). On first start
+  the server creates `pc/admin.config.json`; the one-time password is written
+  once to `pc/admin_actions.log` (or set `TOUGHENING_ADMIN_DEFAULT_PASS`
+  before the first start). User name: `admin`.
+* New read-only endpoints: `/api/device/status` (ESP32 link), and for the
+  admin panel `/api/admin/db`, `/api/admin/db/check`, `/api/admin/records`,
+  `/api/admin/backups/{name}` (download), `/api/admin/audit`, `/api/admin/device`.
+* ESP32 ↔ PC link: the PC must be connected to the ESP32 access point and
+  get `192.168.4.2` (the firmware default target), and Windows Firewall must
+  allow inbound TCP 8000 for python.exe on that network.

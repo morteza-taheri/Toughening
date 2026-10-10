@@ -109,7 +109,7 @@ h1, h2, h3, h4 { margin: 0; line-height: 1.25; letter-spacing: -0.01em; }
 .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--off); flex: none; position: relative; }
 .link-connected .pulse { background: var(--ok); }
 .link-connected .pulse::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--ok); animation: ping 1.8s infinite; }
-.link-stale .pulse, .link-connecting .pulse { background: var(--warn); }
+.link-stale .pulse, .link-connecting .pulse, .link-nodevice .pulse { background: var(--warn); }
 .link-disconnected .pulse { background: var(--danger); }
 @keyframes ping { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.6); opacity: 0; } }
 
@@ -198,7 +198,7 @@ h1, h2, h3, h4 { margin: 0; line-height: 1.25; letter-spacing: -0.01em; }
 .rail-cell.link-connected b { color: var(--ok); }
 .rail-cell.link-disconnected b, .rail-cell.danger b { color: var(--danger); }
 .rail-cell.link-disconnected .rail-ic, .rail-cell.danger .rail-ic { color: var(--danger); background: color-mix(in oklab, var(--danger) 14%, transparent); }
-.rail-cell.link-stale b, .rail-cell.link-connecting b, .rail-cell.warn b { color: var(--warn); }
+.rail-cell.link-stale b, .rail-cell.link-connecting b, .rail-cell.link-nodevice b, .rail-cell.warn b { color: var(--warn); }
 .rail-cell.warn .rail-ic, .rail-cell.link-stale .rail-ic { color: var(--warn); background: color-mix(in oklab, var(--warn) 14%, transparent); }
 
 /* ---------------------------------------------------------- station grid */

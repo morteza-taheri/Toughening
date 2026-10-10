@@ -23,9 +23,16 @@ OPEN item instead of choosing a value.
 
 import json
 import logging
+import sys
 import threading
 import time
 from pathlib import Path
+
+# Allow `python pc/server.py` (not only `python -m pc.server`): make the repo
+# root importable so `from pc import ...` works from any working directory.
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 from typing import Optional, Tuple
 import asyncio
 
@@ -61,51 +68,50 @@ async def root() -> FileResponse:
 # ---------------------------------------------------------------------------
 # Admin panel (DR-50, Phase 2C-3i, PC-side only, HTTP Basic Auth, loopback)
 # ---------------------------------------------------------------------------
+# Every admin route uses pc_admin.require_local_admin, which checks the
+# loopback address FIRST and only then verifies Basic Auth (the old code
+# authenticated first and checked loopback afterwards).
 
 @app.get("/api/admin/status")
 async def admin_status_endpoint(
-    request: Request,
-    admin: dict = Depends(pc_admin.require_admin),
+    admin: dict = Depends(pc_admin.require_local_admin),
 ) -> dict:
     """Return admin status (loopback-only)."""
-    if not pc_admin.is_loopback(request):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access restricted to loopback",
-        )
-    pc_admin.admin_log("status", detail=admin["username"])
+    pc_admin.admin_log("status", detail="ok", user=admin["username"])
     return pc_admin.get_status()
 
 
 @app.get("/api/admin/backups")
 async def admin_backups_endpoint(
-    request: Request,
-    admin: dict = Depends(pc_admin.require_admin),
+    admin: dict = Depends(pc_admin.require_local_admin),
 ) -> dict:
     """List backups (loopback-only)."""
-    if not pc_admin.is_loopback(request):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access restricted to loopback",
-        )
-    pc_admin.admin_log("backups_list", detail=admin["username"])
+    pc_admin.admin_log("backups_list", detail="ok", user=admin["username"])
     return pc_admin.get_backups()
+
+
+@app.get("/api/admin/backups/{name}")
+async def admin_backup_download_endpoint(
+    name: str,
+    admin: dict = Depends(pc_admin.require_local_admin),
+):
+    """Download one backup file (loopback-only, strict file-name check)."""
+    path = pc_admin.backup_file_path(name)
+    if path is None:
+        raise HTTPException(status_code=404, detail="backup not found")
+    pc_admin.admin_log("backup_download", detail=name, user=admin["username"])
+    return FileResponse(path, filename=name, media_type="application/vnd.sqlite3",
+                        headers={"Cache-Control": "no-store"})
 
 
 @app.post("/api/admin/backup")
 async def admin_trigger_backup_endpoint(
-    request: Request,
-    admin: dict = Depends(pc_admin.require_admin),
+    admin: dict = Depends(pc_admin.require_local_admin),
 ) -> dict:
     """Trigger a backup (loopback-only)."""
-    if not pc_admin.is_loopback(request):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access restricted to loopback",
-        )
-    pc_admin.admin_log("backup_trigger", detail=admin["username"])
+    pc_admin.admin_log("backup_trigger", detail="requested", user=admin["username"])
     try:
-        result = pc_admin.trigger_backup()
+        result = await asyncio.to_thread(pc_admin.trigger_backup)
         pc_admin.admin_log("backup_done", detail=f"path={result.get('path', '')}", user=admin["username"])
         return result
     except ValueError as e:
@@ -113,18 +119,60 @@ async def admin_trigger_backup_endpoint(
         raise HTTPException(status_code=503, detail=str(e))
 
 
+@app.get("/api/admin/db")
+async def admin_db_endpoint(
+    admin: dict = Depends(pc_admin.require_local_admin),
+) -> dict:
+    """Per-type record statistics and database file information."""
+    return await asyncio.to_thread(pc_admin.db_overview)
+
+
+@app.post("/api/admin/db/check")
+async def admin_db_check_endpoint(
+    admin: dict = Depends(pc_admin.require_local_admin),
+) -> dict:
+    """Run a read-only SQLite integrity check (PRAGMA quick_check)."""
+    result = await asyncio.to_thread(pc_admin.db_integrity_check)
+    pc_admin.admin_log("db_check", detail="ok" if result["ok"] else "FAILED", user=admin["username"])
+    return result
+
+
+@app.get("/api/admin/records")
+async def admin_records_endpoint(
+    type: Optional[str] = None,
+    q: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    admin: dict = Depends(pc_admin.require_local_admin),
+) -> dict:
+    """Browse stored records, newest first (read-only)."""
+    return await asyncio.to_thread(pc_admin.list_records, type, q, limit, offset)
+
+
+@app.get("/api/admin/audit")
+async def admin_audit_endpoint(
+    lines: int = 200,
+    admin: dict = Depends(pc_admin.require_local_admin),
+) -> dict:
+    """Tail of the admin audit log (one-time password redacted)."""
+    return pc_admin.audit_tail(lines)
+
+
+@app.get("/api/admin/device")
+async def admin_device_endpoint(
+    admin: dict = Depends(pc_admin.require_local_admin),
+) -> dict:
+    """ESP32 link status as seen by this server."""
+    return device_status_snapshot()
+
+
 @app.post("/api/admin/logout")
 async def admin_logout_endpoint(
-    request: Request,
-    admin: dict = Depends(pc_admin.require_admin),
+    admin: dict = Depends(pc_admin.require_local_admin),
 ) -> dict:
     """Logout (loopback-only, clears session)."""
-    if not pc_admin.is_loopback(request):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access restricted to loopback",
-        )
-    pc_admin.admin_log("logout", detail=admin["username"])
+    pc_admin.admin_log("logout", detail="ok", user=admin["username"])
+    pc_admin.clear_auth_cache()
     # Return 401 to force browser to clear cached credentials
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -133,13 +181,8 @@ async def admin_logout_endpoint(
 
 
 @app.get("/admin", include_in_schema=False)
-async def admin_page(request: Request, admin: dict = Depends(pc_admin.require_admin)):
+async def admin_page(admin: dict = Depends(pc_admin.require_local_admin)):
     """Serve admin HTML page (loopback-only)."""
-    if not pc_admin.is_loopback(request):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access restricted to loopback",
-        )
     return FileResponse(
         STATIC_DIR / "admin.html",
         headers={"Cache-Control": "no-store"},
@@ -166,6 +209,56 @@ PC_ID = "pc-01"
 # GUI WebSocket broadcast state (Phase 2C Stage 2C-3g-2).
 _gui_clients: set = set()
 _gui_lock = asyncio.Lock()
+GUI_SEND_TIMEOUT_S = 2.0
+# Strong references to fire-and-forget tasks (asyncio only keeps weak ones).
+_background_tasks: set = set()
+
+# ESP32 link status (exposed read-only on /api/device/status). Kept out of
+# /ws/gui on purpose: GUI sockets only ever carry live_state frames.
+_device_state = {
+    "connected": False,
+    "connections": 0,
+    "host": None,
+    "connected_at_ms": None,
+    "disconnected_at_ms": None,
+    "last_message_ms": None,
+    "last_live_state_ms": None,
+    "messages_received": 0,
+    "messages_rejected": 0,
+    "device_id": None,
+    "boot_id": None,
+    "firmware_version": None,
+    "protocol_versions_supported": None,
+    "last_reject_reason": None,
+}
+
+
+def _now_ms() -> int:
+    return int(time.time() * 1000)
+
+
+def device_status_snapshot() -> dict:
+    """Return a copy of the device link status with derived ages."""
+    snap = dict(_device_state)
+    now = _now_ms()
+    last = snap.get("last_message_ms")
+    snap["last_message_age_ms"] = (now - last) if last else None
+    snap["gui_clients"] = len(_gui_clients)
+    snap["server_time_ms"] = now
+    return snap
+
+
+def _spawn(coro) -> None:
+    """Schedule a coroutine from sync code; no-op without a running loop
+    (dispatch() is also called directly by unit tests)."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        coro.close()
+        return
+    task = loop.create_task(coro)
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
 # Daily backup scheduler state (Phase 2C Stage 2C-3h, DR-18).
 # The scheduler is optional: it only starts when a backup_dir is
@@ -186,12 +279,21 @@ async def _start_backup_scheduler():
     but does NOT prevent the server from starting.
     """
     global _backup_stop_event, _backup_thread
+    # DR-50: create the admin config (and the one-time password in the audit
+    # log) on first start. Nothing used to create it, so /admin was always 503.
+    if not pc_admin.CONFIG_PATH.exists():
+        if pc_admin.ensure_config():
+            log.warning("admin config created at %s; the one-time admin password "
+                        "is in %s (unless TOUGHENING_ADMIN_DEFAULT_PASS was set)",
+                        pc_admin.CONFIG_PATH, pc_admin.LOG_PATH)
+        else:
+            log.error("could not create admin config at %s", pc_admin.CONFIG_PATH)
     cfg = pc.config.load_config()
     backup_dir = cfg.get("backup_dir")
     if backup_dir and pc.backup.is_destination_available(backup_dir):
         _backup_stop_event = threading.Event()
         _backup_thread = pc.backup.start_scheduler(
-            cfg.get("db_path") or pc_db.DEFAULT_DB_PATH,
+            pc_db.get_db_path(),
             backup_dir,
             cfg.get("backup_hour"),
             cfg.get("backup_retention"),
@@ -607,6 +709,12 @@ async def health() -> dict:
     return {"status": "ok", "version": SERVER_VERSION}
 
 
+@app.get("/api/device/status")
+async def device_status_endpoint() -> dict:
+    """ESP32 link status for the operator console (read-only)."""
+    return device_status_snapshot()
+
+
 @app.get("/api/export/csv")
 async def export_csv_endpoint(
     since: Optional[int] = None,
@@ -985,13 +1093,20 @@ def dispatch(message: dict) -> Optional[dict]:
         )
         # No persistence and no reply per contract §12.1.
         # Station simultaneity (HW-02/HW-03 — OPEN) is not decided here.
-        asyncio.create_task(_broadcast_to_gui(message))
+        _device_state["last_live_state_ms"] = _now_ms()
+        _spawn(_broadcast_to_gui(message))
         return None
 
     if message_type in DURABLE_TYPES:
         log.info("%s received record_id=%r", message_type, record_id)
 
-        if _db_conn is not None and record_id is not None:
+        if record_id is None:
+            # A durable record without record_id cannot be stored or
+            # de-duplicated; acknowledging it (old behaviour) silently lost it.
+            log.warning("%s without record_id — nack", message_type)
+            return _nack_payload(None, "missing_record_id", retryable=False)
+
+        if _db_conn is not None:
             status = pc_db.commit_record(_db_conn, message)
             if status == "error":
                 log.error(
@@ -1029,7 +1144,9 @@ def dispatch(message: dict) -> Optional[dict]:
                         return _nack_payload(
                             nested_id, "storage_error", retryable=True
                         )
-                record_ids.append(nested_id)
+                if nested_id is not None:
+                    # acked_record_ids is list_of_str: never put None in it.
+                    record_ids.append(nested_id)
         # v1.1.1 §11.5 (Gap 7): a batch is answered by ONE ack carrying
         # acked_record_ids, never by N separate acks, and never together
         # with acked_record_id. Only sent AFTER all records committed.
@@ -1104,9 +1221,10 @@ async def _broadcast_to_gui(message: dict) -> None:
     text = json.dumps(message)
     async with _gui_lock:
         dead = []
-        for ws in _gui_clients:
+        for ws in list(_gui_clients):
             try:
-                await ws.send_text(text)
+                # one stalled browser must not freeze the broadcast for all
+                await asyncio.wait_for(ws.send_text(text), timeout=GUI_SEND_TIMEOUT_S)
             except Exception:
                 dead.append(ws)
         for ws in dead:
@@ -1129,6 +1247,12 @@ async def ws_gui(websocket: WebSocket) -> None:
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
+        pass
+    except Exception as exc:  # e.g. RuntimeError after an abrupt close
+        log.info("gui socket error: %s", exc)
+    finally:
+        # The old code only cleaned up on WebSocketDisconnect, leaking
+        # clients on any other error.
         async with _gui_lock:
             _gui_clients.discard(websocket)
         log.info("gui disconnected (%d clients)", len(_gui_clients))
@@ -1141,19 +1265,32 @@ async def ws_device(websocket: WebSocket) -> None:
     host = client.host if client is not None else "unknown"
     await websocket.accept()
     log.info("device connected host=%s", host)
+    _device_state.update({
+        "connected": True,
+        "host": host,
+        "connected_at_ms": _now_ms(),
+        "connections": _device_state["connections"] + 1,
+    })
 
     if _db_conn is None:
         init_persistence()
 
+    def _rejected(reason):
+        _device_state["messages_rejected"] += 1
+        _device_state["last_reject_reason"] = reason
+
     try:
         while True:
             raw = await websocket.receive_text()
+            _device_state["last_message_ms"] = _now_ms()
+            _device_state["messages_received"] += 1
             try:
                 message = json.loads(raw, parse_constant=_reject_constant)
             except json.JSONDecodeError as exc:
                 # Corrupt / unparseable handling is OPEN (§8 item 15);
                 # the server must not crash on it.
                 log.warning("unparseable message: %s", exc)
+                _rejected("unparseable")
                 await websocket.send_json(
                     build_pc_envelope("nack", {
                         "nacked_record_id": None,
@@ -1165,6 +1302,7 @@ async def ws_device(websocket: WebSocket) -> None:
             except ValueError as exc:
                 # NaN / Infinity rejected here per contract §6 (T-P04).
                 log.warning("rejected non-finite constant: %s", exc)
+                _rejected("non_finite_value")
                 await websocket.send_json(
                     build_pc_envelope("nack", {
                         "nacked_record_id": None,
@@ -1177,6 +1315,7 @@ async def ws_device(websocket: WebSocket) -> None:
             ok, reason = validate_envelope(message)
             if not ok:
                 log.warning("envelope rejected: %s", reason)
+                _rejected(reason)
                 await websocket.send_json(
                     build_pc_envelope("nack", {
                         "nacked_record_id": (
@@ -1191,6 +1330,7 @@ async def ws_device(websocket: WebSocket) -> None:
             ok, reason = validate_payload(message)
             if not ok:
                 log.warning("payload rejected: %s", reason)
+                _rejected(reason)
                 await websocket.send_json(
                     build_pc_envelope("nack", {
                         "nacked_record_id": _record_id(message),
@@ -1200,26 +1340,56 @@ async def ws_device(websocket: WebSocket) -> None:
                 )
                 continue
 
+            if message.get("type") == "hello":
+                p = message.get("payload") or {}
+                _device_state.update({
+                    "device_id": message.get("device_id"),
+                    "boot_id": message.get("boot_id"),
+                    "firmware_version": p.get("firmware_version"),
+                    "protocol_versions_supported": p.get("protocol_versions_supported"),
+                })
+
             reply = dispatch(message)
             if reply is not None:
-                if message.get("type") == "reset_command":
-                    await websocket.send_json(
-                        build_pc_envelope("reset_result", reply)
-                    )
-                elif message.get("type") in DURABLE_TYPES or message.get("type") == "batch":
-                    await websocket.send_json(
-                        build_pc_envelope("ack", reply)
-                    )
-                else:
-                    await websocket.send_json(
-                        build_pc_envelope("nack", reply)
-                    )
+                await websocket.send_json(
+                    build_pc_envelope(_reply_type(message.get("type"), reply), reply)
+                )
     except WebSocketDisconnect:
         log.info("device disconnected host=%s", host)
+    except Exception as exc:
+        log.warning("device socket closed with error host=%s: %s", host, exc)
+    finally:
+        _device_state.update({
+            "connected": False,
+            "disconnected_at_ms": _now_ms(),
+        })
+
+
+def _reply_type(message_type: Optional[str], reply: dict) -> str:
+    """Choose the envelope type of a dispatch() reply.
+
+    BUG FIX: a storage_error for a durable record used to be sent with
+    type "ack" (because the type was chosen from the INCOMING message type
+    only), so the device would delete a record that was never stored.
+    """
+    if "reason" in reply and "retryable" in reply:
+        return "nack"
+    if message_type == "reset_command":
+        return "reset_result"
+    if message_type in DURABLE_TYPES or message_type == "batch":
+        return "ack"
+    return "nack"
 
 
 if __name__ == "__main__":
     # Binds 0.0.0.0 so a device on the ESP32 access point can reach it.
     # The address plan is OPEN (spec D-B2); no Windows network, DHCP or
-    # firewall change is made by this code.
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # firewall change is made by this code. Windows Firewall must allow
+    # inbound TCP 8000 on the Wi-Fi adapter for the ESP32 to connect.
+    #
+    # Run from the repository root:   python -m pc.server
+    # (running `python pc/server.py` also works: the repo root is added to
+    # sys.path below so `from pc import ...` resolves).
+    import os as _os
+    uvicorn.run(app, host=_os.environ.get("TOUGHENING_HOST", "0.0.0.0"),
+                port=int(_os.environ.get("TOUGHENING_PORT", "8000")))

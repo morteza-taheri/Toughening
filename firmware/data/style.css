@@ -6,7 +6,7 @@
 /* ---------- Font: bundled Vazirmatn Regular subset (Persian + Latin + digits) ---------- */
 @font-face {
   font-family: "Vazirmatn-subset";
-  src: url("assets/Vazirmatn-subset.woff2") format("woff2");
+  src: url("Vazirmatn-subset.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -199,6 +199,12 @@ input.ltr { text-align: end; }
 }
 .banner.danger { border-color: var(--danger); background: var(--danger-soft); }
 .banner.info { border-color: var(--line-2); background: var(--surface-2); }
+/* development build credentials (TM_DEV_SHOW_PASSWORD=1 only) */
+.banner.dev { margin-block-start: 14px; border-color: var(--warn); background: color-mix(in oklab, var(--warn) 12%, transparent); align-items: flex-start; }
+.banner.dev .dev-body { flex: 1; display: grid; gap: 6px; min-width: 0; }
+.banner.dev .dev-kv { display: flex; justify-content: space-between; gap: 10px; }
+.banner.dev code { font-family: ui-monospace, Consolas, monospace; font-size: 15px; user-select: all; word-break: break-all; }
+.banner.dev .btn { justify-self: start; margin-block-start: 4px; }
 .banner p { flex: 1; min-width: 220px; }
 
 /* ---------- Buttons & fields ---------- */

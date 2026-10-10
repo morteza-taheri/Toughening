@@ -4,10 +4,11 @@ import { prefs } from "./core.js";
 export const STATION_IDS = Array.from({ length: 16 }, (_, i) => i + 1);
 
 export const live = {
-  ws: "connecting",      // connecting | connected | disconnected
+  ws: "connecting",      // connecting | connected | disconnected  (browser <-> PC)
   last: null,            // last live_state payload
   lastAt: 0,             // PC time the last live_state arrived
   messages: 0,
+  device: null,          // /api/device/status snapshot (ESP32 <-> PC link)
 };
 
 const subs = new Set();
@@ -17,6 +18,24 @@ function emit() { subs.forEach(fn => { try { fn(live); } catch (e) { console.err
 export function isStale() {
   return !live.lastAt || Date.now() - live.lastAt > prefs.staleSec * 1000;
 }
+
+// Combined link state shown everywhere in the console. Before this fix the
+// console only knew whether ITS OWN socket to the PC was open, so it showed
+// "connected" while the ESP32 was actually offline.
+export function linkState() {
+  if (live.ws !== "connected") return live.ws;
+  if (live.device && !live.device.connected) return "nodevice";
+  return isStale() ? "stale" : "connected";
+}
+
+async function pollDevice() {
+  try {
+    const r = await fetch("/api/device/status", { cache: "no-store" });
+    if (r.ok) { live.device = await r.json(); emit(); }
+  } catch { /* server unreachable: live.ws reports it */ }
+}
+pollDevice();
+setInterval(pollDevice, 3000);
 
 export function stationLive(id) {
   const s = live.last?.stations?.find(x => Number(x.station_id) === id);
@@ -74,6 +93,7 @@ export function windowQS(since, until) {
 
 export const api = {
   health: () => getJSON("/health"),
+  device: () => getJSON("/api/device/status"),
   overview: (since, until) => getJSON(`/api/stations/overview?${windowQS(since, until)}`),
   history: (id, since, until) => getJSON(`/api/stations/${id}/history?${windowQS(since, until)}`),
   events: (since, until, types) =>

@@ -72,8 +72,10 @@ def make_backup(db_path, backup_dir):
 
     now = datetime.datetime.now()
     final_path = _backup_path_for(backup_dir, now)
+    # The temp name must NOT match backup_*.sqlite, otherwise a crash leaves
+    # a half-written file that is listed and counted by retention.
     fd, tmp_path = tempfile.mkstemp(
-        suffix=BACKUP_SUFFIX, prefix=BACKUP_PREFIX, dir=backup_dir
+        suffix=".tmp", prefix=".partial_", dir=backup_dir
     )
     try:
         os.close(fd)
@@ -150,6 +152,17 @@ def _seconds_until_next_occurrence(hour):
 
 
 def _scheduler_loop(db_path, backup_dir, hour, retention, stop_event):
+    try:
+        hour = int(hour)
+    except (TypeError, ValueError):
+        hour = 2
+    if not 0 <= hour <= 23:
+        log.warning("backup_hour %r out of range 0-23; using 2", hour)
+        hour = 2
+    try:
+        retention = max(1, int(retention))
+    except (TypeError, ValueError):
+        retention = DEFAULT_RETENTION
     if _needs_catchup(backup_dir):
         if stop_event.is_set():
             return
@@ -164,7 +177,10 @@ def _scheduler_loop(db_path, backup_dir, hour, retention, stop_event):
             break
         result = backup_now(db_path, backup_dir, retention)
         log.info("scheduled backup: %s", result)
-        if stop_event.wait(SECONDS_PER_DAY):
+        # BUG FIX: the loop used to wait a full day here AND then wait for the
+        # next occurrence of `hour`, i.e. one backup every 48 h. A short pause
+        # is enough to step past the current hour boundary.
+        if stop_event.wait(60):
             break
 
 

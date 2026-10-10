@@ -1,7 +1,7 @@
 // Dashboard and Station pages.
 import { prefs, t, h, num, int, pad2, fmtTime, fmtDateTime, fmtDuration, ago, stationName, esc, download } from "./core.js";
 import { icon } from "./icons.js";
-import { api, live, onLive, isStale, stationLive, stationState, STATION_IDS } from "./store.js";
+import { api, live, onLive, isStale, linkState, stationLive, stationState, STATION_IDS } from "./store.js";
 import { sparkline } from "./chart.js";
 import { historyPanel, liveDetail, makeRange, resolveRange, statePill, cssVar } from "./components.js";
 
@@ -12,8 +12,8 @@ function select(id) { selected = id; sessionStorage.setItem("toughening.selected
 function railHTML() {
   const p = live.last;
   const reporting = STATION_IDS.filter(id => stationState(id) !== "offline").length;
-  const link = live.ws !== "connected" ? live.ws : isStale() ? "stale" : "connected";
-  const linkTxt = { connected: t("conn.connected"), connecting: t("conn.connecting"), disconnected: t("conn.disconnected"), stale: t("conn.stale") }[link];
+  const link = linkState();
+  const linkTxt = t(`conn.${link}`);
   const alarm = p?.alarm_state || null, warn = p?.warning_state || null;
   const cell = (cls, ic, label, value, sub = "") =>
     `<div class="rail-cell ${cls}"><span class="rail-ic">${icon(ic, 18)}</span><div><span>${esc(label)}</span><b>${value}</b>${sub ? `<small>${sub}</small>` : ""}</div></div>`;

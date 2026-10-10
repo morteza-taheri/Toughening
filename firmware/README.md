@@ -72,3 +72,33 @@ comment block at the top of `src/main.cpp` and
 [`docs/PROJECT_SPECIFICATION.md`](../docs/PROJECT_SPECIFICATION.md) v0.7.2.
 
 Companion: [`docs/PROTOCOL_CONTRACT.md`](../docs/PROTOCOL_CONTRACT.md) v0.2.4.
+## Review fixes 2026-10-10 (firmware 0.2.1)
+
+Build / flash (both images are required — the web UI lives in SPIFFS):
+
+    pio run -e esp32dev -t upload       # firmware
+    pio run -e esp32dev -t uploadfs     # web UI from firmware/data/
+    pio device monitor                  # serial log (115200)
+
+### Development flag `TM_DEV_SHOW_PASSWORD`
+
+| Value | Behaviour |
+|---|---|
+| `0` (default, env `esp32dev`) | Production. Random one-time password printed on Serial at first boot; re-generated and re-printed at every boot until it has been changed. No plaintext password stored, no master password, no dev endpoint. Any dev plaintext left in NVS is erased. |
+| `1` (env `esp32dev_devpw`) | **Development only.** A random password is generated (if none is known), stored together with its hash and **always shown**: Serial at every boot + every 60 s, and a yellow box on the web login page (`GET /api/dev/credentials`). After a password change the new password is shown. The developer master password is accepted. |
+
+    pio run -e esp32dev_devpw -t upload
+
+Switching an existing device to a dev build replaces its web password with a
+new random one (the old one is unknown to the firmware). Never deploy a dev build.
+
+### Other notable changes
+
+* PBKDF2 rounds for new hashes: 20 000 (`TM_PBKDF2_ITERATIONS`). 600 000 rounds
+  took ~15–25 s per login on the ESP32, blocked the web server and could reset
+  the chip through the task watchdog. Old hashes still work and are upgraded on
+  the next successful login.
+* PC WebSocket client enabled (`TM_ENABLE_PC_WEBSOCKET_CLIENT`, default 1). It
+  runs in its own task, only connects while a station is on the AP, and uses
+  exponential backoff (1 s → 30 s).
+* Watchdog range is now 5–60 s.
