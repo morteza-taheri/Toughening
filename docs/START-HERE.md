@@ -1,9 +1,20 @@
 # Toughening Console — اجرای سریع
 
+## محیط توسعه (Development Environment)
+
+* **پروژه:** `D:\PMC\Documents\PlatformIO\Projects\Toughening`
+* **پایتون:** `pc\venv\Scripts\python.exe` (Python 3.13.0 در virtual environment)
+* **پلتفرم:** Windows 10 64-bit
+* **فایل‌های اصلی:**
+  - `pc/server.py` — سرور FastAPI + WebSocket
+  - `pc/simulator.py` — شبیه‌ساز پروتکل
+  - `pc/demo_feed.py` — داده نمایشی
+  - `firmware/src/main.cpp` — فیرم‌ویر ESP32
+* **پیش‌نیازها:** Python packages در `pc/venv/` نصب شده‌اند (FastAPI, uvicorn, pyserial, etc.)
+
 ## ۱) سرور
 ```bat
-cd /d D:\PMC\Documents\PlatformIO\Projects\Toughening
-pc\venv\Scripts\python.exe -m pc.server
+cd /d D:\PMC\Documents\PlatformIO\Projects\Toughening && pc\venv\Scripts\python.exe -m pc.server
 ```
 مرورگر: http://localhost:8000/  (اگر نسخه قبلی دیده شد: Ctrl + F5)
 
